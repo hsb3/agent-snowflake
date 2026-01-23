@@ -18,7 +18,7 @@ print(f"📦 Using database: {db_path}")
 
 # Create context with test database
 context = ContextSchema(
-    model="claude-sonnet-4-5-20250929",
+    model="claude-haiku-4-5",
     temperature=0.0,
     snowflake_uri=f"sqlite:///{db_path}",
     allowed_schemas="*",
@@ -59,10 +59,4 @@ except Exception as e:
     traceback.print_exc()
     exit(1)
 
-print("\n✅ All checks passed!")
-print("\n⚠️  Note: SQLite has limited Snowflake compatibility")
-print("   For Snowflake-specific SQL features, test with actual Snowflake")
-print("\nYou can now start the dev server:")
-print("  make dev")
-print("\nAnd configure the assistant with:")
-print(f"  snowflake_uri: sqlite:///{db_path}")
+print("\n All checks passed!")

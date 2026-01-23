@@ -1,10 +1,11 @@
-.PHONY: help install setup-test-db dev test test-fast format lint type-check clean
+.PHONY: help install setup-test-db setup-chinook dev test test-fast format lint type-check clean
 
 # Default target
 help:
 	@echo "Available commands:"
 	@echo "  make install        - Install dependencies with uv"
-	@echo "  make setup-test-db  - Create test SQLite database with sample data"
+	@echo "  make setup-test-db  - Create test SQLite database with stub TPC-H data"
+	@echo "  make setup-chinook  - Download Chinook database (digital media store, 11 tables)"
 	@echo "  make dev            - Start LangGraph dev server with Studio UI"
 	@echo "  make test           - Run all tests with pytest"
 	@echo "  make test-fast      - Run tests excluding slow tests"
@@ -21,11 +22,16 @@ install:
 setup-test-db:
 	uv run python scripts/setup_fakesnow_db.py
 
+# Chinook Database Setup (recommended for testing)
+setup-chinook:
+	uv run python scripts/setup_chinook_db.py
+
 # Development
 dev:
 	@echo "Starting LangGraph dev server..."
 	@echo "Studio UI will be available at http://localhost:8123"
-	langgraph dev
+	@echo "Note: Using --allow-blocking for SQLite file operations"
+	uv run langgraph dev --allow-blocking
 
 # Testing
 test:

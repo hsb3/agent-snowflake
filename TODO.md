@@ -5,6 +5,9 @@
 ### **backlog**
 
 - [ ] notes/obs in langg
+- [ ] prebuilt middlweare: https://docs.langchain.com/oss/python/langchain/middleware/built-in
+- [ ] anything else? 
+- [ ] 
 
 ### **in progress**
 

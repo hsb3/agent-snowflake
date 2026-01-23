@@ -4,6 +4,22 @@
 
 For local development and testing, we use SQLite with sample TPC-H data. This enables quick iteration without requiring a Snowflake account.
 
+### SQLite File Blocking Issue
+
+**Important:** SQLite uses local file I/O which is blocking. When running LangGraph dev server, you must use:
+
+```bash
+uv run langgraph dev --allow-blocking
+```
+
+Or use the Makefile which handles this automatically:
+
+```bash
+make dev
+```
+
+**Production Snowflake connections are network-based and don't have this blocking issue.** The `--allow-blocking` flag is only needed for local SQLite testing.
+
 ### SQLite vs Snowflake - What Works
 
 **✅ Compatible (works in both):**

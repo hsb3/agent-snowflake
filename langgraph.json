@@ -3,7 +3,9 @@
   "python_version": "3.12",
   "dependencies": ["."],
   "graphs": {
-    "agent": "src.agent_snowflake:graph"
+    "agent": "src.agent_snowflake:graph",
+    "agent_enhanced": "src.agent_snowflake:graph_enhanced",
+    "agent_minimal": "src.agent_snowflake:graph_minimal"
   },
   "env": ".env"
 }

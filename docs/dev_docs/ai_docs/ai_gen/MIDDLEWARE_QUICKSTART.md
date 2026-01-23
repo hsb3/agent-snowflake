@@ -1,0 +1,99 @@
+# Middleware Quick Start
+
+## Three Graph Variants
+
+| Graph | File | Use When | Middleware Count |
+|-------|------|----------|------------------|
+| `agent` | `graph.py` | Learning, debugging core | 0 (none) |
+| `agent_minimal` | `graph2.py` | Fast iteration, development | 2 (limits + retry) |
+| `agent_enhanced` | `graph2.py` | Production, real Snowflake | 7 (full stack) |
+
+## Quick Commands
+
+```bash
+# Start server (all graphs available)
+make dev
+
+# Or manually:
+uv run langgraph dev --allow-blocking
+```
+
+Then open http://localhost:8123 and select your graph variant in Studio UI.
+
+## What Each Middleware Does (Enhanced Graph)
+
+| Middleware | Purpose | Impact |
+|------------|---------|--------|
+| **HumanInTheLoop** | Approve dangerous SQL | Blocks until user approves |
+| **ModelCallLimit** | Prevent runaway costs | Max 10 calls/thread, 5/run |
+| **ToolCallLimit** (global) | Limit all tool usage | Max 20/thread, 10/run |
+| **ToolCallLimit** (sql_db_query) | Limit expensive queries | Max 10/thread, 5/run |
+| **ModelRetry** | Handle network failures | 3 retries with backoff |
+| **Summarization** | Compress long conversations | Triggers at 4000 tokens |
+| **TodoList** | Enable task planning | Adds `write_todos` tool |
+| **ModelFallback** | Switch models on failure | Tries cheaper fallbacks |
+
+## Testing Middleware
+
+### Test Human-in-the-Loop
+```bash
+SNOWFLAKE_AGENT_READ_ONLY=false make dev
+```
+In Studio, send: `"Delete all rows from CUSTOMER"` → Will request approval
+
+### Test Call Limits
+In Studio, send: `"Show me everything about all tables"` → Hits limit gracefully
+
+### Test Todo List
+Send: `"Analyze top customers, their orders, and forecast trends"` → Creates task plan
+
+## Common Customizations
+
+### Adjust Cost Limits
+Edit `graph2.py`:
+```python
+ModelCallLimitMiddleware(
+    thread_limit=20,  # Increase from 10
+    run_limit=10,     # Increase from 5
+)
+```
+
+### Disable Human-in-the-Loop
+Comment out in `graph2.py`:
+```python
+# middleware.append(HumanInTheLoopMiddleware(...))
+```
+
+### Change Summarization Trigger
+```python
+SummarizationMiddleware(
+    trigger=("tokens", 8000),  # Increase from 4000
+    keep=("messages", 30),     # Increase from 20
+)
+```
+
+## Which Graph Should I Use?
+
+```
+Local SQLite Testing
+  └─> agent_minimal (fast iteration)
+
+Production Snowflake (Low Risk)
+  └─> agent_minimal or agent_enhanced
+
+Production Snowflake (High Risk)
+  └─> agent_enhanced (full safety)
+
+Learning/Debugging
+  └─> agent (no middleware)
+```
+
+## Performance Impact
+
+- **Total latency added:** < 5ms (except HITL)
+- **Extra API calls:** Only summarization (rare)
+- **Memory:** InMemorySaver for HITL checkpoints
+
+## Full Documentation
+
+See `docs/MIDDLEWARE.md` for detailed configuration, troubleshooting, and examples.
