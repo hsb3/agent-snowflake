@@ -16,7 +16,7 @@ help:
 
 # Installation
 install:
-	uv sync
+	uv sync --group dev
 
 # Test Database Setup
 setup-fakesnow:
@@ -61,4 +61,5 @@ clean:
 	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
 	rm -f test_snowflake.db test_chinook.db 2>/dev/null || true
 	rm -rf build/ dist/ .coverage htmlcov/ 2>/dev/null || true
-	@echo "Cleanup complete (preserved .env, .env.local, .venv)"
+	rm -rf .venv .langgraph_api
+	@echo "Cleanup complete (preserved .env, .env.local)"

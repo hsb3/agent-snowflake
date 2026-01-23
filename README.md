@@ -1,13 +1,22 @@
 # agent-snowflake
 
+LangGraph agents for querying Snowflake databases using LangChain's SQL toolkit.
 
-3 example langchain/langgraph agents to experiment with.
+## Quick Start
 
-- `agent` - Basic agent; just uses sql
-- `agent_minimal` - more controls
-- `agent_enhanced` - more extenders
+```bash
+make install
+make setup-fakesnow  # SQLite stub for local dev
+make dev             # LangGraph Studio at localhost:2024
+```
 
-## Architecture Diagrams
+## Agent Variants
+
+- **agent** - Core SQL agent with LangChain toolkit
+- **agent_minimal** - Adds guardrails and context controls
+- **agent_enhanced** - Full featured with extended tooling
+
+## Architecture
 
 <table>
   <tr>
@@ -23,33 +32,35 @@
   </tr>
 </table>
 
-## Getting Started
+## Development
 
-Use Makefile to get started quickly.
+```bash
+make test          # Run tests
+make format        # Ruff formatting
+make type-check    # ty type checker
+```
 
-Available commands:
-  make install        - Install dependencies with uv
-  make setup-fakesnow - Stub sqlite db
-  make setup-chinook  - Chinook sqlite db
-  make dev            - Start LangGraph dev server with Studio UI\
-  make test           - Run all tests with pytest
-  make test-fast      - Run tests excluding slow tests
-  make format         - Format code with ruff
-  make lint           - Lint code with ruff
-  make type-check     - Type check with ty
-  make clean          - Remove generated files and caches
+See `Makefile` for additional commands (setup-chinook, test-fast, lint, clean).
 
-----
+## Notes
 
-NOTES:
-- LANGSMITH_API_KEY is optional 
-- Swagger-ish docs available at localhost:2024/docs
-- site won't open in safari unless you use --tunnel switch
+- LANGSMITH_API_KEY optional
+- API docs at localhost:2024/docs
+- Safari requires `--tunnel` flag
+- Config precedence: defaults → environment → overrides
 
-----
+---
 
-Parameters set: defaults > environment > config overrides
+### Try Prompt
+```
+Answer below questions, one at a time:
+
+“For each billing country, what is total invoice revenue, number of invoices, and average invoice total? Rank countries by total revenue (desc) and return the top 10.”
 
 
---- 
+“List the top 10 artists by total sales revenue. For each artist, include total revenue, number of distinct tracks sold, and number of distinct customers.”
 
+
+“For each customer, compute: first purchase date, last purchase date, total spend, and number of distinct purchase months. Then return the 20 customers with the most distinct purchase months (tie-break by total spend).”
+
+```

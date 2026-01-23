@@ -5,18 +5,8 @@ build-backend = "hatchling.build"
 [project]
 name = "agent-snowflake"
 version = "0.1.0"
-description = "LangGraph agent for Snowflake database interactions"
-readme = "README.md"
+description = "agent that connects to databases and uses various middlewares"
 requires-python = ">=3.12"
-authors = [
-    { name = "Henry Burden", email = "hsb3@example.com" }
-]
-keywords = ["langchain", "langgraph", "snowflake", "agent", "database"]
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.12",
-]
 dependencies = [
     "duckdb>=1.4.3",
     "duckdb-engine>=0.17.0",
@@ -28,29 +18,22 @@ dependencies = [
     "langchain-openai>=1.1.7",
     "langgraph>=1.0.7",
     "pydantic-settings>=2.12.0",
-    "pytest>=9.0.2",
     "python-dotenv>=1.2.1",
     "snowflake-connector-python>=4.2.0",
     "snowflake-sqlalchemy>=1.8.2",
     "sqlalchemy>=2.0.46",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "langgraph-cli[inmem]>=0.4.12",
+    "pytest>=9.0.2",
     "ruff>=0.14.14",
     "ty>=0.0.13",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_snowflake"]
-
-[tool.uv]
-dev-dependencies = [
-    "langgraph-cli[inmem]>=0.4.12",
-    "ruff>=0.14.14",
-    "ty>=0.0.13",
-]
 
 [tool.ruff]
 line-length = 100

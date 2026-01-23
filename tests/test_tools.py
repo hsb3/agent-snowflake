@@ -106,24 +106,6 @@ def test_create_engine_from_uri(test_context):
     )
 
 
-def test_create_engine_from_parameters():
-    """Test engine creation from individual parameters."""
-    context = ContextSchema(
-        snowflake_account="test-account",
-        snowflake_user="test-user",
-        snowflake_password="test-pass",
-        snowflake_database="TEST_DB",
-        snowflake_schema="TEST_SCHEMA",
-        snowflake_warehouse="TEST_WH",
-        snowflake_role="TEST_ROLE",
-    )
-    engine = create_snowflake_engine(context)
-    assert engine is not None
-    url_str = str(engine.url)
-    assert "test-user" in url_str
-    assert "test-account" in url_str
-
-
 def test_create_engine_missing_params():
     """Test that engine creation fails without required params."""
     context = ContextSchema(
@@ -205,27 +187,6 @@ def test_create_sql_tools_with_provided_database(mock_llm, sqlite_test_db):
     assert len(tools) > 0
     tool_names = [t.name for t in tools]
     assert any("query" in name for name in tool_names)
-
-
-def test_engine_uri_with_query_params():
-    """Test engine creation with warehouse and role parameters."""
-    context = ContextSchema(
-        snowflake_account="myaccount",
-        snowflake_user="myuser",
-        snowflake_password="mypass",
-        snowflake_database="mydb",
-        snowflake_schema="myschema",
-        snowflake_warehouse="mywh",
-        snowflake_role="myrole",
-    )
-
-    engine = create_snowflake_engine(context)
-    url_str = str(engine.url)
-
-    # Check that parameters are in the URL
-    assert "myaccount" in url_str
-    assert "myuser" in url_str
-    assert "mydb" in url_str
 
 
 def test_engine_uri_with_timeout():

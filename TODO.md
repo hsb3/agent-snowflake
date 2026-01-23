@@ -107,10 +107,14 @@ clean
 
 pip install "snowflake-snowpark-python[localtest]"
 https://docs.snowflake.com/en/developer-guide/snowpark/python/testing-locally
-
+>>> license required . .. meh
 
 ---
+
 ```py
+
+# roll your own tools ...
+
 pip install "snowflake-sqlalchemy"
 
 from sqlalchemy import create_engine, text
@@ -130,3 +134,20 @@ with engine.connect() as conn:
     rows = conn.execute(text("select current_version(), current_warehouse(), current_role()")).all()
     print(rows)
 ```
+
+### stock quesations for 
+
+
+```
+Answer below questions, one at a time:
+
+“For each billing country, what is total invoice revenue, number of invoices, and average invoice total? Rank countries by total revenue (desc) and return the top 10.”
+
+
+“List the top 10 artists by total sales revenue. For each artist, include total revenue, number of distinct tracks sold, and number of distinct customers.”
+
+
+“For each customer, compute: first purchase date, last purchase date, total spend, and number of distinct purchase months. Then return the 20 customers with the most distinct purchase months (tie-break by total spend).”
+
+```
+⸻
