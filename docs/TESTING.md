@@ -322,9 +322,10 @@ If the emulator doesn't meet your needs, consider:
 
 ```
 agent-snowflake/
+├── docs/
+│   └── TESTING.md             # This file
 ├── docker-compose.yml          # Emulator container configuration
 ├── test_emulator.py           # Quick connection test script
-├── TESTING.md                 # This file
 └── scripts/
     ├── init_data.sql          # Sample TPC-H data initialization
     └── test_connection.py     # Detailed test script

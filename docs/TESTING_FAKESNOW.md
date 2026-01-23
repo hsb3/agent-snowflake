@@ -332,8 +332,9 @@ with fakesnow.patch():
 
 ```
 agent-snowflake/
+├── docs/
+│   └── TESTING_FAKESNOW.md    # This file
 ├── test_fakesnow.py           # Test script with sample data
-├── TESTING_FAKESNOW.md        # This file
 └── scripts/
     └── sample_data.py         # Sample data loader
 ```

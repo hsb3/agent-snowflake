@@ -149,7 +149,7 @@ def setup_fakesnow(already_installed):
     print("\n1. Run the test script:")
     print("   uv run python test_fakesnow.py")
     print("\n2. Read the documentation:")
-    print("   TESTING_FAKESNOW.md")
+    print("   docs/TESTING_FAKESNOW.md")
     print("\n3. Example usage:")
     print("""
    import fakesnow
@@ -205,7 +205,7 @@ def setup_docker(docker_available):
     print("\n1. Test the connection:")
     print("   uv run python test_emulator.py")
     print("\n2. Read the documentation:")
-    print("   TESTING.md")
+    print("   docs/TESTING.md")
     print("\n3. Useful commands:")
     print("   docker-compose up -d     # Start")
     print("   docker-compose stop      # Stop (keeps data)")
@@ -233,7 +233,7 @@ def setup_trial():
     print("  SNOWFLAKE_SAMPLE_DATA.TPCH_SF100")
 
     print_section("Documentation")
-    print("\nSee README_TESTING.md for detailed setup instructions.")
+    print("\nSee docs/README_TESTING.md for detailed setup instructions.")
 
 
 def show_documentation():
@@ -241,10 +241,10 @@ def show_documentation():
     print_header("Documentation")
 
     docs = [
-        ("README_TESTING.md", "Main testing guide (all options)"),
-        ("TESTING_FAKESNOW.md", "fakesnow detailed documentation"),
-        ("TESTING.md", "Docker emulator detailed documentation"),
-        ("LOCAL_TESTING_SUMMARY.md", "Implementation summary"),
+        ("docs/README_TESTING.md", "Main testing guide (all options)"),
+        ("docs/TESTING_FAKESNOW.md", "fakesnow detailed documentation"),
+        ("docs/TESTING.md", "Docker emulator detailed documentation"),
+        ("docs/LOCAL_TESTING_SUMMARY.md", "Implementation summary"),
     ]
 
     print("Available documentation:\n")

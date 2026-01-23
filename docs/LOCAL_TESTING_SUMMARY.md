@@ -53,13 +53,14 @@ Three viable options were identified for local Snowflake testing:
 
 ```
 agent-snowflake/
-├── README_TESTING.md              # Main testing guide (all options)
-├── TESTING_FAKESNOW.md           # Detailed fakesnow documentation
-├── TESTING.md                    # Detailed Docker emulator documentation
+├── docs/
+│   ├── README_TESTING.md         # Main testing guide (all options)
+│   ├── TESTING_FAKESNOW.md      # Detailed fakesnow documentation
+│   ├── TESTING.md               # Detailed Docker emulator documentation
+│   └── LOCAL_TESTING_SUMMARY.md # This file
 ├── docker-compose.yml            # Docker emulator configuration
 ├── test_fakesnow.py              # fakesnow test script with sample data
 ├── test_emulator.py              # Docker emulator test script
-├── LOCAL_TESTING_SUMMARY.md      # This file
 └── scripts/
     ├── init_data.sql             # TPC-H sample data for Docker emulator
     └── test_connection.py        # Detailed connection test script

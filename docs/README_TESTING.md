@@ -25,142 +25,37 @@ Since Snowflake is a cloud-native data warehouse, there's no official local vers
 
 **Best for:** Unit testing, CI/CD, local development without Docker
 
-### Installation
+**Quick summary:** Pure Python mocking library using DuckDB backend. No Docker required, fast test execution, perfect for pytest and CI/CD pipelines.
 
+**For complete details:** See [TESTING_FAKESNOW.md](./TESTING_FAKESNOW.md)
+
+**Quick start:**
 ```bash
 uv add fakesnow
-```
-
-### Quick Start
-
-```python
-import fakesnow
-import snowflake.connector
-
-# Use as context manager
-with fakesnow.patch():
-    conn = snowflake.connector.connect()
-    cursor = conn.cursor()
-    cursor.execute("SELECT 'Hello from fakesnow!' as message")
-    print(cursor.fetchone())
-```
-
-### Run Test Script
-
-```bash
 uv run python test_fakesnow.py
 ```
-
-### Features
-
-- ✅ Pure Python (no Docker needed)
-- ✅ DuckDB backend (fast, SQL-compatible)
-- ✅ Works with snowflake-connector-python
-- ✅ Supports most SQL operations
-- ✅ Perfect for pytest
-- ✅ In-memory or file-based persistence
-
-### Limitations
-
-- ❌ No Snowflake stages
-- ❌ No Snowpark support
-- ❌ Some Snowflake-specific functions missing
-- ❌ No stored procedures
-
-### Documentation
-
-See [TESTING_FAKESNOW.md](./TESTING_FAKESNOW.md) for detailed documentation.
 
 ## Option 2: snowflake-emulator (Docker)
 
 **Best for:** Integration testing, team environments, persistent test data
 
-### Prerequisites
+**Quick summary:** Docker-based HTTP API emulator with DuckDB backend. Provides persistent storage and good Snowflake compatibility for integration testing.
 
-- Docker and Docker Compose
-- macOS, Linux, or Windows with WSL
+**For complete details:** See [TESTING.md](./TESTING.md)
 
-### Quick Start
-
+**Quick start:**
 ```bash
-# Start the emulator
 docker-compose up -d
-
-# Test connection
 uv run python test_emulator.py
-
-# Stop emulator (keeps data)
-docker-compose stop
-
-# Stop and remove (deletes data)
-docker-compose down -v
 ```
-
-### Connection
-
-```python
-import snowflake.connector
-
-conn = snowflake.connector.connect(
-    account="test",
-    user="test",
-    password="test",
-    host="localhost",
-    port=8080,
-    protocol="http",
-    insecure_mode=True
-)
-```
-
-### Features
-
-- ✅ Good Snowflake compatibility
-- ✅ HTTP API endpoint
-- ✅ Persistent storage via Docker volumes
-- ✅ Runs in container
-- ✅ DuckDB backend
-
-### Limitations
-
-- ❌ Requires Docker
-- ❌ Platform-specific (Linux x86_64 preferred)
-- ❌ No Snowpark or stages
-- ❌ Limited Snowflake-specific features
-
-### Documentation
-
-See [TESTING.md](./TESTING.md) for detailed documentation.
 
 ## Option 3: Real Snowflake Trial
 
 **Best for:** Feature testing, performance testing, production-like environments
 
-### Setup
+**Quick summary:** 100% compatible real Snowflake environment with $400 free credits and 30-day trial. Required for testing Snowflake-specific features like Stages, Snowpark, and UDFs.
 
-1. Sign up at https://signup.snowflake.com/
-2. Get $400 in free credits
-3. 30-day trial period
-4. Access to all Snowflake features
-
-### Features
-
-- ✅ 100% Snowflake compatibility
-- ✅ All features available
-- ✅ Real performance characteristics
-- ✅ Production-like environment
-- ✅ Stages, Snowpark, UDFs, etc.
-
-### Limitations
-
-- ❌ Requires signup
-- ❌ Time-limited trial
-- ❌ Costs money after trial
-- ❌ Requires internet connection
-- ❌ Slower than local testing
-
-### Sample Datasets
-
-Snowflake provides free sample datasets including TPC-H and TPC-DS in the `SNOWFLAKE_SAMPLE_DATA` database.
+**Sign up:** https://signup.snowflake.com/
 
 ## Comparison
 
@@ -201,152 +96,39 @@ Snowflake provides free sample datasets including TPC-H and TPC-DS in the `SNOWF
 
 ## Sample Data
 
-All testing solutions include a TPC-H inspired sample dataset with:
+All testing solutions include a TPC-H inspired sample dataset with 6 tables (REGION, NATION, CUSTOMER, ORDERS, PART, LINEITEM) containing realistic business data.
 
-### Tables
-
-- **REGION** - 5 geographic regions
-- **NATION** - 25 countries
-- **CUSTOMER** - 10 sample customers
-- **ORDERS** - 10 sample orders
-- **PART** - 5 sample products
-- **LINEITEM** - 5 order line items
-
-### Sample Queries
-
-```python
-import snowflake.connector
-
-# Connect (example with fakesnow)
-import fakesnow
-with fakesnow.patch():
-    conn = snowflake.connector.connect(
-        database="SAMPLE_DB",
-        schema="TPCH_SAMPLE"
-    )
-    cursor = conn.cursor()
-
-    # Top customers by spending
-    cursor.execute("""
-        SELECT
-            c.C_NAME,
-            SUM(o.O_TOTALPRICE) as TOTAL_SPENT
-        FROM CUSTOMER c
-        JOIN ORDERS o ON c.C_CUSTKEY = o.O_CUSTKEY
-        GROUP BY c.C_NAME
-        ORDER BY TOTAL_SPENT DESC
-        LIMIT 5
-    """)
-
-    for row in cursor.fetchall():
-        print(f"{row[0]}: ${row[1]:,.2f}")
-```
+**For sample queries and detailed schema:** See [TESTING_FAKESNOW.md](./TESTING_FAKESNOW.md#sample-queries) or [TESTING.md](./TESTING.md#sample-queries)
 
 ## Environment Configuration
 
-### For fakesnow
+See `.env.example` for environment variable templates for all three testing options.
 
-```bash
-# .env file
-SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT=test
-SNOWFLAKE_AGENT_SNOWFLAKE_USER=test
-SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD=test
-SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE=SAMPLE_DB
-SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA=TPCH_SAMPLE
-```
-
-### For snowflake-emulator
-
-```bash
-# .env file
-SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT=test
-SNOWFLAKE_AGENT_SNOWFLAKE_USER=test
-SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD=test
-SNOWFLAKE_AGENT_SNOWFLAKE_HOST=localhost
-SNOWFLAKE_AGENT_SNOWFLAKE_PORT=8080
-SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE=SAMPLE_DB
-SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA=TPCH_SAMPLE
-```
-
-### For Snowflake Trial
-
-```bash
-# .env file
-SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT=your_account_identifier
-SNOWFLAKE_AGENT_SNOWFLAKE_USER=your_username
-SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD=your_password
-SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE=your_warehouse
-SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE=your_database
-SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA=your_schema
-SNOWFLAKE_AGENT_SNOWFLAKE_ROLE=your_role
-```
+**For detailed configuration:** See [TESTING_FAKESNOW.md](./TESTING_FAKESNOW.md#environment-variables) or [TESTING.md](./TESTING.md#environment-variables)
 
 ## Getting Started
 
-### Quick Start (Recommended)
+**Recommended approach (fakesnow):**
+```bash
+uv add fakesnow
+uv run python test_fakesnow.py
+```
 
-1. Install fakesnow:
-   ```bash
-   uv add fakesnow
-   ```
+**Alternative (Docker emulator):**
+```bash
+docker-compose up -d
+uv run python test_emulator.py
+```
 
-2. Run test script:
-   ```bash
-   uv run python test_fakesnow.py
-   ```
-
-3. Start building your agent!
-
-### Alternative: Docker Emulator
-
-1. Start emulator:
-   ```bash
-   docker-compose up -d
-   ```
-
-2. Run test script:
-   ```bash
-   uv run python test_emulator.py
-   ```
-
-3. Start building your agent!
+Then start building your agent!
 
 ## Troubleshooting
 
-### fakesnow Issues
+**For detailed troubleshooting:** See [TESTING_FAKESNOW.md](./TESTING_FAKESNOW.md#troubleshooting) or [TESTING.md](./TESTING.md#troubleshooting)
 
-```bash
-# Make sure it's installed
-uv add fakesnow
-
-# Check Python version (requires 3.10+)
-python --version
-```
-
-### Docker Issues
-
-```bash
-# Check if Docker is running
-docker ps
-
-# Restart Docker Desktop (macOS)
-# Applications → Docker → Restart
-
-# Check emulator logs
-docker-compose logs -f
-```
-
-### Connection Issues
-
-```python
-# Always use context manager with fakesnow
-with fakesnow.patch():
-    # Your code here
-    pass
-
-# For emulator, ensure it's running
-docker-compose ps
-```
+**Quick fixes:**
+- fakesnow: Ensure installed (`uv add fakesnow`) and use context manager
+- Docker: Ensure Docker running (`docker ps`) and emulator started (`docker-compose up -d`)
 
 ## Additional Resources
 
@@ -371,9 +153,10 @@ docker-compose ps
 
 ```
 agent-snowflake/
-├── README_TESTING.md              # This file
-├── TESTING_FAKESNOW.md           # fakesnow detailed docs
-├── TESTING.md                    # Docker emulator detailed docs
+├── docs/
+│   ├── README_TESTING.md        # This file
+│   ├── TESTING_FAKESNOW.md     # fakesnow detailed docs
+│   └── TESTING.md              # Docker emulator detailed docs
 ├── docker-compose.yml            # Docker emulator config
 ├── test_fakesnow.py              # fakesnow test script
 ├── test_emulator.py              # Docker emulator test script
