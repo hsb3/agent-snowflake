@@ -1,7 +1,7 @@
 """Utility functions for the Snowflake agent."""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from langchain.chat_models import init_chat_model
@@ -11,6 +11,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from .context import ContextSchema
+
+if TYPE_CHECKING:
+    from .context2 import EnhancedContextSchema
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +86,7 @@ def is_test_connection(uri: str) -> bool:
     )
 
 
-def create_snowflake_engine(context: ContextSchema) -> Engine:
+def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") -> Engine:
     """Create SQLAlchemy engine from context configuration.
 
     Supports both URI-based and parameter-based connection methods.
@@ -166,7 +169,7 @@ def create_snowflake_engine(context: ContextSchema) -> Engine:
 
 
 def create_sql_database(
-    context: ContextSchema,
+    context: "ContextSchema | EnhancedContextSchema",
     engine: Engine | None = None,
 ) -> SQLDatabase:
     """Create LangChain SQLDatabase with guardrails from context.

@@ -9,7 +9,7 @@ This module demonstrates valuable middleware configurations for SQL agents:
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
@@ -86,17 +86,16 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     # Note: Requires checkpointer to maintain state across interruptions
     if context.enable_hitl and not context.read_only:
         allowed_decisions = [d.strip() for d in context.hitl_allowed_decisions.split(",")]
+        interrupt_config: Any = {
+            "sql_db_query": {
+                "allowed_decisions": allowed_decisions,
+            },
+            # Don't interrupt on schema inspection tools
+            "sql_db_schema": False,
+            "sql_db_list_tables": False,
+        }
         middleware.append(
-            HumanInTheLoopMiddleware(
-                interrupt_on={
-                    "sql_db_query": {
-                        "allowed_decisions": allowed_decisions,
-                    },
-                    # Don't interrupt on schema inspection tools
-                    "sql_db_schema": False,
-                    "sql_db_list_tables": False,
-                }
-            )
+            HumanInTheLoopMiddleware(interrupt_on=cast(Any, interrupt_config))
         )
         if context.enable_debug:
             logger.info(f"Added HumanInTheLoopMiddleware with decisions: {allowed_decisions}")

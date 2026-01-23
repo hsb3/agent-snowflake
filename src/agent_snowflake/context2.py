@@ -9,7 +9,7 @@ Supports the same layered configuration: Runtime → Environment → Defaults.
 import logging
 import os
 from dataclasses import dataclass, field, fields
-from typing import Annotated
+from typing import Annotated, Literal, cast
 
 from langchain_core.runnables import RunnableConfig
 
@@ -220,7 +220,7 @@ class EnhancedContextSchema:
         },
     )
 
-    model_call_exit_behavior: str = field(
+    model_call_exit_behavior: Literal["end", "error"] = field(
         default="end",
         metadata={
             "description": "Behavior when model call limit reached: 'end' (graceful) or 'error' (exception)",
@@ -245,7 +245,7 @@ class EnhancedContextSchema:
         },
     )
 
-    tool_call_exit_behavior: str = field(
+    tool_call_exit_behavior: Literal["continue", "error", "end"] = field(
         default="continue",
         metadata={
             "description": "Behavior when tool call limit reached: 'continue' (block with error), 'end', or 'error'",
@@ -484,10 +484,10 @@ class EnhancedContextSchema:
             hitl_allowed_decisions=os.environ.get("SNOWFLAKE_AGENT_HITL_ALLOWED_DECISIONS", "approve,edit,reject"),
             model_call_thread_limit=int(os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_THREAD_LIMIT", "10")),
             model_call_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_RUN_LIMIT", "5")),
-            model_call_exit_behavior=os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_EXIT_BEHAVIOR", "end"),
+            model_call_exit_behavior=cast(Literal["end", "error"], os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_EXIT_BEHAVIOR", "end")),
             tool_call_thread_limit=int(os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_THREAD_LIMIT", "20")),
             tool_call_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_RUN_LIMIT", "10")),
-            tool_call_exit_behavior=os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_EXIT_BEHAVIOR", "continue"),
+            tool_call_exit_behavior=cast(Literal["continue", "error", "end"], os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_EXIT_BEHAVIOR", "continue")),
             sql_query_thread_limit=int(os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_THREAD_LIMIT", "10")),
             sql_query_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_RUN_LIMIT", "5")),
             retry_max_retries=int(os.environ.get("SNOWFLAKE_AGENT_RETRY_MAX_RETRIES", "3")),

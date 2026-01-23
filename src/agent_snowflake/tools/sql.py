@@ -5,14 +5,12 @@ configuration and guardrails from the agent context.
 """
 
 import logging
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool
-
-from typing import TYPE_CHECKING
 
 from ..context import ContextSchema
 from ..utils import create_sql_database
