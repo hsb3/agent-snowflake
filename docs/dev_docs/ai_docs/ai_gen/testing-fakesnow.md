@@ -1,3 +1,11 @@
+---
+title: Local Snowflake Testing with fakesnow
+created: 2026-01-23
+updated: 2026-01-23
+tags: [testing, fakesnow, local, sqlite]
+doc_type: guide
+---
+
 # Local Snowflake Testing with fakesnow
 
 This document describes how to use **fakesnow** for local Snowflake testing without requiring Docker or Snowflake credentials.

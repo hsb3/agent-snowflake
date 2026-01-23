@@ -1,3 +1,11 @@
+---
+title: LangChain SQL Tools Reference
+created: 2026-01-23
+updated: 2026-01-23
+tags: [langchain, sql, tools, reference]
+doc_type: reference
+---
+
 # LangChain SQL Tools Reference
 
 ## Overview

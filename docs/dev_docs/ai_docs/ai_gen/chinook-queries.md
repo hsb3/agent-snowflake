@@ -1,3 +1,11 @@
+---
+title: Chinook Database - Example Queries
+created: 2026-01-23
+updated: 2026-01-23
+tags: [testing, uat, database, queries, examples]
+doc_type: reference
+---
+
 # Chinook Database - Example Queries
 
 The Chinook database represents a digital media store with realistic data. Here are interesting queries to test your Snowflake agent.

@@ -1,3 +1,11 @@
+---
+title: Template Commands - Running List
+created: 2026-01-23
+updated: 2026-01-23
+tags: [templates, commands, patterns]
+doc_type: reference
+---
+
 # Template Commands - Running List
 
 Commands and patterns to incorporate into template scripts as we build out the agent.

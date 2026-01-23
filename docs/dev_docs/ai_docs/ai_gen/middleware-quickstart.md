@@ -1,3 +1,11 @@
+---
+title: Middleware Quick Start
+created: 2026-01-23
+updated: 2026-01-23
+tags: [middleware, quickstart, configuration]
+doc_type: guide
+---
+
 # Middleware Quick Start
 
 ## Three Graph Variants

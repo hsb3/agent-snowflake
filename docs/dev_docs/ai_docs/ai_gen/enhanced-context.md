@@ -1,3 +1,11 @@
+---
+title: Enhanced Context Schema Guide
+created: 2026-01-23
+updated: 2026-01-23
+tags: [configuration, middleware, context, schema]
+doc_type: reference
+---
+
 # Enhanced Context Schema Guide
 
 This document explains the `EnhancedContextSchema` configuration used by `graph_enhanced` and `graph_minimal` in `graph2.py`.

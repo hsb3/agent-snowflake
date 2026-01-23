@@ -1,3 +1,11 @@
+---
+title: Built-in Middleware
+created: 2026-01-23
+updated: 2026-01-23
+tags: [middleware, langchain, reference]
+doc_type: reference
+---
+
 # Built-in middleware
 
 > Prebuilt middleware for common agent use cases

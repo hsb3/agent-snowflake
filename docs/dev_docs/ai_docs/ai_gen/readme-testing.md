@@ -1,3 +1,11 @@
+---
+title: Local Snowflake Testing Guide
+created: 2026-01-23
+updated: 2026-01-23
+tags: [testing, sqlite, fakesnow, local]
+doc_type: guide
+---
+
 # Local Snowflake Testing Guide
 
 This guide covers multiple approaches for testing Snowflake locally without requiring cloud credentials or incurring costs.
