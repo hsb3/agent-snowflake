@@ -13,6 +13,7 @@ from .context import ContextSchema
 
 # from .state import AgentState # default agent state for langchain v1 agent
 from .prompts import system_prompt
+from .tools import create_sql_tools
 from .utils import init_model
 
 logger = logging.getLogger(__name__)
@@ -47,8 +48,11 @@ def build_graph(config: RunnableConfig | None = None) -> CompiledStateGraph:
         temperature=context.temperature,
     )
 
-    # Tools will be added here
-    tools = []
+    # Create SQL tools with guardrails from context
+    tools = create_sql_tools(llm=llm, context=context)
+
+    if context.enable_debug:
+        logger.info(f"Created {len(tools)} tools: {[t.name for t in tools]}")
 
     # Create agent with system prompt and context schema
     agent = create_agent(

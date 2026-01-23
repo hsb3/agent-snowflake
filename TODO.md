@@ -14,7 +14,7 @@
 
 ## Developer Notes
 
-
+### brain dumpt
 - snowflake connection (env/asst).. maybe rt later
 - schema explore; query write/exec
   - default all schema/tables; otherwise constrainer
@@ -78,3 +78,52 @@ snowflake-connector-python
 python.env
 
 ### LangGraph Rules
+
+
+
+### makefile commands
+
+[help] -- default
+
+install deps (incl. dev). uv sync --all-groups
+start snowflake emulator
+stop snowflake emulator
+dev: start langraph server
+dev-n start langgraph server with --no-browser
+
+lint
+typecheck
+test-unit (unit only)
+test
+qa (all above)
+
+clean
+
+
+### snowflake emulator
+
+pip install "snowflake-snowpark-python[localtest]"
+https://docs.snowflake.com/en/developer-guide/snowpark/python/testing-locally
+
+
+---
+```py
+pip install "snowflake-sqlalchemy"
+
+from sqlalchemy import create_engine, text
+from snowflake.sqlalchemy import URL
+
+engine = create_engine(URL(
+    account="ACCT_LOCATOR_OR_IDENTIFIER",
+    user="AGENT_USER",
+    password="***",
+    warehouse="DEV_WH",
+    database="AGENT_DEV",
+    schema="SANDBOX",
+    role="AGENT_ROLE",
+))
+
+with engine.connect() as conn:
+    rows = conn.execute(text("select current_version(), current_warehouse(), current_role()")).all()
+    print(rows)
+```

@@ -1,16 +1,24 @@
 """Builder for composing system prompts from components."""
 
+from typing import Literal
+
 from .core import CORE_INSTRUCTIONS, SAFETY_INSTRUCTIONS
 from .special import SPECIAL_INSTRUCTIONS
+from .db_specific import SQLITE_INSTRUCTIONS, SNOWFLAKE_INSTRUCTIONS
+
+
+DatabaseType = Literal["sqlite", "snowflake"]
 
 
 def build_system_prompt(
+    db_type: DatabaseType = "sqlite",
     include_special: bool = False,
     additional_instructions: str | None = None,
 ) -> str:
     """Build the complete system prompt from components.
 
     Args:
+        db_type: Database type ("sqlite" or "snowflake") for db-specific guidance
         include_special: Whether to include special instructions
         additional_instructions: Optional additional instructions to append
 
@@ -22,6 +30,12 @@ def build_system_prompt(
         SAFETY_INSTRUCTIONS,
     ]
 
+    # Add database-specific instructions
+    if db_type == "sqlite":
+        components.append(SQLITE_INSTRUCTIONS)
+    elif db_type == "snowflake":
+        components.append(SNOWFLAKE_INSTRUCTIONS)
+
     if include_special:
         components.append(SPECIAL_INSTRUCTIONS)
 
@@ -31,5 +45,6 @@ def build_system_prompt(
     return "\n\n".join(components)
 
 
-# Default system prompt
-system_prompt = build_system_prompt()
+# Default system prompt - using SQLite for now
+# TODO: Switch to db_type="snowflake" when using actual Snowflake
+system_prompt = build_system_prompt(db_type="sqlite")

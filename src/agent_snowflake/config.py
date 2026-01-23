@@ -7,7 +7,10 @@ are handled via Settings.from_env() and exposed at runtime via ContextSchema.
 import os
 from dataclasses import dataclass
 from typing import Literal
+from dotenv import load_dotenv
 
+# Load .env file
+load_dotenv()
 
 ModelProvider = Literal["anthropic", "openai", "google"]
 

@@ -1,0 +1,67 @@
+# SQL Compatibility Notes
+
+## Local Testing with SQLite
+
+For local development and testing, we use SQLite with sample TPC-H data. This enables quick iteration without requiring a Snowflake account.
+
+### SQLite vs Snowflake - What Works
+
+**✅ Compatible (works in both):**
+- Basic SELECT, WHERE, JOIN, GROUP BY, ORDER BY
+- Standard aggregates: COUNT(), SUM(), AVG(), MIN(), MAX()
+- INNER/LEFT/RIGHT JOIN
+- Subqueries
+- Basic window functions (ROW_NUMBER, RANK, etc.)
+- String concatenation (||)
+- Date/time basics
+
+### SQLite Limitations
+
+**❌ Snowflake-specific features NOT in SQLite:**
+- `VARIANT`, `OBJECT`, `ARRAY` types
+- `FLATTEN()` for nested data
+- `PARSE_JSON()`, `GET_PATH()` JSON functions
+- `QUALIFY` clause (filter on window functions)
+- `TRY_CAST()` safe casting
+- Snowflake-specific string functions
+- Complex semi-structured data operations
+- Time travel (`AT`, `BEFORE`)
+- Snowflake stages and file operations
+
+### Recommendations
+
+**For Local Development:**
+- Use SQLite for basic agent development
+- Test standard SQL operations (SELECT, JOIN, aggregates)
+- Validate agent behavior and tool integration
+
+**For Snowflake-Specific Testing:**
+- Use Snowflake trial account (https://signup.snowflake.com/)
+- Test VARIANT/JSON operations
+- Test Snowflake-specific functions
+- Validate production queries
+
+### Example: What to Test Where
+
+**SQLite (local):**
+```sql
+-- ✅ These work fine in SQLite
+SELECT * FROM CUSTOMER;
+SELECT COUNT(*) FROM ORDERS WHERE O_ORDERSTATUS = 'O';
+SELECT C.C_NAME, COUNT(O.O_ORDERKEY)
+FROM CUSTOMER C
+JOIN ORDERS O ON C.C_CUSTKEY = O.O_CUSTKEY
+GROUP BY C.C_NAME;
+```
+
+**Snowflake (production):**
+```sql
+-- ❌ These need actual Snowflake
+SELECT * FROM TABLE(FLATTEN(input => PARSE_JSON(json_column)));
+SELECT * FROM ORDERS QUALIFY ROW_NUMBER() OVER (PARTITION BY O_CUSTKEY ORDER BY O_ORDERDATE DESC) = 1;
+SELECT GET_PATH(variant_column, 'field.subfield');
+```
+
+### Adding Snowflake-Specific Guidance
+
+Update `src/agent_snowflake/prompts/special.py` with Snowflake-specific SQL patterns when deploying to production Snowflake.
