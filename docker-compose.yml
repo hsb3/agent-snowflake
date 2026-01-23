@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  snowflake-emulator:
+    image: ghcr.io/nnnkkk7/snowflake-emulator:latest
+    container_name: snowflake-emulator
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_PATH=/data/snowflake.db
+      - LOG_LEVEL=info
+    volumes:
+      - snowflake-data:/data
+      - ./scripts/init_data.sql:/docker-entrypoint-initdb.d/init_data.sql:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  snowflake-data:
+    driver: local
