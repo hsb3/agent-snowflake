@@ -12,15 +12,20 @@ from langchain_community.utilities import SQLDatabase
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import BaseTool
 
+from typing import TYPE_CHECKING
+
 from ..context import ContextSchema
 from ..utils import create_sql_database
+
+if TYPE_CHECKING:
+    from ..context2 import EnhancedContextSchema
 
 logger = logging.getLogger(__name__)
 
 
 def create_sql_tools(
     llm: BaseChatModel,
-    context: ContextSchema,
+    context: "ContextSchema | EnhancedContextSchema",
     db: SQLDatabase | None = None,
 ) -> List[BaseTool]:
     """Create SQL database tools with context-based guardrails.
@@ -67,7 +72,7 @@ def create_sql_tools(
     # Log connection info
     logger.info(
         f"Creating SQL tools: dialect={db.dialect}, "
-        f"usable_tables={len(db.get_usable_table_names())}"
+        f"usable_tables={len(list(db.get_usable_table_names()))}"
     )
 
     # Create toolkit with database and LLM

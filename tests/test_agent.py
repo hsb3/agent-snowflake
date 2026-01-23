@@ -4,10 +4,11 @@ These tests verify that the LangGraph agent compiles correctly and can be invoke
 Note: Some tests require valid API keys in .env file.
 """
 
-import pytest
 from unittest.mock import patch
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer
+
+import pytest
 from langchain_community.utilities import SQLDatabase
+from sqlalchemy import Column, Integer, MetaData, Table, create_engine
 
 from src.agent_snowflake.graph import build_graph
 from src.agent_snowflake.utils import init_model

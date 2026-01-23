@@ -4,9 +4,6 @@ fakesnow provides a pure Python implementation using DuckDB as the backend,
 allowing fast local testing without Docker or real Snowflake credentials.
 """
 
-import pytest
-import fakesnow
-import snowflake.connector
 
 
 class TestBasicConnection:

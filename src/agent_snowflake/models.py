@@ -1,1 +1,1 @@
-""" placeholder for models"
+"""Placeholder for models."""

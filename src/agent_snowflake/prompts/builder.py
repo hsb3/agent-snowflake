@@ -3,9 +3,8 @@
 from typing import Literal
 
 from .core import CORE_INSTRUCTIONS, SAFETY_INSTRUCTIONS
+from .db_specific import SNOWFLAKE_INSTRUCTIONS, SQLITE_INSTRUCTIONS
 from .special import SPECIAL_INSTRUCTIONS
-from .db_specific import SQLITE_INSTRUCTIONS, SNOWFLAKE_INSTRUCTIONS
-
 
 DatabaseType = Literal["sqlite", "snowflake"]
 

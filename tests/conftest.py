@@ -1,7 +1,7 @@
 """Pytest configuration and shared fixtures for Snowflake testing."""
 
-import pytest
 import fakesnow
+import pytest
 import snowflake.connector
 
 

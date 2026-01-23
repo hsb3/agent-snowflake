@@ -5,9 +5,9 @@ This module creates and compiles the LangGraph agent for Snowflake database inte
 
 import logging
 
+from langchain.agents import create_agent
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
-from langchain.agents import create_agent
 
 from .context import ContextSchema
 

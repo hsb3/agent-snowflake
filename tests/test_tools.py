@@ -1,15 +1,14 @@
 """Tests for SQL tools with fakesnow."""
 
 import pytest
-from langchain_core.language_models import BaseChatModel
 from langchain_community.utilities import SQLDatabase
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from langchain_core.language_models import BaseChatModel
+from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine
 
 from agent_snowflake.context import ContextSchema
 from agent_snowflake.tools import create_sql_tools, get_database_context
 from agent_snowflake.utils import (
     create_snowflake_engine,
-    create_sql_database,
     is_test_connection,
 )
 
@@ -59,7 +58,7 @@ def sqlite_test_db():
     metadata = MetaData()
 
     # Create test tables
-    customer = Table(
+    _customer = Table(
         "customer",
         metadata,
         Column("c_custkey", Integer, primary_key=True),
@@ -67,7 +66,7 @@ def sqlite_test_db():
         Column("c_nationkey", Integer),
     )
 
-    orders = Table(
+    _orders = Table(
         "orders",
         metadata,
         Column("o_orderkey", Integer, primary_key=True),
@@ -227,7 +226,7 @@ def test_tools_integration_with_sqlite(mock_llm):
     engine = create_engine("sqlite:///:memory:")
     metadata = MetaData()
 
-    customer = Table(
+    _customer = Table(
         "customer",
         metadata,
         Column("id", Integer, primary_key=True),

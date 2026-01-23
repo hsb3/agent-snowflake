@@ -1,11 +1,10 @@
 """Test graph integration with SQL tools."""
 
-import pytest
-from unittest.mock import patch, MagicMock
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
-from langchain_community.utilities import SQLDatabase
+from unittest.mock import patch
 
-from agent_snowflake.context import ContextSchema
+from langchain_community.utilities import SQLDatabase
+from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine
+
 from agent_snowflake.graph import build_graph
 
 

@@ -1,6 +1,6 @@
 """Database-specific SQL guidance for the agent."""
 
-SQLITE_INSTRUCTIONS = """Database-Specific Guidance (SQLite):
+SQLITE_INSTRUCTIONS = r"""Database-Specific Guidance (SQLite):
 
 IMPORTANT: You are connected to a SQLite database for testing. Use your TOOLS, not raw Snowflake commands.
 

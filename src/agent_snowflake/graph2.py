@@ -11,21 +11,20 @@ This module demonstrates valuable middleware configurations for SQL agents:
 import logging
 from typing import Any
 
-from langchain_core.runnables import RunnableConfig
-from langgraph.graph.state import CompiledStateGraph
-from langgraph.checkpoint.memory import InMemorySaver
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
     HumanInTheLoopMiddleware,
     ModelCallLimitMiddleware,
-    ToolCallLimitMiddleware,
+    ModelFallbackMiddleware,
     ModelRetryMiddleware,
     SummarizationMiddleware,
     TodoListMiddleware,
-    ModelFallbackMiddleware,
+    ToolCallLimitMiddleware,
 )
+from langchain_core.runnables import RunnableConfig
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph.state import CompiledStateGraph
 
-from .context import ContextSchema
 from .context2 import EnhancedContextSchema
 from .prompts import system_prompt
 from .tools import create_sql_tools
