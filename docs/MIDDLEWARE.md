@@ -219,7 +219,7 @@ All middleware parameters are configurable via `EnhancedContextSchema`:
 - **Environment variables**: Set `SNOWFLAKE_AGENT_*` prefixed variables in `.env`
 - **Runtime context**: Pass via `graph.invoke(..., context={...})`
 
-**Complete configuration reference:** See [ENHANCED_CONTEXT.md](ENHANCED_CONTEXT.md) for all parameters and examples.
+**Complete configuration reference:** See [enhanced-context.md](dev_docs/ai_docs/ai_gen/enhanced-context.md) for all parameters and examples.
 
 **Quick examples:**
 

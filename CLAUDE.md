@@ -46,7 +46,7 @@ The project uses a layered configuration approach:
   - Model configuration, Snowflake connection, guardrails, execution settings
 - **context2.py**: `EnhancedContextSchema` - Extends base with middleware config (used by graph2.py)
   - All base fields plus middleware: HITL, call limits, retry, summarization, todo, fallback
-  - See `docs/ENHANCED_CONTEXT.md` for complete reference
+  - See `docs/dev_docs/ai_docs/ai_gen/enhanced-context.md` for complete reference
 - Both schemas support:
   - `from_env()` - Loads from environment (deployment-time)
   - `from_runnable_config()` - Loads from LangGraph runtime (Studio UI)
@@ -91,7 +91,7 @@ The project provides three graph variants with different middleware configuratio
 
 All graph builders are **functions** (not instances) that return `CompiledStateGraph`. LangGraph calls them automatically.
 
-See `docs/MIDDLEWARE.md` for middleware details and `docs/ENHANCED_CONTEXT.md` for configuration.
+See `docs/MIDDLEWARE.md` for middleware details and `docs/dev_docs/ai_docs/ai_gen/enhanced-context.md` for configuration.
 
 ### Prompt System
 
@@ -145,7 +145,7 @@ Option 1: Chinook Database (recommended for testing)
 - Use `make setup-chinook` to download realistic music store database
 - 11 tables, 3,500+ tracks, sales data, customers, playlists
 - ~900 KB database with real relationships
-- See `docs/CHINOOK_QUERIES.md` for 100+ example queries
+- See `docs/dev_docs/ai_docs/ai_gen/chinook-queries.md` for 100+ example queries
 
 Option 2: Minimal stub data
 - Use `make setup-test-db` to create `test_snowflake.db` with minimal TPC-H data
@@ -154,7 +154,7 @@ Option 2: Minimal stub data
 Both options:
 - Set `SNOWFLAKE_AGENT_SNOWFLAKE_URI=sqlite:///...` in `.env`
 - Limitations: No VARIANT, FLATTEN(), QUALIFY, or Snowflake-specific functions
-- See `docs/SQL_COMPATIBILITY.md` for SQL syntax differences
+- See `docs/dev_docs/ai_docs/ai_gen/sql-compatibility.md` for SQL syntax differences
 
 **Tests use pytest fixtures:**
 - `conftest.py` - Reusable fixtures (fakesnow_connection, sample_database, etc.)

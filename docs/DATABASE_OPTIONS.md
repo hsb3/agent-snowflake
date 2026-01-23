@@ -286,7 +286,7 @@ If you want even more data, consider:
 ## Example Query Files
 
 For Chinook database, see:
-- **[CHINOOK_QUERIES.md](CHINOOK_QUERIES.md)** - 100+ example queries organized by complexity
+- **[chinook-queries.md](dev_docs/ai_docs/ai_gen/chinook-queries.md)** - 100+ example queries organized by complexity
 
 For TPC-H stub, queries are limited to basic operations on the 3 tables.
 

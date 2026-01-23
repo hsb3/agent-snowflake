@@ -19,7 +19,7 @@ install:
 	uv sync
 
 # Test Database Setup
-setup-test-db:
+setup-fakesnow:
 	uv run python scripts/setup_fakesnow_db.py
 
 # Chinook Database Setup (recommended for testing)
@@ -58,4 +58,7 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
-	@echo "Cleanup complete"
+	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
+	rm -f test_snowflake.db test_chinook.db 2>/dev/null || true
+	rm -rf build/ dist/ .coverage htmlcov/ 2>/dev/null || true
+	@echo "Cleanup complete (preserved .env, .env.local, .venv)"

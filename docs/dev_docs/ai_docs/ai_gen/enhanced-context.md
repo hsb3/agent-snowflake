@@ -565,5 +565,5 @@ Adding middleware has minimal performance impact:
 - [Base ContextSchema](../src/agent_snowflake/context.py)
 - [EnhancedContextSchema](../src/agent_snowflake/context2.py)
 - [Graph2 Implementation](../src/agent_snowflake/graph2.py)
-- [Middleware Documentation](MIDDLEWARE.md)
-- [Middleware Quick Start](MIDDLEWARE_QUICKSTART.md)
+- [Middleware Documentation](../../../MIDDLEWARE.md)
+- [Middleware Quick Start](middleware-quickstart.md)

@@ -86,7 +86,7 @@ Opens LangGraph Studio at http://localhost:8123
 
 ### Explore the Data
 
-See [CHINOOK_QUERIES.md](CHINOOK_QUERIES.md) for 100+ example queries organized by complexity.
+See [chinook-queries.md](dev_docs/ai_docs/ai_gen/chinook-queries.md) for 100+ example queries organized by complexity.
 
 ### Test Middleware
 
