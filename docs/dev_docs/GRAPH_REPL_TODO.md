@@ -233,10 +233,11 @@
 
 ## References
 
-- **Quickstart:** `docs/QUICKSTART_REPL_GRAPH.md`
-- **Architecture:** `docs/dev_docs/repl_data_flow.md`
+- **Quickstart:** `docs/dev_docs/spec-repl-graph/QUICKSTART_REPL_GRAPH.md`
+- **Architecture:** `docs/dev_docs/spec-repl-graph/repl_data_flow.md`
+- **StateGraph Design:** `docs/dev_docs/spec-repl-graph/repl_as_stategraph.md`
 - **Subgraph PoC:** `docs/dev_docs/stream_subgraph_poc.md`
-- **Phase 2 Report:** `docs/dev_docs/phase2_implementation_complete.md`
+- **Phase 2 Report:** `docs/dev_docs/ai_docs/ai_gen/phase2_implementation_complete.md`
 - **Main code:** `src/repl_client_graph/`
 
 ---

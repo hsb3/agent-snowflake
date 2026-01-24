@@ -220,13 +220,9 @@ other supporting docs in docs/dev_docs/spec-repl-v1
 
 ---
  create a CLAUDE.md file in src/repl_client_graph.  shouuld just focus on graph-based repl.  note that spec       
-  for repl-based graph belong here: docs/dev_docs/spec-repl-graph; work status updates belong in                   
-  docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client_graph     
-  app 
+  for repl-based graph belong here: docs/dev_docs/spec-repl-graph; work status updates belong in              docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client_graph app 
 ---
  create a CLAUDE.md file in src/repl_client.  shouuld just focus on client_repl.  note that spec for repl belong here: docs/dev_docs/spec-repl; work status updates belong in  docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client app 
-
- ---
 
 **Work Doc Frontmatter Template:**
 ```yaml

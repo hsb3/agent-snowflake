@@ -156,8 +156,9 @@ src/repl_client_graph/
 ## Specifications & Documentation
 
 ### Design Specs (Read First)
-- **Architecture:** `docs/dev_docs/repl_data_flow.md` - Data/control flow diagrams
-- **StateGraph Design:** `docs/dev_docs/spec-repl-graph-v1/repl_as_stategraph.md` - Why StateGraph, design rationale
+- **StateGraph Design:** `docs/dev_docs/spec-repl-graph/repl_as_stategraph.md` - Why StateGraph, design rationale
+- **Architecture:** `docs/dev_docs/spec-repl-graph/repl_data_flow.md` - Data/control flow diagrams
+- **Quickstart:** `docs/dev_docs/spec-repl-graph/QUICKSTART_REPL_GRAPH.md` - Getting started guide
 - **Components:** `repl_components.jsonc` - Layered architecture
 - **Requirements:** `repl_spec.json` - Feature specs and acceptance criteria
 
@@ -166,10 +167,6 @@ src/repl_client_graph/
 - **Phase 2:** `docs/dev_docs/phase2_implementation_complete.md`
 - **Subgraph PoC:** `docs/dev_docs/stream_subgraph_poc.md`
 - **TODO List:** `docs/dev_docs/GRAPH_REPL_TODO.md`
-
-### Quick Reference
-- **Quickstart:** `docs/QUICKSTART_REPL_GRAPH.md`
-- **Summary:** `docs/dev_docs/spec-repl-graph-v1/repl_client_graph_summary.md`
 
 ## Work Documentation Guidelines
 
@@ -405,7 +402,7 @@ This is acceptable because:
 
 ## Related Files
 
-**Specs:** `docs/dev_docs/spec-repl-graph-v1/`
+**Specs:** `docs/dev_docs/spec-repl-graph/`
 **Work Docs:** `docs/dev_docs/ai_docs/ai_gen/` (with `project: repl_client_graph` in frontmatter)
 **TODO:** `docs/dev_docs/GRAPH_REPL_TODO.md`
 **Comparison:** Classic REPL at `src/repl_client/`

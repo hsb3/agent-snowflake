@@ -4,8 +4,8 @@
 
 ### Getting Started
 1. **[README.md](./README.md)** - Architecture overview and design patterns
-2. **[subgraph_flow_diagram.md](../../../docs/dev_docs/spec-repl-v1/subgraph_flow_diagram.md)** - Visual flow diagrams
-3. **[SUBGRAPH_POC_SUMMARY.md](../../../docs/dev_docs/spec-repl-v1/SUBGRAPH_POC_SUMMARY.md)** - Executive summary
+2. Visual flow diagrams (see README.md) - Visual flow diagrams
+3. Executive summary (see README.md) - Executive summary
 
 ### Implementation
 - **[stream_processor.py](./stream_processor.py)** - Main subgraph builder
@@ -14,10 +14,10 @@
 ### Testing & Comparison
 - **[test_subgraph_stream.py](../../../scripts/repl_client_graph/test_subgraph_stream.py)** - Comprehensive tests
 - **[compare_stream_approaches.py](../../../scripts/repl_client_graph/compare_stream_approaches.py)** - Performance comparison
-- **[approach_comparison.md](../../../docs/dev_docs/spec-repl-v1/approach_comparison.md)** - Detailed analysis
+- Approach comparison (see performance section below) - Detailed analysis
 
 ### Integration
-- **[subgraph_integration_example.py](../../../docs/dev_docs/spec-repl-v1/subgraph_integration_example.py)** - Usage example
+- Integration examples (see Integration Pattern section below) - Usage example
 
 ## What Is This?
 
@@ -59,11 +59,8 @@ src/repl_client_graph/graph/subgraphs/
     ├── tool_handlers.py          ← SQL/Question/Generic renderers
     └── state_handler.py          ← Process updates, detect interrupt
 
-docs/dev_docs/spec-repl-v1/
-├── SUBGRAPH_POC_SUMMARY.md       ← Executive summary
-├── approach_comparison.md        ← Detailed comparison
-├── subgraph_flow_diagram.md      ← Visual diagrams
-└── subgraph_integration_example.py ← Usage example
+docs/dev_docs/spec-repl-graph/
+└── (subgraph docs integrated into README.md)
 
 scripts/
 ├── test_subgraph_stream.py       ← Tests
@@ -219,10 +216,9 @@ Expected output:
 ## Questions?
 
 Refer to:
-- **Architecture**: README.md
-- **Flow**: subgraph_flow_diagram.md
-- **Comparison**: approach_comparison.md
-- **Summary**: SUBGRAPH_POC_SUMMARY.md
+- **Architecture & Flow**: README.md
+- **Performance Comparison**: See "Performance" section above
+- **Integration**: See "Integration Pattern" section above
 
 ## Status
 

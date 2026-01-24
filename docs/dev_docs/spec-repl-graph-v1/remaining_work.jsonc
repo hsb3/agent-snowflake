@@ -1,0 +1,982 @@
+{
+  // REPL Client Graph - Remaining Development Work
+  // StateGraph-based terminal REPL for LangGraph dev server
+  // Reference: docs/dev_docs/spec-repl-graph/GRAPH_REPL_TODO.md
+
+  "project": {
+    "name": "repl_client_graph",
+    "description": "LangGraph StateGraph-based Terminal REPL Client",
+    "current_status": "Phase 1 & 2 Complete - Functional with bugs, Phase 3 & optimizations needed",
+    "version": "0.2.0-alpha",
+    "phase": "2.5 - Bug fixes before Phase 3",
+    "architecture": "StateGraph with single-node stream processing",
+    "path": "src/repl_client_graph/"
+  },
+
+  "critical_bugs": [
+    {
+      "id": "BUG-001",
+      "title": "Token tracking shows zero despite usage metadata in stream",
+      "description": "Session summary displays 'Tokens Used: 0' even though usage_metadata is present in streaming chunks. Token tracking appears broken in the state flow between stream processing and session updates.",
+      "priority": "P0",
+      "severity": "high",
+      "files_affected": [
+        "src/repl_client_graph/graph/nodes/streaming.py:110-117",
+        "src/repl_client_graph/graph/nodes/session.py"
+      ],
+      "root_cause_hypothesis": [
+        "usage_metadata not being extracted from chunks",
+        "Session state not being updated with token counts",
+        "State transformation losing usage data",
+        "Incorrect field names in usage extraction"
+      ],
+      "investigation_steps": [
+        "Add debug logging to process_stream_node to inspect usage_metadata structure",
+        "Verify usage flows through to update_session_node",
+        "Check if usage_metadata field names match server response",
+        "Trace token count through entire state pipeline"
+      ],
+      "acceptance_criteria": [
+        "Session summary shows correct token counts",
+        "/info command displays accurate usage stats",
+        "Token tracking updates incrementally during streams",
+        "Test with multiple messages to verify accumulation"
+      ]
+    },
+    {
+      "id": "BUG-002",
+      "title": "Subgraph integration produces empty render queue",
+      "description": "Stream processing subgraph works in standalone tests with mock data but produces 0 render items when integrated into main graph. State transformation or chunk structure mismatch suspected.",
+      "priority": "P1",
+      "severity": "high",
+      "blocker_for": ["SUBGRAPH-001", "SUBGRAPH-002"],
+      "files_affected": [
+        "src/repl_client_graph/graph/builder_subgraph.py",
+        "src/repl_client_graph/graph/subgraphs/stream_processor.py",
+        "src/repl_client_graph/graph/nodes/streaming.py"
+      ],
+      "works": "Standalone subgraph with mock data produces correct output",
+      "fails": "Integration with main graph produces empty render_queue",
+      "root_cause_hypothesis": [
+        "State transformation issues in transform_to_subgraph_input/output",
+        "Chunk data structure differs between mock and live server",
+        "Render queue not being properly merged back into main state",
+        "Namespace or context loss during subgraph invocation"
+      ],
+      "investigation_steps": [
+        "Compare mock chunk structure with live server chunks byte-for-byte",
+        "Log state before/after subgraph invocation",
+        "Verify transform functions preserve all required fields",
+        "Test subgraph with live server data in isolation",
+        "Check if render_queue gets overwritten after subgraph return"
+      ],
+      "acceptance_criteria": [
+        "Subgraph produces same render output as single-node approach",
+        "All streaming features work identically",
+        "State flows correctly through subgraph boundary",
+        "No data loss in transformation functions"
+      ]
+    }
+  ],
+
+  "phase_2_completion": [
+    {
+      "id": "P2-001",
+      "name": "End-to-end HITL testing",
+      "priority": "P0",
+      "status": "not_tested",
+      "description": "HITL infrastructure is implemented but not fully tested with real agent interrupts. Need to configure agents with interrupt_before settings and test complete approval/rejection flows.",
+      "dependencies": [],
+      "files": [
+        "src/repl_client_graph/graph/nodes/hitl.py",
+        "src/repl_client_graph/core/client.py"
+      ],
+      "tasks": [
+        "Configure test agent with 'interrupt_before: [\"*\"]' in langgraph.json",
+        "Trigger tool call requiring approval (e.g., database query)",
+        "Test approval flow - type 'y' and verify execution continues",
+        "Test rejection flow - type 'n' and verify graceful handling",
+        "Verify resume streaming works after approval",
+        "Test multiple interrupts in single conversation",
+        "Verify state consistency after interrupt/resume cycles"
+      ],
+      "acceptance_criteria": [
+        "Approval prompt appears when tool requires confirmation",
+        "Typing 'y' approves and continues execution",
+        "Typing 'n' rejects and returns to prompt",
+        "Tool results display after approval",
+        "Session state remains consistent through interrupt cycles",
+        "Multiple interrupts in one stream work correctly"
+      ],
+      "test_agent_config": {
+        "file": ".langgraph/config/test_hitl_agent.json",
+        "example": {
+          "assistant_id": "test_hitl",
+          "graph_id": "agent_enhanced",
+          "config": {
+            "interrupt_before": ["*"]
+          }
+        }
+      }
+    },
+    {
+      "id": "P2-002",
+      "name": "Fix state update message verbosity",
+      "priority": "P1",
+      "status": "needs_fix",
+      "description": "Too many '[State Update: X keys changed]' messages clutter the conversation. Should be hidden by default or made much less prominent.",
+      "dependencies": [],
+      "files": [
+        "src/repl_client_graph/graph/nodes/rendering.py:77-84",
+        "src/repl_client_graph/core/config.py"
+      ],
+      "solutions": [
+        {
+          "option": "A",
+          "description": "Add REPL_SHOW_STATE_UPDATES env var (default: false)",
+          "pros": "User control, clean conversation by default",
+          "cons": "Requires config change"
+        },
+        {
+          "option": "B",
+          "description": "Only show in debug/verbose mode (/debug on)",
+          "pros": "Runtime toggle, no config needed",
+          "cons": "Requires debug command implementation"
+        },
+        {
+          "option": "C",
+          "description": "Make dimmer/gray/less prominent",
+          "pros": "Still visible but unobtrusive",
+          "cons": "Still adds noise"
+        }
+      ],
+      "recommended": "Option A - env var with default false",
+      "acceptance_criteria": [
+        "State update messages hidden by default",
+        "Configurable via REPL_SHOW_STATE_UPDATES env var",
+        "When enabled, messages are dimmed/gray",
+        "Debug mode override still available"
+      ]
+    }
+  ],
+
+  "phase_3_features": [
+    {
+      "id": "P3-001",
+      "name": "Enhanced input with prompt-toolkit",
+      "priority": "P0",
+      "description": "Replace basic input() with prompt-toolkit for rich terminal input experience. Multi-line editing, history, syntax highlighting, and better UX.",
+      "dependencies": [],
+      "files": [
+        "src/repl_client_graph/graph/nodes/input.py",
+        "src/repl_client_graph/ui/input_handler.py (new)"
+      ],
+      "requirements": [
+        "prompt-toolkit>=3.0.0"
+      ],
+      "features": [
+        "Multi-line input support (Ctrl+Enter to send, Enter for newline)",
+        "Input history navigation (up/down arrows)",
+        "Command completion (Tab key)",
+        "Syntax highlighting in input area",
+        "Vi/Emacs keybindings support",
+        "Custom prompt styling"
+      ],
+      "acceptance_criteria": [
+        "Multi-line messages can be composed and sent",
+        "Up/down arrows navigate input history",
+        "Tab completes commands and arguments",
+        "Input area has subtle syntax highlighting",
+        "Ctrl+C cancels current input without exiting",
+        "History persists across sessions"
+      ],
+      "implementation_notes": [
+        "Create InputHandler class wrapping PromptSession",
+        "Update input_node to use InputHandler instead of input()",
+        "Store history in .repl/input_history",
+        "Register completer with command registry"
+      ]
+    },
+    {
+      "id": "P3-002",
+      "name": "Tab completion system",
+      "priority": "P1",
+      "description": "Context-aware tab completion for commands, agent names, thread IDs, and arguments.",
+      "dependencies": ["P3-001"],
+      "files": [
+        "src/repl_client_graph/ui/completers.py (new)",
+        "src/repl_client_graph/graph/nodes/commands.py"
+      ],
+      "completion_types": [
+        {
+          "context": "Command names",
+          "example": "/ag<Tab> → /agents",
+          "implementation": "WordCompleter from command registry"
+        },
+        {
+          "context": "Agent IDs",
+          "example": "/agents agen<Tab> → /agents agent_enhanced",
+          "implementation": "Dynamic completer querying client.list_agents()"
+        },
+        {
+          "context": "Thread IDs",
+          "example": "/threads abc<Tab> → /threads abc-123-def",
+          "implementation": "Dynamic completer from session history"
+        },
+        {
+          "context": "File paths",
+          "example": "/export ~/Doc<Tab> → ~/Documents/",
+          "implementation": "PathCompleter for file operations"
+        }
+      ],
+      "acceptance_criteria": [
+        "Tab completes all registered commands",
+        "Agent completion shows available agents from server",
+        "Thread completion shows recent threads",
+        "Completion shows helpful descriptions",
+        "Works with partial matches",
+        "Case-insensitive matching"
+      ]
+    },
+    {
+      "id": "P3-003",
+      "name": "Status bar (bottom line)",
+      "priority": "P2",
+      "description": "Optional bottom status bar showing streaming status, live token count, connection state, and context info. Hidden when idle.",
+      "dependencies": [],
+      "files": [
+        "src/repl_client_graph/ui/status_bar.py (new)",
+        "src/repl_client_graph/graph/nodes/rendering.py"
+      ],
+      "display_modes": {
+        "idle": "Hidden or minimal (current agent only)",
+        "streaming": "⏳ Typing... | Tokens: 156 | Agent: enhanced",
+        "interrupt": "⚠️  Approval needed | Thread: abc-123",
+        "error": "❌ Connection lost - Reconnecting..."
+      },
+      "features": [
+        "Typing indicator during streaming",
+        "Live token count updates",
+        "Connection status indicator",
+        "Current agent/thread context",
+        "Configurable visibility",
+        "Auto-hide when idle for >2s"
+      ],
+      "acceptance_criteria": [
+        "Status bar appears during streaming",
+        "Token count updates in real-time",
+        "Connection status reflects client state",
+        "Auto-hides when conversation is idle",
+        "Configurable via REPL_SHOW_STATUS_BAR env var",
+        "Doesn't interfere with input/output"
+      ],
+      "implementation_notes": [
+        "Use Rich Live display for status bar",
+        "Update from render_node based on state",
+        "Clear/hide when returning to prompt",
+        "Consider fixed bottom bar vs. transient display"
+      ]
+    },
+    {
+      "id": "P3-004",
+      "name": "Session persistence and replay",
+      "priority": "P2",
+      "description": "Save conversation history to disk for later review, debugging, and replay. Export sessions to markdown or JSON.",
+      "dependencies": [],
+      "files": [
+        "src/repl_client_graph/persistence/ (new module)",
+        "src/repl_client_graph/graph/nodes/session.py"
+      ],
+      "features": [
+        "Auto-save conversations to .repl/sessions/",
+        "Session files include metadata (agent, thread, timestamps)",
+        "/replay <session_id> command to review past conversations",
+        "/export command to save as markdown or JSON",
+        "Checkpoint support for debugging state transitions",
+        "Session search by date, agent, or content"
+      ],
+      "storage_format": {
+        "location": ".repl/sessions/YYYY-MM-DD/session_<timestamp>.json",
+        "schema": {
+          "session_id": "uuid",
+          "started_at": "ISO timestamp",
+          "agent_id": "string",
+          "thread_id": "string",
+          "messages": [
+            {
+              "timestamp": "ISO",
+              "role": "user|assistant",
+              "content": "string",
+              "metadata": {}
+            }
+          ],
+          "commands": ["list of commands executed"],
+          "tokens_used": {"input": 0, "output": 0, "total": 0}
+        }
+      },
+      "commands": [
+        {
+          "command": "/sessions",
+          "description": "List saved sessions",
+          "syntax": "/sessions [--date YYYY-MM-DD] [--agent agent_id]"
+        },
+        {
+          "command": "/replay",
+          "description": "Display saved session",
+          "syntax": "/replay <session_id>"
+        },
+        {
+          "command": "/export",
+          "description": "Export current session",
+          "syntax": "/export [--format md|json] [--output path]"
+        }
+      ],
+      "acceptance_criteria": [
+        "Sessions auto-save during conversation",
+        "Session files are human-readable JSON",
+        "/sessions lists all saved sessions",
+        "/replay displays session conversation",
+        "/export creates markdown or JSON file",
+        "Export includes all metadata and token stats"
+      ]
+    }
+  ],
+
+  "ux_improvements": [
+    {
+      "id": "UX-001",
+      "name": "Command aliases",
+      "priority": "P2",
+      "description": "Short aliases for frequently used commands to reduce typing.",
+      "files": [
+        "src/repl_client_graph/graph/nodes/commands.py"
+      ],
+      "aliases": {
+        "/a": "/agents",
+        "/t": "/threads",
+        "/n": "/new",
+        "/i": "/info",
+        "/c": "/clear",
+        "/s": "/session",
+        "/h": "/help",
+        "/q": "/exit"
+      },
+      "acceptance_criteria": [
+        "All aliases work identically to full commands",
+        "/help shows both full name and alias",
+        "Aliases complete with tab completion",
+        "No conflicts between aliases and commands"
+      ]
+    },
+    {
+      "id": "UX-002",
+      "name": "Auto-clear mode",
+      "priority": "P3",
+      "description": "Toggle to automatically clear screen before each agent response. Useful for long conversations.",
+      "files": [
+        "src/repl_client_graph/graph/nodes/rendering.py",
+        "src/repl_client_graph/core/config.py"
+      ],
+      "commands": [
+        {
+          "command": "/auto-clear",
+          "syntax": "/auto-clear [on|off]",
+          "description": "Toggle auto-clear mode"
+        }
+      ],
+      "behavior": {
+        "enabled": "Clear terminal before each assistant message",
+        "disabled": "Normal scrolling conversation (default)"
+      },
+      "persistence": "Save preference to .repl/preferences.json",
+      "acceptance_criteria": [
+        "/auto-clear on enables mode",
+        "/auto-clear off disables mode",
+        "/auto-clear with no args shows current state",
+        "Preference persists across sessions",
+        "Works well with status bar"
+      ]
+    },
+    {
+      "id": "UX-003",
+      "name": "Improved table rendering",
+      "priority": "P2",
+      "description": "Enhance table display for lists of agents, threads, and other tabular data.",
+      "files": [
+        "src/repl_client_graph/ui/renderer.py"
+      ],
+      "improvements": [
+        "Pagination for large lists (>20 items)",
+        "Sortable columns (click or command)",
+        "Color-code current/active items",
+        "Column width auto-adjustment",
+        "Row highlighting on hover (if terminal supports)",
+        "Compact vs. detailed view modes"
+      ],
+      "example_tables": [
+        "/agents - Show agent list with status indicators",
+        "/threads - Show thread list with timestamps and message counts",
+        "/sessions - Show saved session list with metadata"
+      ],
+      "acceptance_criteria": [
+        "Tables paginate when >20 rows",
+        "Current agent/thread highlighted in listings",
+        "Columns auto-size to fit content",
+        "Tables render correctly in narrow terminals",
+        "Consistent styling across all tables"
+      ]
+    },
+    {
+      "id": "UX-004",
+      "name": "Better error messages",
+      "priority": "P1",
+      "description": "Friendly, actionable error messages with suggestions for common issues.",
+      "files": [
+        "src/repl_client_graph/graph/nodes/error_handling.py (new)",
+        "src/repl_client_graph/ui/renderer.py"
+      ],
+      "error_types": [
+        {
+          "error": "Connection refused",
+          "message": "Cannot connect to LangGraph server at {url}",
+          "suggestions": [
+            "Is the dev server running? Try: make dev-server",
+            "Check LANGGRAPH_DEV_SERVER_PORT in .env",
+            "Verify server is listening on localhost:{port}"
+          ]
+        },
+        {
+          "error": "Agent not found",
+          "message": "Agent '{agent_id}' not found",
+          "suggestions": [
+            "Run '/agents' to see available agents",
+            "Check spelling - agent IDs are case-sensitive",
+            "Verify agent is deployed to server"
+          ]
+        },
+        {
+          "error": "Thread not found",
+          "message": "Thread '{thread_id}' not found",
+          "suggestions": [
+            "Run '/threads' to see available threads",
+            "Thread may have expired on server",
+            "Use '/new' to create a new thread"
+          ]
+        },
+        {
+          "error": "Stream interrupted",
+          "message": "Stream connection lost",
+          "suggestions": [
+            "Server may have restarted",
+            "Network interruption detected",
+            "Try resending your message"
+          ]
+        }
+      ],
+      "format": {
+        "structure": "❌ Error: <message>\\n\\n💡 Suggestions:\\n  • <suggestion 1>\\n  • <suggestion 2>",
+        "colors": "Red for error, yellow for suggestions"
+      },
+      "acceptance_criteria": [
+        "All errors show helpful suggestions",
+        "Error messages are concise and clear",
+        "Technical details available in verbose mode",
+        "Connection errors include troubleshooting guide",
+        "Common mistakes have specific guidance"
+      ]
+    }
+  ],
+
+  "subgraph_migration": {
+    "current_status": "Blocked by BUG-002",
+    "target": "Switch from single-node to subgraph-based stream processing",
+    "benefits": [
+      "Better separation of concerns",
+      "Easier to add tool-specific rendering",
+      "More maintainable parsing logic",
+      "Parallel processing opportunities"
+    ],
+    "blocker": "Subgraph produces empty render_queue when integrated with main graph",
+    "tasks": [
+      {
+        "id": "SUBGRAPH-001",
+        "name": "Debug subgraph integration",
+        "priority": "P0",
+        "status": "blocked",
+        "blocked_by": ["BUG-002"],
+        "description": "Identify and fix root cause of empty render_queue in integrated subgraph",
+        "steps": [
+          "Add comprehensive logging to state transformations",
+          "Compare chunk structure between mock and live data",
+          "Verify render_queue merging logic",
+          "Test with minimal subgraph first",
+          "Gradually add complexity until failure point found"
+        ],
+        "acceptance_criteria": [
+          "Subgraph produces identical output to single-node",
+          "All tests pass with subgraph enabled",
+          "No performance degradation",
+          "State flows correctly through boundary"
+        ]
+      },
+      {
+        "id": "SUBGRAPH-002",
+        "name": "Production switchover",
+        "priority": "P1",
+        "status": "blocked",
+        "blocked_by": ["SUBGRAPH-001"],
+        "description": "Switch graph/__init__.py to use builder_subgraph instead of builder.py",
+        "steps": [
+          "Update graph/__init__.py import",
+          "Verify all features work identically",
+          "Run full test suite",
+          "Monitor performance metrics",
+          "Update documentation"
+        ],
+        "rollback_plan": "Keep builder.py as fallback, easy revert by changing import",
+        "acceptance_criteria": [
+          "All Phase 1 & 2 features work with subgraph",
+          "No user-visible changes in behavior",
+          "Performance within 10% of single-node",
+          "Documentation updated"
+        ]
+      },
+      {
+        "id": "SUBGRAPH-003",
+        "name": "Tool-specific renderers",
+        "priority": "P2",
+        "status": "planned",
+        "dependencies": ["SUBGRAPH-002"],
+        "description": "Add custom rendering for specific tools using subgraph's tool registry",
+        "tools": [
+          {
+            "tool": "python_repl",
+            "renderer": "Code execution panel with syntax highlighting",
+            "features": ["Show code, output, errors separately", "Execution time display"]
+          },
+          {
+            "tool": "sql_db_query",
+            "renderer": "SQL query with results table",
+            "features": ["Formatted SQL", "Tabular results", "Row count"]
+          },
+          {
+            "tool": "search_tool",
+            "renderer": "Search results with snippets",
+            "features": ["Result cards", "Relevance scores", "Source links"]
+          },
+          {
+            "tool": "file_operations",
+            "renderer": "File tree or diff display",
+            "features": ["Tree view for lists", "Diff view for changes"]
+          },
+          {
+            "tool": "chart_generator",
+            "renderer": "ASCII charts or data tables",
+            "features": ["Bar charts", "Line graphs", "Data summary"]
+          }
+        ],
+        "acceptance_criteria": [
+          "Each tool has custom renderer registered",
+          "Fallback to generic renderer for unknown tools",
+          "Renderers are visually distinct and helpful",
+          "Performance impact minimal"
+        ]
+      }
+    ]
+  },
+
+  "testing": [
+    {
+      "id": "TEST-001",
+      "name": "Unit tests for StateGraph nodes",
+      "priority": "P1",
+      "description": "Test each node function with mock state to ensure correctness",
+      "files": [
+        "tests/repl_client_graph/graph/nodes/test_*.py"
+      ],
+      "test_coverage": [
+        {
+          "node": "input_node",
+          "tests": [
+            "Command detection (starts with /)",
+            "Normal message passthrough",
+            "Empty input handling",
+            "Whitespace trimming"
+          ]
+        },
+        {
+          "node": "command_node",
+          "tests": [
+            "Command parsing and routing",
+            "Unknown command handling",
+            "Command with arguments",
+            "Exit flag setting"
+          ]
+        },
+        {
+          "node": "process_stream_node",
+          "tests": [
+            "Text delta extraction",
+            "Tool call buffering",
+            "Usage metadata extraction",
+            "Error chunk handling"
+          ]
+        },
+        {
+          "node": "render_node",
+          "tests": [
+            "Render queue processing",
+            "User message rendering",
+            "AI response rendering",
+            "Tool result rendering"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "All node functions have unit tests",
+        "Test coverage >80%",
+        "Tests run in <1s total",
+        "Mock dependencies properly",
+        "Edge cases covered"
+      ]
+    },
+    {
+      "id": "TEST-002",
+      "name": "Integration tests",
+      "priority": "P1",
+      "description": "Test complete workflows through the graph",
+      "files": [
+        "tests/repl_client_graph/integration/test_*.py"
+      ],
+      "workflows": [
+        {
+          "name": "Simple message flow",
+          "steps": [
+            "Start REPL",
+            "Send message",
+            "Receive streamed response",
+            "Return to prompt"
+          ]
+        },
+        {
+          "name": "Agent switching",
+          "steps": [
+            "List agents",
+            "Switch to different agent",
+            "Send message to new agent",
+            "Verify correct agent responds"
+          ]
+        },
+        {
+          "name": "Thread management",
+          "steps": [
+            "Create new thread",
+            "Send messages",
+            "Switch to different thread",
+            "Resume original thread"
+          ]
+        },
+        {
+          "name": "HITL approval flow",
+          "steps": [
+            "Trigger interrupt",
+            "Receive approval prompt",
+            "Approve tool",
+            "Receive tool result"
+          ]
+        },
+        {
+          "name": "Error recovery",
+          "steps": [
+            "Simulate connection error",
+            "Verify error message",
+            "Reconnect",
+            "Resume operation"
+          ]
+        }
+      ],
+      "acceptance_criteria": [
+        "All workflows complete successfully",
+        "Tests use real graph instance",
+        "Mock only external dependencies (network)",
+        "Tests are deterministic",
+        "Clear failure messages"
+      ]
+    },
+    {
+      "id": "TEST-003",
+      "name": "Performance benchmarking",
+      "priority": "P2",
+      "description": "Measure and track performance metrics for graph execution",
+      "metrics": [
+        {
+          "name": "Stream processing latency",
+          "target": "<50ms per chunk",
+          "measurement": "Time from chunk received to render"
+        },
+        {
+          "name": "Command execution time",
+          "target": "<100ms",
+          "measurement": "Time from input to execution complete"
+        },
+        {
+          "name": "Graph overhead",
+          "target": "<10% vs. direct implementation",
+          "measurement": "Compare StateGraph vs. imperative loop"
+        },
+        {
+          "name": "Memory usage",
+          "target": "<100MB base + streaming buffers",
+          "measurement": "Peak memory during long conversation"
+        }
+      ],
+      "comparison": {
+        "baseline": "Single-node implementation",
+        "test": "Subgraph implementation",
+        "acceptable_delta": "±10%"
+      },
+      "acceptance_criteria": [
+        "All metrics within target ranges",
+        "Subgraph performance comparable to single-node",
+        "No memory leaks in long sessions",
+        "Benchmark suite runs automatically in CI"
+      ]
+    }
+  ],
+
+  "technical_debt": [
+    {
+      "id": "DEBT-001",
+      "name": "Remove debug print statements",
+      "priority": "P2",
+      "description": "Clean up [DEBUG] prints and replace with proper logging",
+      "files": [
+        "src/repl_client_graph/graph/nodes/*.py",
+        "src/repl_client_graph/core/*.py"
+      ],
+      "tasks": [
+        "Audit all print() statements",
+        "Replace debug prints with logging.debug()",
+        "Add --debug flag to enable debug logging",
+        "Configure logging levels properly",
+        "Remove temporary/commented debug code"
+      ],
+      "acceptance_criteria": [
+        "No print() statements in production code paths",
+        "All debug output goes through logging module",
+        "Debug mode controllable via CLI flag",
+        "Logs are structured and useful"
+      ]
+    },
+    {
+      "id": "DEBT-002",
+      "name": "Type checking cleanup",
+      "priority": "P1",
+      "description": "Fix type: ignore comments and improve type annotations",
+      "files": [
+        "All .py files in src/repl_client_graph/"
+      ],
+      "issues": [
+        "# type: ignore comments indicate type issues",
+        "Missing type annotations on function parameters",
+        "Incomplete TypedDict definitions",
+        "Any types where specific types possible"
+      ],
+      "tools": [
+        "ty --check - Fast type checker",
+        "mypy - Comprehensive checking (optional)"
+      ],
+      "acceptance_criteria": [
+        "ty passes without errors",
+        "No # type: ignore comments (or documented why needed)",
+        "All public functions have full type annotations",
+        "TypedDicts complete and accurate"
+      ]
+    },
+    {
+      "id": "DEBT-003",
+      "name": "Code organization improvements",
+      "priority": "P3",
+      "description": "Refactor for better maintainability and clarity",
+      "improvements": [
+        {
+          "area": "Command handlers",
+          "current": "Single large command_node function",
+          "proposed": "Split into command_handlers/ module with one file per command group",
+          "benefit": "Easier to maintain and extend"
+        },
+        {
+          "area": "Rendering",
+          "current": "Mixed rendering logic in multiple places",
+          "proposed": "Centralize in ui/ module with clear responsibilities",
+          "benefit": "Single source of truth for UI"
+        },
+        {
+          "area": "State types",
+          "current": "TypedDicts scattered across files",
+          "proposed": "Consolidate in graph/state.py",
+          "benefit": "Clear state schema"
+        },
+        {
+          "area": "Common patterns",
+          "current": "Repeated code for state updates",
+          "proposed": "Helper functions in graph/utils.py",
+          "benefit": "DRY principle"
+        }
+      ],
+      "acceptance_criteria": [
+        "Related code grouped in modules",
+        "Clear single responsibility per module",
+        "Common patterns extracted to utilities",
+        "Imports simplified and logical"
+      ]
+    },
+    {
+      "id": "DEBT-004",
+      "name": "Documentation improvements",
+      "priority": "P2",
+      "description": "Add comprehensive docstrings and improve inline documentation",
+      "areas": [
+        "Module-level docstrings explaining purpose",
+        "Function docstrings with Args/Returns/Raises",
+        "Complex logic annotated with comments",
+        "State schema documented",
+        "Graph flow documented with diagrams"
+      ],
+      "acceptance_criteria": [
+        "All public modules have docstrings",
+        "All public functions have docstrings",
+        "Complex logic has explanatory comments",
+        "State schema clearly documented",
+        "Architecture decision records created"
+      ]
+    }
+  ],
+
+  "nice_to_have": [
+    {
+      "id": "NICE-001",
+      "name": "/debug command - Toggle verbose mode",
+      "priority": "P3",
+      "description": "Runtime toggle for debug output",
+      "features": [
+        "Show/hide state updates",
+        "Show full chunk details",
+        "Show graph execution traces",
+        "Show timing information"
+      ],
+      "commands": [
+        "/debug on - Enable debug mode",
+        "/debug off - Disable debug mode",
+        "/debug state - Show current state",
+        "/debug trace - Show last graph trace"
+      ]
+    },
+    {
+      "id": "NICE-002",
+      "name": "/export command - Export conversation",
+      "priority": "P3",
+      "description": "Export current or past conversations to various formats",
+      "formats": [
+        "Markdown - Human-readable conversation",
+        "JSON - Complete with metadata",
+        "HTML - Styled conversation for web"
+      ],
+      "features": [
+        "Include/exclude metadata",
+        "Include/exclude tool calls",
+        "Date range filtering",
+        "Agent filtering"
+      ]
+    },
+    {
+      "id": "NICE-003",
+      "name": "/config command - Runtime configuration",
+      "priority": "P3",
+      "description": "View and modify REPL settings at runtime",
+      "settings": [
+        "auto_clear - Toggle auto-clear mode",
+        "show_state_updates - Toggle state update messages",
+        "show_status_bar - Toggle status bar",
+        "prompt_style - Change prompt format",
+        "theme - Change color scheme"
+      ],
+      "persistence": "Save to .repl/preferences.json"
+    },
+    {
+      "id": "NICE-004",
+      "name": "Graph visualization in REPL",
+      "priority": "P3",
+      "description": "Visualize graph structure and execution within REPL",
+      "commands": [
+        "/graph - Show current graph structure (ASCII art)",
+        "/trace - Show execution path for last message",
+        "/timing - Show node execution times"
+      ],
+      "format": "ASCII art graph using box-drawing characters"
+    }
+  ],
+
+  "timeline": {
+    "note": "No duration estimates - focus on deliverables and dependencies",
+    "phases": {
+      "current": {
+        "name": "Bug fixes and stabilization",
+        "deliverables": [
+          "BUG-001 fixed - Token tracking working",
+          "BUG-002 debugged - Subgraph integration understood",
+          "P2-002 complete - State updates configurable",
+          "DEBT-002 complete - Type checking clean"
+        ],
+        "blocking": "Phase 3 features, subgraph migration"
+      },
+      "next": {
+        "name": "Phase 3 core features",
+        "deliverables": [
+          "P3-001 complete - Enhanced input",
+          "P3-002 complete - Tab completion",
+          "UX-004 complete - Better errors"
+        ],
+        "dependencies": "Current phase complete"
+      },
+      "future": {
+        "name": "Subgraph migration and polish",
+        "deliverables": [
+          "SUBGRAPH-002 complete - Production switchover",
+          "P3-003 complete - Status bar",
+          "P3-004 complete - Session persistence",
+          "TEST-001, TEST-002 complete"
+        ],
+        "dependencies": "BUG-002 resolved, Phase 3 core complete"
+      }
+    }
+  },
+
+  "references": {
+    "quickstart": "docs/QUICKSTART_REPL_GRAPH.md",
+    "architecture": "docs/dev_docs/spec-repl-graph/repl_data_flow.md",
+    "subgraph_poc": "docs/dev_docs/spec-repl-graph/stream_subgraph_poc.md",
+    "phase_2_report": "docs/dev_docs/spec-repl-graph/phase2_implementation_complete.md",
+    "original_spec": "docs/dev_docs/spec-repl/repl_spec.json",
+    "component_spec": "docs/dev_docs/spec-repl/repl_components.jsonc",
+    "main_code": "src/repl_client_graph/",
+    "tests": "tests/repl_client_graph/"
+  },
+
+  "labels": [
+    "enhancement",
+    "graph-based-repl",
+    "stategraph",
+    "phase-3",
+    "langgraph",
+    "terminal-ui"
+  ],
+
+  "meta": {
+    "created": "2026-01-24",
+    "last_updated": "2026-01-24",
+    "version": "1.0",
+    "format": "JSONC - JSON with Comments",
+    "note": "Add your own notes and comments anywhere using // or /* */ syntax"
+  }
+}

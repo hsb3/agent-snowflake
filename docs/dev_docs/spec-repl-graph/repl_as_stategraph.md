@@ -1,3 +1,12 @@
+---
+title: "REPL as LangGraph StateGraph"
+created: 2026-01-23
+updated: 2026-01-24
+status: current
+tags: [repl, stategraph, architecture, design]
+type: design
+---
+
 # REPL as LangGraph StateGraph
 
 Exploration of implementing the REPL client using LangGraph StateGraph for control flow, state management, and execution orchestration.

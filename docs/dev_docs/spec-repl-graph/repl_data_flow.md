@@ -1,3 +1,12 @@
+---
+title: "REPL Data/Control Flow"
+created: 2026-01-23
+updated: 2026-01-24
+status: current
+tags: [repl, data-flow, architecture, dag]
+type: reference
+---
+
 # REPL Data/Control Flow
 
 This document visualizes the data and control flow through the REPL system as a Directed Acyclic Graph.

@@ -1,3 +1,12 @@
+---
+title: "Quick Start: StateGraph REPL"
+created: 2026-01-23
+updated: 2026-01-24
+status: current
+tags: [repl, quickstart, stategraph, tutorial]
+type: guide
+---
+
 # Quick Start: StateGraph REPL
 
 ## Prerequisites
