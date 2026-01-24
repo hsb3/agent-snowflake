@@ -31,15 +31,59 @@ def render_output_node(state: REPLState) -> REPLState:
             print(content, end="", flush=True)
 
         elif item_type == "tool_call":
-            # Tool call - render in panel
+            # Tool call - check for display hints, otherwise generic
             tool = item.get("tool", {})
             tool_name = tool.get("name", "unknown")
             tool_args = tool.get("args", {})
-            renderer.render_panel(
-                str(tool_args),
-                title=f"Tool Call: {tool_name}",
-                style="yellow",
-            )
+            display = tool.get("display", {})
+
+            # Check for specific display format
+            display_format = display.get("format")
+
+            if display_format == "sql":
+                # SQL query with syntax highlighting
+                query = display.get("query", "")
+                renderer.render_code(query, language="sql", title=f"SQL Query ({tool_name})")
+
+            elif display_format == "schema":
+                # Schema query
+                tables = display.get("tables", [])
+                table_list = ", ".join(tables) if tables else "No tables specified"
+                renderer.render_panel(
+                    f"Requesting schema for tables:\n{table_list}",
+                    title="Schema Query",
+                    style="blue"
+                )
+
+            elif display_format == "list_tables":
+                # List tables query
+                renderer.render_panel(
+                    "Requesting list of database tables...",
+                    title="List Tables",
+                    style="blue"
+                )
+
+            elif display_format == "question":
+                # Interactive question prompt
+                question = display.get("question", "")
+                options = display.get("options", [])
+
+                # Format options list
+                if options:
+                    options_text = "\nOptions:\n" + "\n".join(f"  - {opt}" for opt in options)
+                else:
+                    options_text = ""
+
+                content = f"{question}{options_text}"
+                renderer.render_panel(content, title="User Question", style="yellow")
+
+            else:
+                # Generic tool call panel
+                renderer.render_panel(
+                    str(tool_args),
+                    title=f"Tool Call: {tool_name}",
+                    style="yellow",
+                )
 
         elif item_type == "panel":
             # Generic panel
