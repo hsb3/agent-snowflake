@@ -82,7 +82,7 @@ repl-graph:
 # Visualization
 visualize-graph:
 	@echo "Generating StateGraph REPL visualization..."
-	uv run python scripts/visualize_stategraph.py repl_client_graph:build_repl_graph --output repl_stategraph.png
+	uv run python scripts/shared/visualize_stategraph.py repl_client_graph:build_repl_graph --output repl_stategraph.png
 
 # Testing
 test:
