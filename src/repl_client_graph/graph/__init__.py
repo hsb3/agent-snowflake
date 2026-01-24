@@ -2,11 +2,11 @@
 
 This module provides the StateGraph-based REPL control flow implementation.
 
-Note: Using subgraph approach (builder_subgraph.py) for stream processing
-to support 20+ tool/UI element types with better modularity and testability.
+Note: Currently using single-node approach (builder.py) for stream processing.
+Subgraph PoC available in builder_subgraph.py but has integration issues to resolve.
 """
 
-from .builder_subgraph import build_repl_graph_with_subgraph as build_repl_graph
+from .builder import build_repl_graph
 from .state import REPLState
 
 __all__ = ["build_repl_graph", "REPLState"]

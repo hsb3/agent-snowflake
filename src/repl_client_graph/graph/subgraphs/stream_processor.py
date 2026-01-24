@@ -128,26 +128,25 @@ def build_stream_processor_subgraph() -> StateGraph:
     # Entry point: fetch first chunk
     graph.set_entry_point("fetch_chunk")
 
-    # After fetching, check if we got a chunk or are done
-    graph.add_conditional_edges(
-        "fetch_chunk",
-        lambda state: "has_chunk" if state.get("current_chunk") else "done",
-        {
-            "has_chunk": "parse_chunk",
-            "done": END,
-        },
-    )
+    # After fetching, always parse (fetch sets current_chunk or None)
+    graph.add_edge("fetch_chunk", "parse_chunk")
 
 
-    # Route based on event type
+    # Route based on event type (including check for None)
+    def route_parse_chunk(state):
+        if not state.get("current_chunk"):
+            return "done"  # No chunk means we're out of chunks
+        return route_by_event_type(state)
+
     graph.add_conditional_edges(
         "parse_chunk",
-        route_by_event_type,
+        route_parse_chunk,
         {
             "messages/partial": "extract_text",
             "messages/complete": "extract_tools",
             "updates": "process_updates",
             "skip": "fetch_chunk",  # Unknown event, skip
+            "done": END,  # No more chunks
         },
     )
 

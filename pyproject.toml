@@ -18,11 +18,16 @@ dependencies = [
     "langchain-openai>=1.1.7",
     "langgraph>=1.0.7",
     "pydantic-settings>=2.12.0",
+    "pytest-asyncio>=1.3.0",
     "python-dotenv>=1.2.1",
     "snowflake-connector-python>=4.2.0",
     "snowflake-sqlalchemy>=1.8.2",
     "sqlalchemy>=2.0.46",
+    "textual>=7.3.0",
 ]
+
+[project.scripts]
+repl-tui = "repl_client.tui.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -38,7 +43,7 @@ repl = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_snowflake"]
+packages = ["src/agent_snowflake", "src/repl_client"]
 
 [tool.ruff]
 line-length = 100
@@ -62,7 +67,7 @@ ignore = [
 # Run with: ty check src/
 
 [tool.pytest.ini_options]
-pythonpath = "."
+pythonpath = [".", "src"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]

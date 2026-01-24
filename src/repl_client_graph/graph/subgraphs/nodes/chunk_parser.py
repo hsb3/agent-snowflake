@@ -35,9 +35,12 @@ def route_by_event_type(state: dict) -> str:
     current_chunk = state.get("current_chunk")
 
     if not current_chunk:
+        print("[ROUTER] No current chunk")
         return "skip"
 
     event_type, _data = current_chunk
+
+    print(f"[ROUTER] Routing event: {event_type}")
 
     # Route based on event type
     if event_type == "messages/partial":
@@ -48,4 +51,5 @@ def route_by_event_type(state: dict) -> str:
         return "updates"
     else:
         # Unknown event type - skip
+        print(f"[ROUTER] Unknown event type: {event_type}, skipping")
         return "skip"

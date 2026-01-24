@@ -77,5 +77,8 @@ What if we used LangGraph to create engine to power TUI/REPL to interact with ag
 
 <table>
   <tr>
-    <td><img src="docs/assets/graph-based-repl/image.png" alt="Graph-based REPL (Phase 1)" width="400"/></td>
+    <td style="padding-left: 20px;"><img src="docs/assets/graph-based-repl/image.png" alt="(Phase 1)" width="300"/></td>
+    <td  style="padding-left: 10px;"><img src="docs/assets/graph-based-repl/repl_graph_xray.png" alt="(Phase 2)" width="400"/></td>
   </tr>
+
+  

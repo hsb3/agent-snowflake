@@ -23,10 +23,14 @@ def extract_text_delta_node(state: dict) -> dict:
     prev_text = state.get("prev_text", "")
     render_queue = list(state.get("render_queue", []))
 
+    print(f"[TEXT_HANDLER] Called with chunk: {current_chunk[0] if current_chunk else None}")
+
     if not current_chunk:
+        print("[TEXT_HANDLER] No current chunk, returning")
         return state
 
     event_type, data = current_chunk
+    print(f"[TEXT_HANDLER] Event: {event_type}, Data type: {type(data).__name__}")
 
     # Extract text from messages/partial
     # Data is a list of messages, we want the last one (AI response)

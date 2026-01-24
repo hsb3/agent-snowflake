@@ -16,10 +16,15 @@ def fetch_next_chunk_node(state: dict) -> dict:
     chunks = state.get("stream_chunks", [])
     index = state.get("chunk_index", 0)
 
+    # DEBUG
+    import sys
+    print(f"[FETCH] Index={index}, Total={len(chunks)}", file=sys.stderr, flush=True)
+
     # Get chunk at current index
     current_chunk = None
     if index < len(chunks):
         current_chunk = chunks[index]
+        print(f"[FETCH] Got chunk: {current_chunk[0] if current_chunk else None}", file=sys.stderr, flush=True)
 
     return {
         **state,

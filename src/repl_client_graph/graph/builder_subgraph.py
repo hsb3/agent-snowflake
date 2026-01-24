@@ -62,10 +62,7 @@ def transform_to_subgraph_input(state: REPLState) -> dict:
     }
 
 
-def transform_from_subgraph_output(
-    parent_state: REPLState,
-    subgraph_state: dict
-) -> REPLState:
+def transform_from_subgraph_output(parent_state: REPLState, subgraph_state: dict) -> REPLState:
     """Transform StreamSubgraphState output back to REPLState.
 
     The subgraph produces:
@@ -121,10 +118,52 @@ def build_repl_graph_with_subgraph() -> Any:
     graph.add_node("send_message", send_message_node)
 
     # DIFFERENCE: process_stream is a subgraph instead of a single node
-    # The subgraph is compiled and added as a node
-    # LangGraph will handle state transformations automatically
-    process_stream_subgraph = build_process_stream_subgraph()
-    graph.add_node("process_stream", process_stream_subgraph)
+    # Wrap the subgraph with state transformation
+    def process_stream_wrapper(state: REPLState) -> REPLState:
+        """Wrapper that transforms state for subgraph invocation.
+
+        Args:
+            state: Parent REPLState
+
+        Returns:
+            Updated REPLState with subgraph results
+        """
+        # Debug: Check input
+        chunks = state.get("stream_chunks", [])
+        print(f"\n[DEBUG] Wrapper received {len(chunks)} chunks")
+        if chunks:
+            # Count event types
+            from collections import Counter
+            event_types = Counter(chunk[0] for chunk in chunks)
+            print(f"[DEBUG] Event types: {dict(event_types)}")
+
+        # Transform to subgraph input
+        subgraph_input = transform_to_subgraph_input(state)
+        print(f"[DEBUG] Subgraph input keys: {list(subgraph_input.keys())}")
+
+        # Invoke subgraph (sync invocation) - build fresh to pick up latest code
+        try:
+            print("[DEBUG] Invoking subgraph...")
+            fresh_subgraph = build_process_stream_subgraph()
+            subgraph_output = fresh_subgraph.invoke(subgraph_input)
+            print(f"[DEBUG] Subgraph returned: {list(subgraph_output.keys())}")
+        except Exception as e:
+            print(f"[DEBUG] Subgraph error: {e}")
+            import traceback
+            traceback.print_exc()
+            subgraph_output = subgraph_input  # Return input unchanged on error
+
+        # Transform back to parent state
+        result = transform_from_subgraph_output(state, subgraph_output)
+
+        # Debug: Print what we got
+        print(f"[DEBUG] Subgraph produced {len(result.get('render_queue', []))} render items")
+        if result.get('render_queue'):
+            print(f"[DEBUG] First item type: {result['render_queue'][0].get('type')}")
+
+        return result
+
+    graph.add_node("process_stream", process_stream_wrapper)
 
     # Remaining nodes - same as builder.py
     graph.add_node("handle_interrupt", handle_interrupt_node)
@@ -189,28 +228,22 @@ def build_repl_graph_with_subgraph() -> Any:
     return graph.compile()
 
 
-# Comparison notes:
-#
-# Single Node (builder.py):
-# - 1 invocation of process_stream_node per message
-# - All chunk processing happens in a single Python function
-# - Simple, fast, but can grow to 500+ lines
-#
-# Subgraph (this file):
-# - N invocations where N = number of chunks * nodes per chunk
-# - For 100 chunks with tools: ~300-400 node invocations
-# - Each chunk: fetch → parse → extract/render → loop
-# - Better separation but higher overhead
-#
-# Example invocation count for a message with 50 chunks (25 text, 25 complete with 5 tools):
-# Single node: 1 invocation
-# Subgraph:
-#   - 50 fetch_chunk invocations
-#   - 50 parse_chunk invocations
-#   - 25 extract_text_delta invocations
-#   - 25 extract_tools invocations
-#   - 5 fetch_next_tool invocations
-#   - 5 render_* invocations
-#   = 160 total node invocations
-#
-# Tradeoff: 160x more invocations for better modularity
+if __name__ == "__main__":
+    # For quick testing
+
+    # Generate main graph visualization (collapsed)
+    repl_graph = build_repl_graph_with_subgraph()
+    graph_image = repl_graph.get_graph().draw_mermaid_png()
+    with open("docs/assets/graph-based-repl/repl_graph.png", "wb") as f:
+        f.write(graph_image)
+
+    # Generate main graph with xray (expanded subgraphs)
+    graph_xray = repl_graph.get_graph(xray=True).draw_mermaid_png()
+    with open("docs/assets/graph-based-repl/repl_graph_xray.png", "wb") as f:
+        f.write(graph_xray)
+
+    # Generate subgraph visualization (standalone)
+    process_stream_subgraph = build_process_stream_subgraph()
+    subgraph_image = process_stream_subgraph.get_graph().draw_mermaid_png()
+    with open("docs/assets/graph-based-repl/process_stream_subgraph.png", "wb") as f:
+        f.write(subgraph_image)
