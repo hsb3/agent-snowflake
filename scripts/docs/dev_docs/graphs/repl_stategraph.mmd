@@ -1,0 +1,33 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	get_input(get_input)
+	route_input(route_input)
+	execute_command(execute_command)
+	send_message(send_message)
+	process_stream(process_stream)
+	handle_interrupt(handle_interrupt)
+	update_session(update_session)
+	render_output(render_output)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> get_input;
+	execute_command --> render_output;
+	get_input --> route_input;
+	handle_interrupt --> process_stream;
+	process_stream -. &nbsp;interrupt&nbsp; .-> handle_interrupt;
+	process_stream -. &nbsp;complete&nbsp; .-> update_session;
+	render_output -. &nbsp;exit&nbsp; .-> __end__;
+	render_output -. &nbsp;continue&nbsp; .-> get_input;
+	route_input -. &nbsp;exit&nbsp; .-> __end__;
+	route_input -. &nbsp;command&nbsp; .-> execute_command;
+	route_input -. &nbsp;empty&nbsp; .-> get_input;
+	route_input -. &nbsp;message&nbsp; .-> send_message;
+	send_message --> process_stream;
+	update_session --> render_output;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc
