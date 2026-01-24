@@ -1,8 +1,6 @@
 {
   // REPL Client Graph - Remaining Development Work
   // StateGraph-based terminal REPL for LangGraph dev server
-  // Reference: docs/dev_docs/GRAPH_REPL_TODO.md
-
   "project": {
     "name": "repl_client_graph",
     "description": "LangGraph StateGraph-based Terminal REPL Client",
@@ -10,7 +8,7 @@
     "version": "0.2.0-alpha",
     "phase": "2.5 - Bug fixes before Phase 3",
     "architecture": "StateGraph with single-node stream processing",
-    "path": "src/repl_client_graph/"
+    "path": "src/repl_client_graph/",
   },
 
   "critical_bugs": [
@@ -22,26 +20,26 @@
       "severity": "high",
       "files_affected": [
         "src/repl_client_graph/graph/nodes/streaming.py:110-117",
-        "src/repl_client_graph/graph/nodes/session.py"
+        "src/repl_client_graph/graph/nodes/session.py",
       ],
       "root_cause_hypothesis": [
         "usage_metadata not being extracted from chunks",
         "Session state not being updated with token counts",
         "State transformation losing usage data",
-        "Incorrect field names in usage extraction"
+        "Incorrect field names in usage extraction",
       ],
       "investigation_steps": [
         "Add debug logging to process_stream_node to inspect usage_metadata structure",
         "Verify usage flows through to update_session_node",
         "Check if usage_metadata field names match server response",
-        "Trace token count through entire state pipeline"
+        "Trace token count through entire state pipeline",
       ],
       "acceptance_criteria": [
         "Session summary shows correct token counts",
         "/info command displays accurate usage stats",
         "Token tracking updates incrementally during streams",
-        "Test with multiple messages to verify accumulation"
-      ]
+        "Test with multiple messages to verify accumulation",
+      ],
     },
     {
       "id": "BUG-002",
@@ -53,7 +51,7 @@
       "files_affected": [
         "src/repl_client_graph/graph/builder_subgraph.py",
         "src/repl_client_graph/graph/subgraphs/stream_processor.py",
-        "src/repl_client_graph/graph/nodes/streaming.py"
+        "src/repl_client_graph/graph/nodes/streaming.py",
       ],
       "works": "Standalone subgraph with mock data produces correct output",
       "fails": "Integration with main graph produces empty render_queue",
@@ -61,22 +59,22 @@
         "State transformation issues in transform_to_subgraph_input/output",
         "Chunk data structure differs between mock and live server",
         "Render queue not being properly merged back into main state",
-        "Namespace or context loss during subgraph invocation"
+        "Namespace or context loss during subgraph invocation",
       ],
       "investigation_steps": [
         "Compare mock chunk structure with live server chunks byte-for-byte",
         "Log state before/after subgraph invocation",
         "Verify transform functions preserve all required fields",
         "Test subgraph with live server data in isolation",
-        "Check if render_queue gets overwritten after subgraph return"
+        "Check if render_queue gets overwritten after subgraph return",
       ],
       "acceptance_criteria": [
         "Subgraph produces same render output as single-node approach",
         "All streaming features work identically",
         "State flows correctly through subgraph boundary",
-        "No data loss in transformation functions"
-      ]
-    }
+        "No data loss in transformation functions",
+      ],
+    },
   ],
 
   "phase_2_completion": [
@@ -89,7 +87,7 @@
       "dependencies": [],
       "files": [
         "src/repl_client_graph/graph/nodes/hitl.py",
-        "src/repl_client_graph/core/client.py"
+        "src/repl_client_graph/core/client.py",
       ],
       "tasks": [
         "Configure test agent with 'interrupt_before: [\"*\"]' in langgraph.json",
@@ -98,7 +96,7 @@
         "Test rejection flow - type 'n' and verify graceful handling",
         "Verify resume streaming works after approval",
         "Test multiple interrupts in single conversation",
-        "Verify state consistency after interrupt/resume cycles"
+        "Verify state consistency after interrupt/resume cycles",
       ],
       "acceptance_criteria": [
         "Approval prompt appears when tool requires confirmation",
@@ -106,7 +104,7 @@
         "Typing 'n' rejects and returns to prompt",
         "Tool results display after approval",
         "Session state remains consistent through interrupt cycles",
-        "Multiple interrupts in one stream work correctly"
+        "Multiple interrupts in one stream work correctly",
       ],
       "test_agent_config": {
         "file": ".langgraph/config/test_hitl_agent.json",
@@ -114,10 +112,10 @@
           "assistant_id": "test_hitl",
           "graph_id": "agent_enhanced",
           "config": {
-            "interrupt_before": ["*"]
-          }
-        }
-      }
+            "interrupt_before": ["*"],
+          },
+        },
+      },
     },
     {
       "id": "P2-002",
@@ -128,36 +126,36 @@
       "dependencies": [],
       "files": [
         "src/repl_client_graph/graph/nodes/rendering.py:77-84",
-        "src/repl_client_graph/core/config.py"
+        "src/repl_client_graph/core/config.py",
       ],
       "solutions": [
         {
           "option": "A",
           "description": "Add REPL_SHOW_STATE_UPDATES env var (default: false)",
           "pros": "User control, clean conversation by default",
-          "cons": "Requires config change"
+          "cons": "Requires config change",
         },
         {
           "option": "B",
           "description": "Only show in debug/verbose mode (/debug on)",
           "pros": "Runtime toggle, no config needed",
-          "cons": "Requires debug command implementation"
+          "cons": "Requires debug command implementation",
         },
         {
           "option": "C",
           "description": "Make dimmer/gray/less prominent",
           "pros": "Still visible but unobtrusive",
-          "cons": "Still adds noise"
-        }
+          "cons": "Still adds noise",
+        },
       ],
       "recommended": "Option A - env var with default false",
       "acceptance_criteria": [
         "State update messages hidden by default",
         "Configurable via REPL_SHOW_STATE_UPDATES env var",
         "When enabled, messages are dimmed/gray",
-        "Debug mode override still available"
-      ]
-    }
+        "Debug mode override still available",
+      ],
+    },
   ],
 
   "phase_3_features": [
@@ -169,18 +167,16 @@
       "dependencies": [],
       "files": [
         "src/repl_client_graph/graph/nodes/input.py",
-        "src/repl_client_graph/ui/input_handler.py (new)"
+        "src/repl_client_graph/ui/input_handler.py (new)",
       ],
-      "requirements": [
-        "prompt-toolkit>=3.0.0"
-      ],
+      "requirements": ["prompt-toolkit>=3.0.0"],
       "features": [
         "Multi-line input support (Ctrl+Enter to send, Enter for newline)",
         "Input history navigation (up/down arrows)",
         "Command completion (Tab key)",
         "Syntax highlighting in input area",
         "Vi/Emacs keybindings support",
-        "Custom prompt styling"
+        "Custom prompt styling",
       ],
       "acceptance_criteria": [
         "Multi-line messages can be composed and sent",
@@ -188,14 +184,14 @@
         "Tab completes commands and arguments",
         "Input area has subtle syntax highlighting",
         "Ctrl+C cancels current input without exiting",
-        "History persists across sessions"
+        "History persists across sessions",
       ],
       "implementation_notes": [
         "Create InputHandler class wrapping PromptSession",
         "Update input_node to use InputHandler instead of input()",
         "Store history in .repl/input_history",
-        "Register completer with command registry"
-      ]
+        "Register completer with command registry",
+      ],
     },
     {
       "id": "P3-002",
@@ -205,29 +201,29 @@
       "dependencies": ["P3-001"],
       "files": [
         "src/repl_client_graph/ui/completers.py (new)",
-        "src/repl_client_graph/graph/nodes/commands.py"
+        "src/repl_client_graph/graph/nodes/commands.py",
       ],
       "completion_types": [
         {
           "context": "Command names",
           "example": "/ag<Tab> → /agents",
-          "implementation": "WordCompleter from command registry"
+          "implementation": "WordCompleter from command registry",
         },
         {
           "context": "Agent IDs",
           "example": "/agents agen<Tab> → /agents agent_enhanced",
-          "implementation": "Dynamic completer querying client.list_agents()"
+          "implementation": "Dynamic completer querying client.list_agents()",
         },
         {
           "context": "Thread IDs",
           "example": "/threads abc<Tab> → /threads abc-123-def",
-          "implementation": "Dynamic completer from session history"
+          "implementation": "Dynamic completer from session history",
         },
         {
           "context": "File paths",
           "example": "/export ~/Doc<Tab> → ~/Documents/",
-          "implementation": "PathCompleter for file operations"
-        }
+          "implementation": "PathCompleter for file operations",
+        },
       ],
       "acceptance_criteria": [
         "Tab completes all registered commands",
@@ -235,8 +231,8 @@
         "Thread completion shows recent threads",
         "Completion shows helpful descriptions",
         "Works with partial matches",
-        "Case-insensitive matching"
-      ]
+        "Case-insensitive matching",
+      ],
     },
     {
       "id": "P3-003",
@@ -246,13 +242,13 @@
       "dependencies": [],
       "files": [
         "src/repl_client_graph/ui/status_bar.py (new)",
-        "src/repl_client_graph/graph/nodes/rendering.py"
+        "src/repl_client_graph/graph/nodes/rendering.py",
       ],
       "display_modes": {
         "idle": "Hidden or minimal (current agent only)",
         "streaming": "⏳ Typing... | Tokens: 156 | Agent: enhanced",
         "interrupt": "⚠️  Approval needed | Thread: abc-123",
-        "error": "❌ Connection lost - Reconnecting..."
+        "error": "❌ Connection lost - Reconnecting...",
       },
       "features": [
         "Typing indicator during streaming",
@@ -260,7 +256,7 @@
         "Connection status indicator",
         "Current agent/thread context",
         "Configurable visibility",
-        "Auto-hide when idle for >2s"
+        "Auto-hide when idle for >2s",
       ],
       "acceptance_criteria": [
         "Status bar appears during streaming",
@@ -268,14 +264,14 @@
         "Connection status reflects client state",
         "Auto-hides when conversation is idle",
         "Configurable via REPL_SHOW_STATUS_BAR env var",
-        "Doesn't interfere with input/output"
+        "Doesn't interfere with input/output",
       ],
       "implementation_notes": [
         "Use Rich Live display for status bar",
         "Update from render_node based on state",
         "Clear/hide when returning to prompt",
-        "Consider fixed bottom bar vs. transient display"
-      ]
+        "Consider fixed bottom bar vs. transient display",
+      ],
     },
     {
       "id": "P3-004",
@@ -285,7 +281,7 @@
       "dependencies": [],
       "files": [
         "src/repl_client_graph/persistence/ (new module)",
-        "src/repl_client_graph/graph/nodes/session.py"
+        "src/repl_client_graph/graph/nodes/session.py",
       ],
       "features": [
         "Auto-save conversations to .repl/sessions/",
@@ -293,7 +289,7 @@
         "/replay <session_id> command to review past conversations",
         "/export command to save as markdown or JSON",
         "Checkpoint support for debugging state transitions",
-        "Session search by date, agent, or content"
+        "Session search by date, agent, or content",
       ],
       "storage_format": {
         "location": ".repl/sessions/YYYY-MM-DD/session_<timestamp>.json",
@@ -307,29 +303,29 @@
               "timestamp": "ISO",
               "role": "user|assistant",
               "content": "string",
-              "metadata": {}
-            }
+              "metadata": {},
+            },
           ],
           "commands": ["list of commands executed"],
-          "tokens_used": {"input": 0, "output": 0, "total": 0}
-        }
+          "tokens_used": { "input": 0, "output": 0, "total": 0 },
+        },
       },
       "commands": [
         {
           "command": "/sessions",
           "description": "List saved sessions",
-          "syntax": "/sessions [--date YYYY-MM-DD] [--agent agent_id]"
+          "syntax": "/sessions [--date YYYY-MM-DD] [--agent agent_id]",
         },
         {
           "command": "/replay",
           "description": "Display saved session",
-          "syntax": "/replay <session_id>"
+          "syntax": "/replay <session_id>",
         },
         {
           "command": "/export",
           "description": "Export current session",
-          "syntax": "/export [--format md|json] [--output path]"
-        }
+          "syntax": "/export [--format md|json] [--output path]",
+        },
       ],
       "acceptance_criteria": [
         "Sessions auto-save during conversation",
@@ -337,9 +333,9 @@
         "/sessions lists all saved sessions",
         "/replay displays session conversation",
         "/export creates markdown or JSON file",
-        "Export includes all metadata and token stats"
-      ]
-    }
+        "Export includes all metadata and token stats",
+      ],
+    },
   ],
 
   "ux_improvements": [
@@ -348,9 +344,7 @@
       "name": "Command aliases",
       "priority": "P2",
       "description": "Short aliases for frequently used commands to reduce typing.",
-      "files": [
-        "src/repl_client_graph/graph/nodes/commands.py"
-      ],
+      "files": ["src/repl_client_graph/graph/nodes/commands.py"],
       "aliases": {
         "/a": "/agents",
         "/t": "/threads",
@@ -359,14 +353,14 @@
         "/c": "/clear",
         "/s": "/session",
         "/h": "/help",
-        "/q": "/exit"
+        "/q": "/exit",
       },
       "acceptance_criteria": [
         "All aliases work identically to full commands",
         "/help shows both full name and alias",
         "Aliases complete with tab completion",
-        "No conflicts between aliases and commands"
-      ]
+        "No conflicts between aliases and commands",
+      ],
     },
     {
       "id": "UX-002",
@@ -375,18 +369,18 @@
       "description": "Toggle to automatically clear screen before each agent response. Useful for long conversations.",
       "files": [
         "src/repl_client_graph/graph/nodes/rendering.py",
-        "src/repl_client_graph/core/config.py"
+        "src/repl_client_graph/core/config.py",
       ],
       "commands": [
         {
           "command": "/auto-clear",
           "syntax": "/auto-clear [on|off]",
-          "description": "Toggle auto-clear mode"
-        }
+          "description": "Toggle auto-clear mode",
+        },
       ],
       "behavior": {
         "enabled": "Clear terminal before each assistant message",
-        "disabled": "Normal scrolling conversation (default)"
+        "disabled": "Normal scrolling conversation (default)",
       },
       "persistence": "Save preference to .repl/preferences.json",
       "acceptance_criteria": [
@@ -394,37 +388,35 @@
         "/auto-clear off disables mode",
         "/auto-clear with no args shows current state",
         "Preference persists across sessions",
-        "Works well with status bar"
-      ]
+        "Works well with status bar",
+      ],
     },
     {
       "id": "UX-003",
       "name": "Improved table rendering",
       "priority": "P2",
       "description": "Enhance table display for lists of agents, threads, and other tabular data.",
-      "files": [
-        "src/repl_client_graph/ui/renderer.py"
-      ],
+      "files": ["src/repl_client_graph/ui/renderer.py"],
       "improvements": [
         "Pagination for large lists (>20 items)",
         "Sortable columns (click or command)",
         "Color-code current/active items",
         "Column width auto-adjustment",
         "Row highlighting on hover (if terminal supports)",
-        "Compact vs. detailed view modes"
+        "Compact vs. detailed view modes",
       ],
       "example_tables": [
         "/agents - Show agent list with status indicators",
         "/threads - Show thread list with timestamps and message counts",
-        "/sessions - Show saved session list with metadata"
+        "/sessions - Show saved session list with metadata",
       ],
       "acceptance_criteria": [
         "Tables paginate when >20 rows",
         "Current agent/thread highlighted in listings",
         "Columns auto-size to fit content",
         "Tables render correctly in narrow terminals",
-        "Consistent styling across all tables"
-      ]
+        "Consistent styling across all tables",
+      ],
     },
     {
       "id": "UX-004",
@@ -433,7 +425,7 @@
       "description": "Friendly, actionable error messages with suggestions for common issues.",
       "files": [
         "src/repl_client_graph/graph/nodes/error_handling.py (new)",
-        "src/repl_client_graph/ui/renderer.py"
+        "src/repl_client_graph/ui/renderer.py",
       ],
       "error_types": [
         {
@@ -442,8 +434,8 @@
           "suggestions": [
             "Is the dev server running? Try: make dev-server",
             "Check LANGGRAPH_DEV_SERVER_PORT in .env",
-            "Verify server is listening on localhost:{port}"
-          ]
+            "Verify server is listening on localhost:{port}",
+          ],
         },
         {
           "error": "Agent not found",
@@ -451,8 +443,8 @@
           "suggestions": [
             "Run '/agents' to see available agents",
             "Check spelling - agent IDs are case-sensitive",
-            "Verify agent is deployed to server"
-          ]
+            "Verify agent is deployed to server",
+          ],
         },
         {
           "error": "Thread not found",
@@ -460,8 +452,8 @@
           "suggestions": [
             "Run '/threads' to see available threads",
             "Thread may have expired on server",
-            "Use '/new' to create a new thread"
-          ]
+            "Use '/new' to create a new thread",
+          ],
         },
         {
           "error": "Stream interrupted",
@@ -469,22 +461,22 @@
           "suggestions": [
             "Server may have restarted",
             "Network interruption detected",
-            "Try resending your message"
-          ]
-        }
+            "Try resending your message",
+          ],
+        },
       ],
       "format": {
         "structure": "❌ Error: <message>\\n\\n💡 Suggestions:\\n  • <suggestion 1>\\n  • <suggestion 2>",
-        "colors": "Red for error, yellow for suggestions"
+        "colors": "Red for error, yellow for suggestions",
       },
       "acceptance_criteria": [
         "All errors show helpful suggestions",
         "Error messages are concise and clear",
         "Technical details available in verbose mode",
         "Connection errors include troubleshooting guide",
-        "Common mistakes have specific guidance"
-      ]
-    }
+        "Common mistakes have specific guidance",
+      ],
+    },
   ],
 
   "subgraph_migration": {
@@ -494,7 +486,7 @@
       "Better separation of concerns",
       "Easier to add tool-specific rendering",
       "More maintainable parsing logic",
-      "Parallel processing opportunities"
+      "Parallel processing opportunities",
     ],
     "blocker": "Subgraph produces empty render_queue when integrated with main graph",
     "tasks": [
@@ -510,14 +502,14 @@
           "Compare chunk structure between mock and live data",
           "Verify render_queue merging logic",
           "Test with minimal subgraph first",
-          "Gradually add complexity until failure point found"
+          "Gradually add complexity until failure point found",
         ],
         "acceptance_criteria": [
           "Subgraph produces identical output to single-node",
           "All tests pass with subgraph enabled",
           "No performance degradation",
-          "State flows correctly through boundary"
-        ]
+          "State flows correctly through boundary",
+        ],
       },
       {
         "id": "SUBGRAPH-002",
@@ -531,15 +523,15 @@
           "Verify all features work identically",
           "Run full test suite",
           "Monitor performance metrics",
-          "Update documentation"
+          "Update documentation",
         ],
         "rollback_plan": "Keep builder.py as fallback, easy revert by changing import",
         "acceptance_criteria": [
           "All Phase 1 & 2 features work with subgraph",
           "No user-visible changes in behavior",
           "Performance within 10% of single-node",
-          "Documentation updated"
-        ]
+          "Documentation updated",
+        ],
       },
       {
         "id": "SUBGRAPH-003",
@@ -552,37 +544,40 @@
           {
             "tool": "python_repl",
             "renderer": "Code execution panel with syntax highlighting",
-            "features": ["Show code, output, errors separately", "Execution time display"]
+            "features": [
+              "Show code, output, errors separately",
+              "Execution time display",
+            ],
           },
           {
             "tool": "sql_db_query",
             "renderer": "SQL query with results table",
-            "features": ["Formatted SQL", "Tabular results", "Row count"]
+            "features": ["Formatted SQL", "Tabular results", "Row count"],
           },
           {
             "tool": "search_tool",
             "renderer": "Search results with snippets",
-            "features": ["Result cards", "Relevance scores", "Source links"]
+            "features": ["Result cards", "Relevance scores", "Source links"],
           },
           {
             "tool": "file_operations",
             "renderer": "File tree or diff display",
-            "features": ["Tree view for lists", "Diff view for changes"]
+            "features": ["Tree view for lists", "Diff view for changes"],
           },
           {
             "tool": "chart_generator",
             "renderer": "ASCII charts or data tables",
-            "features": ["Bar charts", "Line graphs", "Data summary"]
-          }
+            "features": ["Bar charts", "Line graphs", "Data summary"],
+          },
         ],
         "acceptance_criteria": [
           "Each tool has custom renderer registered",
           "Fallback to generic renderer for unknown tools",
           "Renderers are visually distinct and helpful",
-          "Performance impact minimal"
-        ]
-      }
-    ]
+          "Performance impact minimal",
+        ],
+      },
+    ],
   },
 
   "testing": [
@@ -591,9 +586,7 @@
       "name": "Unit tests for StateGraph nodes",
       "priority": "P1",
       "description": "Test each node function with mock state to ensure correctness",
-      "files": [
-        "tests/repl_client_graph/graph/nodes/test_*.py"
-      ],
+      "files": ["tests/repl_client_graph/graph/nodes/test_*.py"],
       "test_coverage": [
         {
           "node": "input_node",
@@ -601,8 +594,8 @@
             "Command detection (starts with /)",
             "Normal message passthrough",
             "Empty input handling",
-            "Whitespace trimming"
-          ]
+            "Whitespace trimming",
+          ],
         },
         {
           "node": "command_node",
@@ -610,8 +603,8 @@
             "Command parsing and routing",
             "Unknown command handling",
             "Command with arguments",
-            "Exit flag setting"
-          ]
+            "Exit flag setting",
+          ],
         },
         {
           "node": "process_stream_node",
@@ -619,8 +612,8 @@
             "Text delta extraction",
             "Tool call buffering",
             "Usage metadata extraction",
-            "Error chunk handling"
-          ]
+            "Error chunk handling",
+          ],
         },
         {
           "node": "render_node",
@@ -628,26 +621,24 @@
             "Render queue processing",
             "User message rendering",
             "AI response rendering",
-            "Tool result rendering"
-          ]
-        }
+            "Tool result rendering",
+          ],
+        },
       ],
       "acceptance_criteria": [
         "All node functions have unit tests",
         "Test coverage >80%",
         "Tests run in <1s total",
         "Mock dependencies properly",
-        "Edge cases covered"
-      ]
+        "Edge cases covered",
+      ],
     },
     {
       "id": "TEST-002",
       "name": "Integration tests",
       "priority": "P1",
       "description": "Test complete workflows through the graph",
-      "files": [
-        "tests/repl_client_graph/integration/test_*.py"
-      ],
+      "files": ["tests/repl_client_graph/integration/test_*.py"],
       "workflows": [
         {
           "name": "Simple message flow",
@@ -655,8 +646,8 @@
             "Start REPL",
             "Send message",
             "Receive streamed response",
-            "Return to prompt"
-          ]
+            "Return to prompt",
+          ],
         },
         {
           "name": "Agent switching",
@@ -664,8 +655,8 @@
             "List agents",
             "Switch to different agent",
             "Send message to new agent",
-            "Verify correct agent responds"
-          ]
+            "Verify correct agent responds",
+          ],
         },
         {
           "name": "Thread management",
@@ -673,8 +664,8 @@
             "Create new thread",
             "Send messages",
             "Switch to different thread",
-            "Resume original thread"
-          ]
+            "Resume original thread",
+          ],
         },
         {
           "name": "HITL approval flow",
@@ -682,8 +673,8 @@
             "Trigger interrupt",
             "Receive approval prompt",
             "Approve tool",
-            "Receive tool result"
-          ]
+            "Receive tool result",
+          ],
         },
         {
           "name": "Error recovery",
@@ -691,17 +682,17 @@
             "Simulate connection error",
             "Verify error message",
             "Reconnect",
-            "Resume operation"
-          ]
-        }
+            "Resume operation",
+          ],
+        },
       ],
       "acceptance_criteria": [
         "All workflows complete successfully",
         "Tests use real graph instance",
         "Mock only external dependencies (network)",
         "Tests are deterministic",
-        "Clear failure messages"
-      ]
+        "Clear failure messages",
+      ],
     },
     {
       "id": "TEST-003",
@@ -712,36 +703,36 @@
         {
           "name": "Stream processing latency",
           "target": "<50ms per chunk",
-          "measurement": "Time from chunk received to render"
+          "measurement": "Time from chunk received to render",
         },
         {
           "name": "Command execution time",
           "target": "<100ms",
-          "measurement": "Time from input to execution complete"
+          "measurement": "Time from input to execution complete",
         },
         {
           "name": "Graph overhead",
           "target": "<10% vs. direct implementation",
-          "measurement": "Compare StateGraph vs. imperative loop"
+          "measurement": "Compare StateGraph vs. imperative loop",
         },
         {
           "name": "Memory usage",
           "target": "<100MB base + streaming buffers",
-          "measurement": "Peak memory during long conversation"
-        }
+          "measurement": "Peak memory during long conversation",
+        },
       ],
       "comparison": {
         "baseline": "Single-node implementation",
         "test": "Subgraph implementation",
-        "acceptable_delta": "±10%"
+        "acceptable_delta": "±10%",
       },
       "acceptance_criteria": [
         "All metrics within target ranges",
         "Subgraph performance comparable to single-node",
         "No memory leaks in long sessions",
-        "Benchmark suite runs automatically in CI"
-      ]
-    }
+        "Benchmark suite runs automatically in CI",
+      ],
+    },
   ],
 
   "technical_debt": [
@@ -752,46 +743,44 @@
       "description": "Clean up [DEBUG] prints and replace with proper logging",
       "files": [
         "src/repl_client_graph/graph/nodes/*.py",
-        "src/repl_client_graph/core/*.py"
+        "src/repl_client_graph/core/*.py",
       ],
       "tasks": [
         "Audit all print() statements",
         "Replace debug prints with logging.debug()",
         "Add --debug flag to enable debug logging",
         "Configure logging levels properly",
-        "Remove temporary/commented debug code"
+        "Remove temporary/commented debug code",
       ],
       "acceptance_criteria": [
         "No print() statements in production code paths",
         "All debug output goes through logging module",
         "Debug mode controllable via CLI flag",
-        "Logs are structured and useful"
-      ]
+        "Logs are structured and useful",
+      ],
     },
     {
       "id": "DEBT-002",
       "name": "Type checking cleanup",
       "priority": "P1",
       "description": "Fix type: ignore comments and improve type annotations",
-      "files": [
-        "All .py files in src/repl_client_graph/"
-      ],
+      "files": ["All .py files in src/repl_client_graph/"],
       "issues": [
         "# type: ignore comments indicate type issues",
         "Missing type annotations on function parameters",
         "Incomplete TypedDict definitions",
-        "Any types where specific types possible"
+        "Any types where specific types possible",
       ],
       "tools": [
         "ty --check - Fast type checker",
-        "mypy - Comprehensive checking (optional)"
+        "mypy - Comprehensive checking (optional)",
       ],
       "acceptance_criteria": [
         "ty passes without errors",
         "No # type: ignore comments (or documented why needed)",
         "All public functions have full type annotations",
-        "TypedDicts complete and accurate"
-      ]
+        "TypedDicts complete and accurate",
+      ],
     },
     {
       "id": "DEBT-003",
@@ -803,33 +792,33 @@
           "area": "Command handlers",
           "current": "Single large command_node function",
           "proposed": "Split into command_handlers/ module with one file per command group",
-          "benefit": "Easier to maintain and extend"
+          "benefit": "Easier to maintain and extend",
         },
         {
           "area": "Rendering",
           "current": "Mixed rendering logic in multiple places",
           "proposed": "Centralize in ui/ module with clear responsibilities",
-          "benefit": "Single source of truth for UI"
+          "benefit": "Single source of truth for UI",
         },
         {
           "area": "State types",
           "current": "TypedDicts scattered across files",
           "proposed": "Consolidate in graph/state.py",
-          "benefit": "Clear state schema"
+          "benefit": "Clear state schema",
         },
         {
           "area": "Common patterns",
           "current": "Repeated code for state updates",
           "proposed": "Helper functions in graph/utils.py",
-          "benefit": "DRY principle"
-        }
+          "benefit": "DRY principle",
+        },
       ],
       "acceptance_criteria": [
         "Related code grouped in modules",
         "Clear single responsibility per module",
         "Common patterns extracted to utilities",
-        "Imports simplified and logical"
-      ]
+        "Imports simplified and logical",
+      ],
     },
     {
       "id": "DEBT-004",
@@ -841,16 +830,16 @@
         "Function docstrings with Args/Returns/Raises",
         "Complex logic annotated with comments",
         "State schema documented",
-        "Graph flow documented with diagrams"
+        "Graph flow documented with diagrams",
       ],
       "acceptance_criteria": [
         "All public modules have docstrings",
         "All public functions have docstrings",
         "Complex logic has explanatory comments",
         "State schema clearly documented",
-        "Architecture decision records created"
-      ]
-    }
+        "Architecture decision records created",
+      ],
+    },
   ],
 
   "nice_to_have": [
@@ -863,14 +852,14 @@
         "Show/hide state updates",
         "Show full chunk details",
         "Show graph execution traces",
-        "Show timing information"
+        "Show timing information",
       ],
       "commands": [
         "/debug on - Enable debug mode",
         "/debug off - Disable debug mode",
         "/debug state - Show current state",
-        "/debug trace - Show last graph trace"
-      ]
+        "/debug trace - Show last graph trace",
+      ],
     },
     {
       "id": "NICE-002",
@@ -880,14 +869,14 @@
       "formats": [
         "Markdown - Human-readable conversation",
         "JSON - Complete with metadata",
-        "HTML - Styled conversation for web"
+        "HTML - Styled conversation for web",
       ],
       "features": [
         "Include/exclude metadata",
         "Include/exclude tool calls",
         "Date range filtering",
-        "Agent filtering"
-      ]
+        "Agent filtering",
+      ],
     },
     {
       "id": "NICE-003",
@@ -899,9 +888,9 @@
         "show_state_updates - Toggle state update messages",
         "show_status_bar - Toggle status bar",
         "prompt_style - Change prompt format",
-        "theme - Change color scheme"
+        "theme - Change color scheme",
       ],
-      "persistence": "Save to .repl/preferences.json"
+      "persistence": "Save to .repl/preferences.json",
     },
     {
       "id": "NICE-004",
@@ -911,10 +900,10 @@
       "commands": [
         "/graph - Show current graph structure (ASCII art)",
         "/trace - Show execution path for last message",
-        "/timing - Show node execution times"
+        "/timing - Show node execution times",
       ],
-      "format": "ASCII art graph using box-drawing characters"
-    }
+      "format": "ASCII art graph using box-drawing characters",
+    },
   ],
 
   "timeline": {
@@ -926,18 +915,18 @@
           "BUG-001 fixed - Token tracking working",
           "BUG-002 debugged - Subgraph integration understood",
           "P2-002 complete - State updates configurable",
-          "DEBT-002 complete - Type checking clean"
+          "DEBT-002 complete - Type checking clean",
         ],
-        "blocking": "Phase 3 features, subgraph migration"
+        "blocking": "Phase 3 features, subgraph migration",
       },
       "next": {
         "name": "Phase 3 core features",
         "deliverables": [
           "P3-001 complete - Enhanced input",
           "P3-002 complete - Tab completion",
-          "UX-004 complete - Better errors"
+          "UX-004 complete - Better errors",
         ],
-        "dependencies": "Current phase complete"
+        "dependencies": "Current phase complete",
       },
       "future": {
         "name": "Subgraph migration and polish",
@@ -945,11 +934,11 @@
           "SUBGRAPH-002 complete - Production switchover",
           "P3-003 complete - Status bar",
           "P3-004 complete - Session persistence",
-          "TEST-001, TEST-002 complete"
+          "TEST-001, TEST-002 complete",
         ],
-        "dependencies": "BUG-002 resolved, Phase 3 core complete"
-      }
-    }
+        "dependencies": "BUG-002 resolved, Phase 3 core complete",
+      },
+    },
   },
 
   "references": {
@@ -960,7 +949,7 @@
     "original_spec": "docs/dev_docs/spec-repl/repl_spec.json",
     "component_spec": "docs/dev_docs/spec-repl/repl_components.jsonc",
     "main_code": "src/repl_client_graph/",
-    "tests": "tests/repl_client_graph/"
+    "tests": "tests/repl_client_graph/",
   },
 
   "labels": [
@@ -969,7 +958,7 @@
     "stategraph",
     "phase-3",
     "langgraph",
-    "terminal-ui"
+    "terminal-ui",
   ],
 
   "meta": {
@@ -977,6 +966,6 @@
     "last_updated": "2026-01-24",
     "version": "1.0",
     "format": "JSONC - JSON with Comments",
-    "note": "Add your own notes and comments anywhere using // or /* */ syntax"
-  }
+    "note": "Add your own notes and comments anywhere using // or /* */ syntax",
+  },
 }
