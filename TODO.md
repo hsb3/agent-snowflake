@@ -237,3 +237,21 @@ status: draft|complete
 tags: [stategraph, repl, ...]
 ---
 ```
+
+---
+
+we need to clean up all .md docs in repo related to repl_client (not repl_client_graph) as they do not adhere to work documentation standards.  go through: docs/dev_docs/ai_docs/ai_gen and identify those docs are related to repl_client and align them with work documentation standards --- this is a skill that you have.  you can deploy multiple subagents to do this work.  also deploy subagents to review scripts in scripts/ that are related to repl_client and relocate them to scripts/repl_client.  update any links that would be broken by the moves.
+
+**Work Doc Frontmatter Template:**
+```yaml
+---
+doc_id:CC-YYYY-NNN
+title: Brief description
+date: YYYY-MM-DD
+type: planning|solution|investigation|status|summary
+project: repl_client_graph|repl_client|agent_snowflake
+focus: ...
+status: draft|complete
+tags: [stategraph, repl, ...]
+---
+```
