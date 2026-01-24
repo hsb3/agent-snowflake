@@ -3,6 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "langgraph>=0.2.0",
+#     "grandalf>=0.8",
 # ]
 # ///
 """Standalone script to visualize any LangGraph StateGraph as PNG and Mermaid diagram.
@@ -300,7 +301,7 @@ def analyze_graph_structure(graph_structure: Any) -> dict[str, Any]:
 
 
 def generate_ascii_graph(analysis: dict[str, Any]) -> str:
-    """Generate ASCII art representation of the graph.
+    """Generate ASCII art representation of the graph using grandalf for layout.
 
     Args:
         analysis: Analysis results from analyze_graph_structure()
@@ -308,6 +309,13 @@ def generate_ascii_graph(analysis: dict[str, Any]) -> str:
     Returns:
         ASCII art string representation of the graph
     """
+    try:
+        from grandalf.graphs import Vertex, Edge, Graph
+        from grandalf.layouts import SugiyamaLayout
+    except ImportError:
+        # Fallback to simple list-based visualization if grandalf not available
+        return _generate_simple_ascii_graph(analysis)
+
     lines = []
 
     # Header
@@ -316,13 +324,109 @@ def generate_ascii_graph(analysis: dict[str, Any]) -> str:
     lines.append("=" * 80)
     lines.append("")
 
-    # Build adjacency information
-    outgoing = {}  # node -> list of (target, condition)
-    incoming = {}  # node -> list of source
+    # Build grandalf graph
+    class VertexViewer:
+        def __init__(self, w=10, h=2):
+            self.w = w
+            self.h = h
 
+    vertices = {}
+    for node_name in analysis["nodes"]:
+        v = Vertex(node_name)
+        v.view = VertexViewer()
+        vertices[node_name] = v
+
+    edges = []
     for edge in analysis["edges"]:
         source = edge["source"]
         target = edge["target"]
+        if source in vertices and target in vertices:
+            edges.append(Edge(vertices[source], vertices[target]))
+
+    g = Graph(list(vertices.values()), edges)
+
+    if not g.C:
+        # No connected components
+        return _generate_simple_ascii_graph(analysis)
+
+    # Compute layout using Sugiyama algorithm (hierarchical layout for DAGs)
+    sug = SugiyamaLayout(g.C[0])
+    sug.init_all()
+    sug.draw()
+
+    # Get bounds for scaling
+    min_x = min(v.view.xy[0] - v.view.w/2 for v in g.C[0].sV)
+    max_x = max(v.view.xy[0] + v.view.w/2 for v in g.C[0].sV)
+    min_y = min(v.view.xy[1] - v.view.h/2 for v in g.C[0].sV)
+    max_y = max(v.view.xy[1] + v.view.h/2 for v in g.C[0].sV)
+
+    # Create a cleaner text representation based on layers
+    layers = {}
+    for v in g.C[0].sV:
+        y = int(v.view.xy[1])
+        if y not in layers:
+            layers[y] = []
+        layers[y].append(v.data)
+
+    # Sort layers by Y coordinate (top to bottom)
+    sorted_layers = sorted(layers.items())
+
+    lines.append("HIERARCHICAL LAYOUT (Top to Bottom):")
+    lines.append("")
+
+    # Build outgoing map for showing connections
+    edge_map = {}
+    for edge in g.C[0].sE:
+        src_name = edge.v[0].data
+        tgt_name = edge.v[1].data
+        if src_name not in edge_map:
+            edge_map[src_name] = []
+        edge_map[src_name].append(tgt_name)
+
+    for layer_y, nodes in sorted_layers:
+        # Draw all nodes in this layer
+        for node in nodes:
+            # Draw node box
+            node_display = node[:50]  # Allow longer names
+            box_width = len(node_display) + 2
+
+            lines.append("  ┌─" + "─" * box_width + "─┐")
+            lines.append("  │ " + node_display + " " * (box_width - len(node_display)) + " │")
+            lines.append("  └─" + "─" * box_width + "─┘")
+
+            # Show immediate children
+            if node in edge_map:
+                children = edge_map[node]
+                if len(children) == 1:
+                    lines.append("      |")
+                    lines.append("      v")
+                    lines.append("")
+                elif len(children) > 1:
+                    lines.append("      |")
+                    for i, child in enumerate(children):
+                        child_display = child[:40]
+                        if i == 0:
+                            lines.append(f"      +-> {child_display}")
+                        else:
+                            lines.append(f"      +-> {child_display}")
+                    lines.append("")
+            else:
+                lines.append("")
+
+        if layer_y != sorted_layers[-1][0]:  # Not the last layer
+            lines.append("")  # Spacing between layers
+
+    # Add connection list
+    lines.append("")
+    lines.append("=" * 80)
+    lines.append("NODE CONNECTIONS")
+    lines.append("=" * 80)
+    lines.append("")
+
+    outgoing = {}
+    incoming = {}
+    for edge in analysis["edges"]:
+        source, target = edge["source"], edge["target"]
         condition = edge.get("condition")
 
         if source not in outgoing:
@@ -333,83 +437,21 @@ def generate_ascii_graph(analysis: dict[str, Any]) -> str:
             incoming[target] = []
         incoming[target].append(source)
 
-    # Find entry and exit nodes
-    entry_nodes = [n for n in analysis["nodes"] if n == "__start__"]
-    exit_nodes = [n for n in analysis["nodes"] if n == "__end__"]
-
-    # Do a simple flow representation
-    lines.append("FLOW DIAGRAM:")
-    lines.append("")
-
-    # Start with entry node
-    if entry_nodes:
-        lines.append(f"  ┌─────────────────┐")
-        lines.append(f"  │   __start__     │")
-        lines.append(f"  └─────────────────┘")
-        lines.append(f"          │")
-        lines.append(f"          ▼")
-
-    # Show all other nodes with their connections
-    regular_nodes = [n for n in analysis["nodes"] if n not in ["__start__", "__end__"]]
-
-    for i, node in enumerate(regular_nodes):
-        # Node box
-        node_display = node[:40]  # Truncate long names
-        padding = max(0, 17 - len(node_display))
-        lines.append(f"  ┌─────────────────┐")
-        lines.append(f"  │ {node_display}{' ' * padding}│")
-        lines.append(f"  └─────────────────┘")
-
-        # Show outgoing edges
-        if node in outgoing and outgoing[node]:
-            targets = outgoing[node]
-            if len(targets) == 1:
-                target, condition = targets[0]
-                if condition:
-                    lines.append(f"          │ [{condition}]")
-                else:
-                    lines.append(f"          │")
-                lines.append(f"          ▼")
-            else:
-                # Multiple targets - show branching
-                lines.append(f"          │")
-                for j, (target, condition) in enumerate(targets):
-                    if j == 0:
-                        lines.append(f"     ┌────┴────┐")
-                    cond_str = f"[{condition}]" if condition else ""
-                    lines.append(f"     │  {cond_str}")
-                    lines.append(f"     ▼  to: {target[:30]}")
-
-    # End with exit node
-    if exit_nodes:
-        lines.append(f"  ┌─────────────────┐")
-        lines.append(f"  │    __end__      │")
-        lines.append(f"  └─────────────────┘")
-
-    lines.append("")
-    lines.append("=" * 80)
-    lines.append("NODE CONNECTIONS")
-    lines.append("=" * 80)
-    lines.append("")
-
-    # List all connections in detail
     for node in analysis["nodes"]:
-        lines.append(f"📍 {node}")
+        lines.append(f"[{node}]")
 
-        # Incoming edges
         if node in incoming and incoming[node]:
             lines.append(f"   Incoming from:")
             for source in incoming[node]:
-                lines.append(f"     ← {source}")
+                lines.append(f"     <- {source}")
 
-        # Outgoing edges
         if node in outgoing and outgoing[node]:
             lines.append(f"   Outgoing to:")
             for target, condition in outgoing[node]:
                 if condition:
-                    lines.append(f"     → {target} [{condition}]")
+                    lines.append(f"     -> {target} [{condition}]")
                 else:
-                    lines.append(f"     → {target}")
+                    lines.append(f"     -> {target}")
 
         if not (node in incoming and incoming[node]) and not (node in outgoing and outgoing[node]):
             lines.append(f"   (isolated node)")
@@ -427,8 +469,67 @@ def generate_ascii_graph(analysis: dict[str, Any]) -> str:
     if analysis['conditional_sources']:
         lines.append(f"\nConditional routing points: {len(analysis['conditional_sources'])}")
         for source, targets in analysis['conditional_sources'].items():
-            lines.append(f"  • {source} → {len(targets)} branches")
+            lines.append(f"  - {source} -> {len(targets)} branches")
 
+    lines.append("=" * 80)
+
+    return "\n".join(lines)
+
+
+def _generate_simple_ascii_graph(analysis: dict[str, Any]) -> str:
+    """Fallback simple ASCII visualization if grandalf is not available.
+
+    Args:
+        analysis: Analysis results from analyze_graph_structure()
+
+    Returns:
+        Simple text-based graph representation
+    """
+    lines = []
+    lines.append("=" * 80)
+    lines.append("GRAPH STRUCTURE (Simple View)")
+    lines.append("=" * 80)
+    lines.append("")
+
+    outgoing = {}
+    incoming = {}
+    for edge in analysis["edges"]:
+        source, target = edge["source"], edge["target"]
+        condition = edge.get("condition")
+
+        if source not in outgoing:
+            outgoing[source] = []
+        outgoing[source].append((target, condition))
+
+        if target not in incoming:
+            incoming[target] = []
+        incoming[target].append(source)
+
+    for node in analysis["nodes"]:
+        lines.append(f"[{node}]")
+
+        if node in incoming and incoming[node]:
+            lines.append(f"   Incoming from:")
+            for source in incoming[node]:
+                lines.append(f"     <- {source}")
+
+        if node in outgoing and outgoing[node]:
+            lines.append(f"   Outgoing to:")
+            for target, condition in outgoing[node]:
+                if condition:
+                    lines.append(f"     -> {target} [{condition}]")
+                else:
+                    lines.append(f"     -> {target}")
+
+        lines.append("")
+
+    lines.append("=" * 80)
+    lines.append("STATISTICS")
+    lines.append("=" * 80)
+    lines.append(f"Total nodes: {analysis['node_count']}")
+    lines.append(f"Total edges: {analysis['edge_count']}")
+    lines.append(f"  - Direct edges: {analysis['direct_count']}")
+    lines.append(f"  - Conditional edges: {analysis['conditional_count']}")
     lines.append("=" * 80)
 
     return "\n".join(lines)

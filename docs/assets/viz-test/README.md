@@ -24,7 +24,9 @@ The agent_enhanced diagram is more complex and the mermaid.ink API returned a 40
 1. **ASCII visualization (immediately viewable)** ✓:
    - View [agent_enhanced.txt](agent_enhanced.txt) directly in your terminal or editor
    - Auto-generated as fallback when PNG fails
-   - Shows flow diagram and all node connections
+   - Uses grandalf layout engine for proper hierarchical positioning
+   - Shows clear top-to-bottom flow with box diagrams
+   - Lists all node connections
    - Example: `cat docs/assets/viz-test/agent_enhanced.txt`
 
 2. **Online viewer (best visual quality)**:

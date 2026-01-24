@@ -2,144 +2,149 @@
 ASCII GRAPH VISUALIZATION
 ================================================================================
 
-FLOW DIAGRAM:
+HIERARCHICAL LAYOUT (Top to Bottom):
 
-  ┌─────────────────┐
-  │   __start__     │
-  └─────────────────┘
-          │
-          ▼
-  ┌─────────────────┐
-  │ model            │
-  └─────────────────┘
-          │
-          ▼
-  ┌─────────────────┐
-  │ tools            │
-  └─────────────────┘
-          │
-          ▼
-  ┌─────────────────┐
-  │ ModelCallLimitMiddleware.before_model│
-  └─────────────────┘
-          │
-     ┌────┴────┐
-     │  
-     ▼  to: SummarizationMiddleware.before
-     │  
-     ▼  to: __end__
-  ┌─────────────────┐
-  │ ModelCallLimitMiddleware.after_model│
-  └─────────────────┘
-          │
-     ┌────┴────┐
-     │  
-     ▼  to: ModelCallLimitMiddleware.befor
-     │  
-     ▼  to: __end__
-     │  
-     ▼  to: tools
-  ┌─────────────────┐
-  │ ToolCallLimitMiddleware.after_model│
-  └─────────────────┘
-          │
-     ┌────┴────┐
-     │  
-     ▼  to: ModelCallLimitMiddleware.after
-     │  
-     ▼  to: __end__
-  ┌─────────────────┐
-  │ ToolCallLimitMiddleware[sql_db_query].af│
-  └─────────────────┘
-          │
-     ┌────┴────┐
-     │  
-     ▼  to: ToolCallLimitMiddleware.after_
-     │  
-     ▼  to: __end__
-  ┌─────────────────┐
-  │ SummarizationMiddleware.before_model│
-  └─────────────────┘
-          │
-          ▼
-  ┌─────────────────┐
-  │ TodoListMiddleware.after_model│
-  └─────────────────┘
-          │
-          ▼
-  ┌─────────────────┐
-  │    __end__      │
-  └─────────────────┘
+  ┌─────────────┐
+  │ __start__   │
+  └─────────────┘
+      |
+      v
+
+
+  ┌─────────────────────────────────────────┐
+  │ ModelCallLimitMiddleware.before_model   │
+  └─────────────────────────────────────────┘
+      |
+      +-> SummarizationMiddleware.before_model
+      +-> __end__
+
+
+  ┌────────────────────────────────────────┐
+  │ SummarizationMiddleware.before_model   │
+  └────────────────────────────────────────┘
+      |
+      v
+
+
+  ┌─────────┐
+  │ model   │
+  └─────────┘
+      |
+      v
+
+
+  ┌──────────────────────────────────┐
+  │ TodoListMiddleware.after_model   │
+  └──────────────────────────────────┘
+      |
+      v
+
+
+  ┌─────────────────────────────────────────────────────┐
+  │ ToolCallLimitMiddleware[sql_db_query].after_model   │
+  └─────────────────────────────────────────────────────┘
+      |
+      +-> __end__
+      +-> ToolCallLimitMiddleware.after_model
+
+
+  ┌───────────────────────────────────────┐
+  │ ToolCallLimitMiddleware.after_model   │
+  └───────────────────────────────────────┘
+      |
+      +-> __end__
+      +-> ModelCallLimitMiddleware.after_model
+
+
+  ┌────────────────────────────────────────┐
+  │ ModelCallLimitMiddleware.after_model   │
+  └────────────────────────────────────────┘
+      |
+      +-> __end__
+      +-> ModelCallLimitMiddleware.before_model
+      +-> tools
+
+
+  ┌───────────┐
+  │ __end__   │
+  └───────────┘
+
+  ┌─────────┐
+  │ tools   │
+  └─────────┘
+      |
+      v
+
 
 ================================================================================
 NODE CONNECTIONS
 ================================================================================
 
-📍 __start__
+[__start__]
    Outgoing to:
-     → ModelCallLimitMiddleware.before_model
+     -> ModelCallLimitMiddleware.before_model
 
-📍 model
+[model]
    Incoming from:
-     ← SummarizationMiddleware.before_model
+     <- SummarizationMiddleware.before_model
    Outgoing to:
-     → TodoListMiddleware.after_model
+     -> TodoListMiddleware.after_model
 
-📍 tools
+[tools]
    Incoming from:
-     ← ModelCallLimitMiddleware.after_model
+     <- ModelCallLimitMiddleware.after_model
    Outgoing to:
-     → ModelCallLimitMiddleware.before_model
+     -> ModelCallLimitMiddleware.before_model
 
-📍 ModelCallLimitMiddleware.before_model
+[ModelCallLimitMiddleware.before_model]
    Incoming from:
-     ← ModelCallLimitMiddleware.after_model
-     ← __start__
-     ← tools
+     <- ModelCallLimitMiddleware.after_model
+     <- __start__
+     <- tools
    Outgoing to:
-     → SummarizationMiddleware.before_model
-     → __end__
+     -> SummarizationMiddleware.before_model
+     -> __end__
 
-📍 ModelCallLimitMiddleware.after_model
+[ModelCallLimitMiddleware.after_model]
    Incoming from:
-     ← ToolCallLimitMiddleware.after_model
+     <- ToolCallLimitMiddleware.after_model
    Outgoing to:
-     → ModelCallLimitMiddleware.before_model
-     → __end__
-     → tools
+     -> ModelCallLimitMiddleware.before_model
+     -> __end__
+     -> tools
 
-📍 ToolCallLimitMiddleware.after_model
+[ToolCallLimitMiddleware.after_model]
    Incoming from:
-     ← ToolCallLimitMiddleware[sql_db_query].after_model
+     <- ToolCallLimitMiddleware[sql_db_query].after_model
    Outgoing to:
-     → ModelCallLimitMiddleware.after_model
-     → __end__
+     -> ModelCallLimitMiddleware.after_model
+     -> __end__
 
-📍 ToolCallLimitMiddleware[sql_db_query].after_model
+[ToolCallLimitMiddleware[sql_db_query].after_model]
    Incoming from:
-     ← TodoListMiddleware.after_model
+     <- TodoListMiddleware.after_model
    Outgoing to:
-     → ToolCallLimitMiddleware.after_model
-     → __end__
+     -> ToolCallLimitMiddleware.after_model
+     -> __end__
 
-📍 SummarizationMiddleware.before_model
+[SummarizationMiddleware.before_model]
    Incoming from:
-     ← ModelCallLimitMiddleware.before_model
+     <- ModelCallLimitMiddleware.before_model
    Outgoing to:
-     → model
+     -> model
 
-📍 TodoListMiddleware.after_model
+[TodoListMiddleware.after_model]
    Incoming from:
-     ← model
+     <- model
    Outgoing to:
-     → ToolCallLimitMiddleware[sql_db_query].after_model
+     -> ToolCallLimitMiddleware[sql_db_query].after_model
 
-📍 __end__
+[__end__]
    Incoming from:
-     ← ModelCallLimitMiddleware.after_model
-     ← ModelCallLimitMiddleware.before_model
-     ← ToolCallLimitMiddleware.after_model
-     ← ToolCallLimitMiddleware[sql_db_query].after_model
+     <- ModelCallLimitMiddleware.after_model
+     <- ModelCallLimitMiddleware.before_model
+     <- ToolCallLimitMiddleware.after_model
+     <- ToolCallLimitMiddleware[sql_db_query].after_model
 
 ================================================================================
 STATISTICS
