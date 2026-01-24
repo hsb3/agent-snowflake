@@ -98,13 +98,13 @@ Total: 22 passed, 12 skipped
 - Graceful skip if server not available (uses `check_server()`)
 
 ### Test Script
-Created `scripts/test_repl_client.py` for manual verification:
+Created `scripts/repl_client/test_repl_client.py` for manual verification:
 ```bash
 # Start server first
 langgraph dev
 
 # Run test script
-uv run python scripts/test_repl_client.py
+uv run python scripts/repl_client/test_repl_client.py
 ```
 
 ## Next Steps

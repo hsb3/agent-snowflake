@@ -89,12 +89,12 @@ Consider migrating to subgraph if:
    - Uses subgraph instead of single node
    - ~150 lines
 
-3. **Comparison script**: `scripts/compare_stream_approaches.py`
+3. **Comparison script**: `scripts/repl_client_graph/compare_stream_approaches.py`
    - Compares graph structure
    - Estimates invocations
    - Shows tradeoffs
 
-4. **Test script**: `scripts/test_subgraph_stream.py`
+4. **Test script**: `scripts/repl_client_graph/test_subgraph_stream.py`
    - Tests with mock data
    - Measures performance
    - Verifies output correctness
@@ -108,10 +108,10 @@ Consider migrating to subgraph if:
 
 ```bash
 # Compare architectures
-uv run python scripts/compare_stream_approaches.py
+uv run python scripts/repl_client_graph/compare_stream_approaches.py
 
 # Test with mock data
-uv run python scripts/test_subgraph_stream.py
+uv run python scripts/repl_client_graph/test_subgraph_stream.py
 
 # Read full documentation
 cat docs/dev_docs/stream_subgraph_poc.md
@@ -240,5 +240,5 @@ The PoC successfully demonstrates:
 
 - **Single Node**: `src/repl_client_graph/graph/builder.py`, `src/repl_client_graph/graph/nodes/streaming.py`
 - **Subgraph**: `src/repl_client_graph/graph/builder_subgraph.py`, `src/repl_client_graph/graph/nodes/streaming_subgraph.py`
-- **Scripts**: `scripts/compare_stream_approaches.py`, `scripts/test_subgraph_stream.py`
+- **Scripts**: `scripts/repl_client_graph/compare_stream_approaches.py`, `scripts/repl_client_graph/test_subgraph_stream.py`
 - **Docs**: `docs/dev_docs/stream_subgraph_poc.md` (full analysis), `docs/dev_docs/process_stream_subgraph_design.md` (original design)

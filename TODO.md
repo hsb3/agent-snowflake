@@ -204,3 +204,40 @@ Minimal UML set that actually works (recommended)
 	2.	Sequence diagram: one turn (with loop/alt)
 	3.	State machine: REPL session control + cancellation
 	4.	Class diagram: message/event/state schemas
+
+
+---
+This project consists of 2 major components:
+- langgraph agents that interact with databases
+- a repl for interacting with langgraph dev server; connecting to REST API via http
+
+Agents are functional - current focus is on building REPL.
+
+[REPL Requirements JSON format](./repl_spec.json).  MOVED
+[REPL Build Component tick list](./repl_components.jsonc). MOVED
+
+other supporting docs in docs/dev_docs/spec-repl-v1
+
+---
+ create a CLAUDE.md file in src/repl_client_graph.  shouuld just focus on graph-based repl.  note that spec       
+  for repl-based graph belong here: docs/dev_docs/spec-repl-graph; work status updates belong in                   
+  docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client_graph     
+  app 
+---
+ create a CLAUDE.md file in src/repl_client.  shouuld just focus on client_repl.  note that spec for repl belong here: docs/dev_docs/spec-repl; work status updates belong in  docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client app 
+
+ ---
+
+**Work Doc Frontmatter Template:**
+```yaml
+---
+doc_id:CC-YYYY-NNN
+title: Brief description
+date: YYYY-MM-DD
+type: planning|solution|investigation|status|summary
+project: repl_client_graph|repl_client|agent_snowflake
+focus: ...
+status: draft|complete
+tags: [stategraph, repl, ...]
+---
+```

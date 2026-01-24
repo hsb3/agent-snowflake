@@ -99,11 +99,11 @@ All 98 TUI tests pass.
 
 ### 5. Demo
 
-**Demo script**: `scripts/demo_tui_sidebar.py`
+**Demo script**: `scripts/repl_client/demo_tui_sidebar.py`
 
 Run with:
 ```bash
-uv run python scripts/demo_tui_sidebar.py
+uv run python scripts/repl_client/demo_tui_sidebar.py
 ```
 
 Features demonstrated:
@@ -200,7 +200,7 @@ self._status_area.set_status("Warning", warning=True)  # warning level
 - `src/repl_client/tui/widgets/status_area.py`
 - `tests/repl_client/tui/test_sidebar.py`
 - `tests/repl_client/tui/test_status_area.py`
-- `scripts/demo_tui_sidebar.py`
+- `scripts/repl_client/demo_tui_sidebar.py`
 
 **Modified files**:
 - `src/repl_client/tui/widgets/__init__.py`

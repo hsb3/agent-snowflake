@@ -74,7 +74,7 @@ Complete implementation of the Textual TUI application for the REPL client.
 - Returns boolean approval decision
 - Future: Upgrade to ApprovalMenu widget (like deepagents)
 
-### 5. Demo Script (`scripts/demo_tui_full.py`)
+### 5. Demo Script (`scripts/repl_client/demo_tui_full.py`)
 
 **Full TUI Demo**:
 - Shows feature list and key bindings
@@ -271,7 +271,7 @@ uv run python -m repl_client.tui
 uv run repl-tui
 
 # Method 3: Demo script
-uv run python scripts/demo_tui_full.py
+uv run python scripts/repl_client/demo_tui_full.py
 ```
 
 ### 3. Use the REPL

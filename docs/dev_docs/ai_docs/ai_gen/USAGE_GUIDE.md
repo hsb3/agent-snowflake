@@ -197,7 +197,7 @@ uv run pytest tests/repl_client/core/test_client.py -v
 
 # Run quick test script
 langgraph dev  # in separate terminal
-uv run python scripts/test_repl_client.py
+uv run python scripts/repl_client/test_repl_client.py
 ```
 
 ## Next Steps

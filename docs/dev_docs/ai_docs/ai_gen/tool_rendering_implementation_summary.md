@@ -21,7 +21,7 @@ Implemented tool-specific render strategies for the REPL subgraph approach, prov
    - Display format mappings
    - How-to for adding new tools
 
-4. **scripts/test_tool_rendering.py** (NEW)
+4. **scripts/repl_client_graph/test_tool_rendering.py** (NEW)
    - Comprehensive test suite
    - 7 test cases covering all formats
    - All tests passing ✓
@@ -143,7 +143,7 @@ All 7 test cases passing:
 
 Run tests:
 ```bash
-uv run python scripts/test_tool_rendering.py
+uv run python scripts/repl_client_graph/test_tool_rendering.py
 ```
 
 ## Example Output
@@ -243,7 +243,7 @@ uv run python scripts/test_tool_rendering.py
 - **Architecture**: tool_rendering_architecture.md (detailed)
 - **Quick Reference**: tool_handlers_summary.md (condensed)
 - **This Summary**: implementation_summary.md (overview)
-- **Code Examples**: scripts/test_tool_rendering.py (executable)
+- **Code Examples**: scripts/repl_client_graph/test_tool_rendering.py (executable)
 
 ## Verification
 

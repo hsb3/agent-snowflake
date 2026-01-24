@@ -197,3 +197,22 @@ This project uses Claude Code with:
 - `python-project-standards@hsb3-custom-plugins` - Project standards enforcement
 - `docs-langchain` MCP server - LangChain documentation access
 - Permissions configured in `.claude/settings.local.json`
+
+
+## Work Docs
+
+work documentation should be stored in docs/dev_docs/ai_gen/
+
+**Work Doc Frontmatter Template:**
+```yaml
+---
+doc_id:CC-YYYY-NNN
+title: Brief description
+date: YYYY-MM-DD
+type: planning|solution|investigation|status|summary
+project: repl_client_graph|repl_client|agent_snowflake
+focus: ...
+status: draft|complete
+tags: [stategraph, repl, ...]
+---
+```

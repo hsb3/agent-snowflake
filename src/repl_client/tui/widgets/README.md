@@ -123,7 +123,7 @@ if widget.has_output:
 Run the demo to see all widgets in action:
 
 ```bash
-uv run python scripts/demo_tui_messages.py
+uv run python scripts/repl_client/demo_tui_messages.py
 ```
 
 **Key bindings:**

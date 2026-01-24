@@ -148,7 +148,7 @@ src/repl_client_graph/graph/subgraphs/
 **Comparison Tools:**
 - `scripts/compare_stream_approaches.py` - Architecture comparison
 - `scripts/test_subgraph_stream.py` - Performance testing
-- `scripts/test_tool_rendering.py` - Tool handler testing
+- `scripts/repl_client_graph/test_tool_rendering.py` - Tool handler testing
 
 **Documentation:**
 - `docs/dev_docs/process_stream_subgraph_design.md` - Design analysis
@@ -309,7 +309,7 @@ uv run python scripts/compare_stream_approaches.py
 uv run python scripts/test_subgraph_stream.py
 
 # Tool rendering test
-uv run python scripts/test_tool_rendering.py
+uv run python scripts/repl_client_graph/test_tool_rendering.py
 ```
 
 ## Rollback Instructions (If Needed)
@@ -360,7 +360,7 @@ from .builder import build_repl_graph  # Change this line back
 **Tools:**
 - Comparison: `scripts/compare_stream_approaches.py`
 - Testing: `scripts/test_subgraph_stream.py`
-- Tool tests: `scripts/test_tool_rendering.py`
+- Tool tests: `scripts/repl_client_graph/test_tool_rendering.py`
 
 ## Conclusion
 

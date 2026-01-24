@@ -100,7 +100,7 @@ Comprehensive test suite with 24 tests covering:
 
 **All tests pass:** ✓ 24/24
 
-### 5. Demo App (`scripts/demo_tui_input.py`)
+### 5. Demo App (`scripts/repl_client/demo_tui_input.py`)
 
 Interactive demo application showcasing features.
 
@@ -112,7 +112,7 @@ Interactive demo application showcasing features.
 
 **Run:**
 ```bash
-uv run python scripts/demo_tui_input.py
+uv run python scripts/repl_client/demo_tui_input.py
 ```
 
 ## Design Patterns from deepagents
@@ -174,7 +174,7 @@ class MyApp(App):
 - `/Users/henry/Developer/_SANDBOX/agent-snowflake/src/repl_client/tui/widgets/history.py`
 - `/Users/henry/Developer/_SANDBOX/agent-snowflake/src/repl_client/tui/widgets/input.py`
 - `/Users/henry/Developer/_SANDBOX/agent-snowflake/tests/repl_client/tui/test_input.py`
-- `/Users/henry/Developer/_SANDBOX/agent-snowflake/scripts/demo_tui_input.py`
+- `/Users/henry/Developer/_SANDBOX/agent-snowflake/scripts/repl_client/demo_tui_input.py`
 
 **Modified Files:**
 - `/Users/henry/Developer/_SANDBOX/agent-snowflake/src/repl_client/tui/widgets/__init__.py` - Added exports
@@ -214,7 +214,7 @@ Tests were failing because `tests/repl_client/__init__.py` created a package tha
 uv run pytest tests/repl_client/tui/test_input.py -v
 
 # Run demo
-uv run python scripts/demo_tui_input.py
+uv run python scripts/repl_client/demo_tui_input.py
 
 # Test import
 uv run python -c "from repl_client.tui.widgets import ChatInput, HistoryManager; print('✓')"

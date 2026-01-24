@@ -428,3 +428,21 @@ See `docs/dev_docs/GRAPH_REPL_TODO.md` for complete task list.
 1. Debug subgraph integration
 2. Migrate to fine-grained tool routing
 3. Add 20+ tool-specific renderers
+
+## Work Docs
+
+work documentation should be stored in docs/dev_docs/ai_gen/
+
+**Work Doc Frontmatter Template:**
+```yaml
+---
+doc_id:CC-YYYY-NNN
+title: Brief description
+date: YYYY-MM-DD
+type: planning|solution|investigation|status|summary
+project: repl_client_graph|repl_client|agent_snowflake
+focus: ...
+status: draft|complete
+tags: [stategraph, repl, ...]
+---
+```

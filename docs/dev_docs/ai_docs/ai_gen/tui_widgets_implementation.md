@@ -91,7 +91,7 @@ uv run pytest tests/repl_client/tui/test_messages.py -v
 
 ## Demo App
 
-**Location**: `scripts/demo_tui_messages.py`
+**Location**: `scripts/repl_client/demo_tui_messages.py`
 
 **Features**:
 - Shows all widget types in action
@@ -103,7 +103,7 @@ uv run pytest tests/repl_client/tui/test_messages.py -v
 
 **Run**:
 ```bash
-uv run python scripts/demo_tui_messages.py
+uv run python scripts/repl_client/demo_tui_messages.py
 ```
 
 ## Design Patterns from deepagents

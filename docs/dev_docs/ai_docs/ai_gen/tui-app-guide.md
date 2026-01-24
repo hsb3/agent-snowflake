@@ -69,7 +69,7 @@ uv run repl-tui
 
 **Method 3: Demo script**
 ```bash
-uv run python scripts/demo_tui_full.py
+uv run python scripts/repl_client/demo_tui_full.py
 ```
 
 ## Features

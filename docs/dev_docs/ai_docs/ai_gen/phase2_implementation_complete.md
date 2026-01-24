@@ -430,7 +430,7 @@ src/repl_client_graph/streaming/hitl.py
 src/repl_client_graph/ui/content_blocks.py
 src/repl_client_graph/ui/message.py
 tests/repl_client_graph/test_streaming_interrupt.py
-scripts/test_interrupt_detection.py
+scripts/repl_client_graph/test_interrupt_detection.py
 ```
 
 ### Modified Files

@@ -12,8 +12,8 @@
 - **[nodes/](./nodes/)** - Individual node implementations
 
 ### Testing & Comparison
-- **[test_subgraph_stream.py](../../../scripts/test_subgraph_stream.py)** - Comprehensive tests
-- **[compare_stream_approaches.py](../../../scripts/compare_stream_approaches.py)** - Performance comparison
+- **[test_subgraph_stream.py](../../../scripts/repl_client_graph/test_subgraph_stream.py)** - Comprehensive tests
+- **[compare_stream_approaches.py](../../../scripts/repl_client_graph/compare_stream_approaches.py)** - Performance comparison
 - **[approach_comparison.md](../../../docs/dev_docs/spec-repl-v1/approach_comparison.md)** - Detailed analysis
 
 ### Integration
@@ -191,10 +191,10 @@ Parent graph doesn't need to change - just swap the node.
 Run tests:
 ```bash
 # Comprehensive functional tests
-uv run python scripts/test_subgraph_stream.py
+uv run python scripts/repl_client_graph/test_subgraph_stream.py
 
 # Performance comparison
-uv run python scripts/compare_stream_approaches.py
+uv run python scripts/repl_client_graph/compare_stream_approaches.py
 ```
 
 Expected output:
