@@ -1,0 +1,82 @@
+[
+  {
+    "chunk_num": 1,
+    "event": "metadata",
+    "data": {
+      "run_id": "019bedb6-c093-75f0-84c9-7f4162fde735",
+      "attempt": 1
+    }
+  },
+  {
+    "chunk_num": 2,
+    "event": "values",
+    "data": {
+      "messages": [
+        {
+          "content": "Count from 1 to 5, with a brief comment after each number.",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "human",
+          "name": null,
+          "id": "a45b994e-8e2c-43bf-9def-805d164c5674"
+        }
+      ]
+    }
+  },
+  {
+    "chunk_num": 3,
+    "event": "values",
+    "data": {
+      "messages": [
+        {
+          "content": "Count from 1 to 5, with a brief comment after each number.",
+          "additional_kwargs": {},
+          "response_metadata": {},
+          "type": "human",
+          "name": null,
+          "id": "a45b994e-8e2c-43bf-9def-805d164c5674"
+        },
+        {
+          "content": "1. Starting point - the beginning of our sequence\n2. Moving forward - halfway to the middle\n3. The middle - right in the center of our count\n4. Approaching the end - almost there\n5. Complete - we've reached our destination",
+          "additional_kwargs": {},
+          "response_metadata": {
+            "id": "msg_01W316KEKFfgBznFVToGYZYS",
+            "model": "claude-haiku-4-5-20251001",
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": 0,
+                "ephemeral_5m_input_tokens": 0
+              },
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 0,
+              "input_tokens": 1540,
+              "output_tokens": 57,
+              "server_tool_use": null,
+              "service_tier": "standard"
+            },
+            "model_name": "claude-haiku-4-5-20251001",
+            "model_provider": "anthropic"
+          },
+          "type": "ai",
+          "name": "snowflake_agent",
+          "id": "lc_run--019bedb6-c3e9-7bf1-9949-21f456a8b444-0",
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 1540,
+            "output_tokens": 57,
+            "total_tokens": 1597,
+            "input_token_details": {
+              "cache_read": 0,
+              "cache_creation": 0,
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 0
+            }
+          }
+        }
+      ]
+    }
+  }
+]

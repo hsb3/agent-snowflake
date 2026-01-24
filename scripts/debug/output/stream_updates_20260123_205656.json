@@ -1,0 +1,60 @@
+[
+  {
+    "chunk_num": 1,
+    "event": "metadata",
+    "data": {
+      "run_id": "019bedb7-f572-7ff0-8b6c-fa06dee6c216",
+      "attempt": 1
+    }
+  },
+  {
+    "chunk_num": 2,
+    "event": "updates",
+    "data": {
+      "model": {
+        "messages": [
+          {
+            "content": "1. Starting the count\n2. Halfway there\n3. Middle point reached\n4. Almost done\n5. Complete!",
+            "additional_kwargs": {},
+            "response_metadata": {
+              "id": "msg_01XZy4UdtQiiBtT2y9CVWxcF",
+              "model": "claude-haiku-4-5-20251001",
+              "stop_reason": "end_turn",
+              "stop_sequence": null,
+              "usage": {
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 0,
+                "input_tokens": 1540,
+                "output_tokens": 31,
+                "server_tool_use": null,
+                "service_tier": "standard"
+              },
+              "model_name": "claude-haiku-4-5-20251001",
+              "model_provider": "anthropic"
+            },
+            "type": "ai",
+            "name": "snowflake_agent",
+            "id": "lc_run--019bedb7-f925-7cb2-88f3-2d82ddab9446-0",
+            "tool_calls": [],
+            "invalid_tool_calls": [],
+            "usage_metadata": {
+              "input_tokens": 1540,
+              "output_tokens": 31,
+              "total_tokens": 1571,
+              "input_token_details": {
+                "cache_read": 0,
+                "cache_creation": 0,
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 0
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

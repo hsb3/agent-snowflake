@@ -20,8 +20,8 @@ def mock_client():
     client = MagicMock()
     client.list_agents = AsyncMock(
         return_value=[
-            {"assistant_id": "agent_basic", "name": "Basic Agent"},
-            {"assistant_id": "agent_enhanced", "name": "Enhanced Agent"},
+            {"assistant_id": "uuid-basic-123", "graph_id": "agent_basic", "name": "Basic Agent"},
+            {"assistant_id": "uuid-enhanced-456", "graph_id": "agent_enhanced", "name": "Enhanced Agent"},
         ]
     )
     client.list_threads = AsyncMock(
@@ -155,16 +155,17 @@ class TestHandleAgents:
         headers = call_args[0][0]
         rows = call_args[0][1]
 
-        assert "Agent ID" in headers or "ID" in headers
+        # Updated headers for Phase 2: Name (use this), Assistant ID, Current
+        assert "Name (use this)" in headers or "Assistant ID" in headers
         assert len(rows) == 2
 
     @pytest.mark.asyncio
-    async def test_handle_agents_switch(self, handlers, session, renderer):
-        """Test /agents <agent_id> switches agent."""
+    async def test_handle_agents_switch(self, handlers, session, renderer, mock_client):
+        """Test /agents <agent_id> switches agent by name."""
         await handlers.handle_agents(["agent_enhanced"])
 
-        # Should set agent in session
-        assert session.current_assistant_id == "agent_enhanced"
+        # Should resolve name to UUID and set in session
+        assert session.current_assistant_id == "uuid-enhanced-456"
 
         # Should show success message
         renderer.render_success.assert_called_once()

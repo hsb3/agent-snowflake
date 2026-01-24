@@ -457,7 +457,7 @@
   },
 
   "layer_5_hitl_handler": {
-    "status": "planned",
+    "status": "locked",
     "file": "streaming/hitl.py",
     "phase": 2,
     "dependencies": ["core/parsers.py"],
@@ -806,8 +806,9 @@
   },
 
   "layer_8_main_loop": {
-    "status": "planned",
+    "status": "locked",
     "file": "__main__.py",
+    "notes": "Phase 2 complete - HITL integration added to _handle_stream",
     "dependencies": [
       "core/client.py",
       "core/session.py",

@@ -21,8 +21,8 @@ def full_system():
     client = MagicMock()
     client.list_agents = AsyncMock(
         return_value=[
-            {"assistant_id": "agent_1", "name": "Agent 1"},
-            {"assistant_id": "agent_2", "name": "Agent 2"},
+            {"assistant_id": "uuid-agent-1", "graph_id": "agent_1", "name": "Agent 1"},
+            {"assistant_id": "uuid-agent-2", "graph_id": "agent_2", "name": "Agent 2"},
         ]
     )
     client.list_threads = AsyncMock(
@@ -85,9 +85,9 @@ class TestCommandSystemIntegration:
         await handlers.handle_agents([])
         renderer.render_table.assert_called()
 
-        # 2. Switch agent
+        # 2. Switch agent by graph_id (resolves to UUID)
         await handlers.handle_agents(["agent_2"])
-        assert session.current_assistant_id == "agent_2"
+        assert session.current_assistant_id == "uuid-agent-2"
 
         # 3. Create new thread
         await handlers.handle_new([])

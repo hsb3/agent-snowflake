@@ -19,6 +19,7 @@ from repl_client.core.config import Config
 from repl_client.core.logging import get_logger
 from repl_client.core.session import SessionState
 from repl_client.streaming.handler import StreamHandler
+from repl_client.streaming.hitl import HITLHandler
 from repl_client.streaming.types import ChunkType
 from repl_client.ui.renderer import Renderer
 
@@ -47,6 +48,7 @@ class REPLLoop:
         self.session = SessionState()
         self.stream_handler = StreamHandler(session=self.session)
         self.renderer = Renderer()
+        self.hitl_handler = HITLHandler(renderer=self.renderer)
         self.command_registry = CommandRegistry()
         self.command_handlers = CommandHandlers(
             client=self.client,
@@ -288,7 +290,7 @@ class REPLLoop:
                     self.renderer.console.print(parsed.text_delta, style="cyan", end="")
 
             elif parsed.chunk_type == ChunkType.TOOL_CALL_COMPLETE:
-                # Phase 1: Log tool calls (Phase 2 will show approval prompt)
+                # Log tool calls
                 if parsed.tool_call:
                     logger.info(
                         f"Tool call: {parsed.tool_call.name}({parsed.tool_call.args})"
@@ -304,7 +306,29 @@ class REPLLoop:
 
             elif parsed.chunk_type == ChunkType.INTERRUPT:
                 # Phase 2: Handle HITL interrupts
-                logger.info("Interrupt received (Phase 2 feature)")
+                if parsed.interrupt:
+                    logger.info(f"Interrupt received: {parsed.interrupt.id}")
+
+                    # Add newline before approval prompt
+                    self.renderer.render_text("")
+
+                    # Show approval prompt and get command
+                    command = self.hitl_handler.handle_interrupt(
+                        parsed.interrupt,
+                        self.session
+                    )
+
+                    # Resume with approval
+                    resume_chunks = self.client.resume_after_interrupt(
+                        self.session.current_thread_id,
+                        self.session.current_assistant_id,
+                        command
+                    )
+
+                    # Continue processing resumed stream (recursive call)
+                    # Add newline and reset agent prompt
+                    self.renderer.render_text("\nAgent: ", style="cyan", end="")
+                    await self._handle_stream(resume_chunks)
 
     def _shutdown(self) -> None:
         """Cleanup and show session summary."""

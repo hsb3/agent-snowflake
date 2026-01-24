@@ -83,6 +83,8 @@ python.env
 ### LangGraph Rules
 
 
+- forthcoming
+
 
 ### makefile commands
 
@@ -151,3 +153,54 @@ Answer below questions, one at a time:
 
 ```
 ⸻
+
+### repl (client) requirements
+
+- client that connects to running langgraph server
+  - local dev server preserves/persists state in a local checkpointer
+  - if we want store we'll have to set up inmem or local (sqlite store); low priority
+- ui is console/terminal (rich + prompttoolkit)
+- ui features
+  - list/select agents
+  - list/start/select (resume) threads
+  - handle context blocks (see: /Users/henry/Developer/_SANDBOX/zArchive/langchain_v1/docs/repl/langgraph_cli.py)
+  - handle HITL components
+  - handle rendering of fenced items? like python, js, etc
+  - markdown syntax highlighting (including table rendering)
+- create new agent/asssitant?
+  - display/set configurable items?
+    - ideally would list limited options for some items like provider/model
+
+
+
+**patterns**
+- one way dependencies ---> no spaghetti code
+- 6 layers -
+
+
+**open questions**
+- how and where to handle REPL config? toml, json, ... ?  where ? 
+ 
+**decisions**
+---
+
+? config
+? register tool signatures
+
+1. http client + logger
+2. tooling: parsers
+3. app state
+4. handle stream
+5. ui render stream
+6. commands
+7. loop loop
+
+
+how would we controlled all this with pydantic graph?
+how would we controlled all this with langgraph?
+
+Minimal UML set that actually works (recommended)
+	1.	Component diagram: boundaries + interfaces
+	2.	Sequence diagram: one turn (with loop/alt)
+	3.	State machine: REPL session control + cancellation
+	4.	Class diagram: message/event/state schemas

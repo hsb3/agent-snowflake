@@ -1,7 +1,12 @@
 """LangGraph HTTP client for REPL.
 
 Provides async client for interacting with LangGraph Cloud API.
-Handles SSE streaming for message responses.
+Handles SSE streaming for message responses using dual stream mode.
+
+Phase 2 Enhancement:
+- Uses dual stream mode: ["messages", "updates"]
+- "messages" stream: LLM tokens, tool calls, message metadata
+- "updates" stream: State updates, __interrupt__ signals for HITL
 """
 
 import json
@@ -168,18 +173,28 @@ class LangGraphClient:
     ) -> AsyncIterator[tuple[str, dict]]:
         """Stream message to agent and yield SSE events.
 
+        Uses dual stream mode to get both message updates and state updates.
+        This is required for Phase 2 HITL support - __interrupt__ signals only
+        appear in the 'updates' stream.
+
         Args:
             thread_id: Thread ID
             message: User message
             assistant_id: Assistant/agent ID
 
         Yields:
-            Tuples of (event_type, data) from SSE stream
+            Tuples of (event_type, data) from SSE stream.
+            Event types include:
+            - messages/partial: Streaming message chunks
+            - messages/complete: Complete messages (tool results)
+            - messages/metadata: Message metadata
+            - updates: State updates including __interrupt__ signals
+            - metadata: Run metadata
         """
         body = {
             "assistant_id": assistant_id,
             "input": {"messages": [{"role": "user", "content": message}]},
-            "stream_mode": ["messages"],
+            "stream_mode": ["messages", "updates"],
         }
 
         logger.info(f"Streaming message to thread {thread_id} with agent {assistant_id}")
@@ -202,24 +217,28 @@ class LangGraphClient:
             raise
 
     async def resume_after_interrupt(
-        self, thread_id: str, assistant_id: str, approved: bool
+        self, thread_id: str, assistant_id: str, command: dict
     ) -> AsyncIterator[tuple[str, dict]]:
         """Resume execution after HITL interrupt.
+
+        Uses dual stream mode to detect any subsequent interrupts.
 
         Args:
             thread_id: Thread ID
             assistant_id: Assistant/agent ID
-            approved: Whether to approve the tool call
+            command: Command dict from HITLHandler (e.g., {"resume": {"approve": True}})
 
         Yields:
-            Tuples of (event_type, data) from SSE stream
+            Tuples of (event_type, data) from SSE stream.
+            Same event types as stream_message.
         """
         body = {
             "assistant_id": assistant_id,
-            "command": {"resume": {"approve": approved}},
-            "stream_mode": ["messages"],
+            "command": command,
+            "stream_mode": ["messages", "updates"],
         }
 
+        approved = command.get("resume", {}).get("approve", False)
         logger.info(f"Resuming thread {thread_id} with approval={approved}")
 
         try:

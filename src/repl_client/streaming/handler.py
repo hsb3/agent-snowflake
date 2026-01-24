@@ -308,14 +308,35 @@ class StreamHandler:
     def _parse_interrupt(self, updates_data: dict) -> Interrupt | None:
         """Extract __interrupt__ from updates stream (Phase 2).
 
-        Stub implementation for Phase 1.
-
         Args:
             updates_data: Data from updates stream event
+                Expected format: {"__interrupt__": [{"value": {...}, "when": "during"}]}
 
         Returns:
-            Interrupt object or None (stub returns None)
+            Interrupt object or None if no interrupt present
         """
-        # Phase 2: Parse __interrupt__ key
-        # For now, return None
-        return None
+        # Check for __interrupt__ key
+        interrupts = updates_data.get("__interrupt__")
+
+        if not interrupts or not isinstance(interrupts, list) or len(interrupts) == 0:
+            return None
+
+        # Take first interrupt (typically only one)
+        interrupt_data = interrupts[0]
+
+        # Validate interrupt_data is a dict
+        if not isinstance(interrupt_data, dict):
+            return None
+
+        # Extract value (contains tool info)
+        value = interrupt_data.get("value", {})
+
+        # Generate interrupt ID (use tool name + timestamp for uniqueness)
+        # In production, server might provide an ID
+        tool_name = value.get("tool", "unknown")
+        interrupt_id = f"interrupt_{tool_name}_{id(interrupt_data)}"
+
+        return Interrupt(
+            id=interrupt_id,
+            value=value
+        )

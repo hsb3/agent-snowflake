@@ -45,16 +45,11 @@ def sample_stream_data():
         chunks = json.load(f)
 
     # Convert to (event, data) tuples
-    # Note: data is wrapped in array, need to unwrap
+    # Keep data in original format (messages/partial is array-wrapped)
     result = []
     for chunk in chunks:
         event = chunk["event"]
         data = chunk["data"]
-
-        # Unwrap array if present (messages/partial format)
-        if isinstance(data, list) and len(data) > 0:
-            data = data[0]
-
         result.append((event, data))
 
     return result
@@ -82,34 +77,40 @@ async def test_process_stream_basic(handler, sample_stream_data):
 
 async def test_text_delta_extraction(handler):
     """Test that cumulative text is correctly converted to deltas."""
-    # Simulate cumulative text chunks
+    # Simulate cumulative text chunks (data wrapped in array)
     chunks = [
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "Hello"}],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "Hello"}],
+                    "response_metadata": {},
+                }
+            ],
         ),
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "Hello world"}],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "Hello world"}],
+                    "response_metadata": {},
+                }
+            ],
         ),
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "Hello world!"}],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "Hello world!"}],
+                    "response_metadata": {},
+                }
+            ],
         ),
     ]
 
@@ -133,66 +134,72 @@ async def test_text_delta_extraction(handler):
 
 async def test_tool_call_buffering(handler):
     """Test tool call buffering with partial_json chunks."""
-    # Simulate tool call stream with partial JSON
+    # Simulate tool call stream with partial JSON (data wrapped in array)
     chunks = [
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "index": 0,
-                        "id": "tool-1",
-                        "name": "test_tool",
-                        "partial_json": '{"arg',
-                    }
-                ],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "index": 0,
+                            "id": "tool-1",
+                            "name": "test_tool",
+                            "partial_json": '{"arg',
+                        }
+                    ],
+                    "response_metadata": {},
+                }
+            ],
         ),
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "index": 0,
-                        "id": "tool-1",
-                        "name": "test_tool",
-                        "partial_json": '{"arg1": "val',
-                    }
-                ],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "index": 0,
+                            "id": "tool-1",
+                            "name": "test_tool",
+                            "partial_json": '{"arg1": "val',
+                        }
+                    ],
+                    "response_metadata": {},
+                }
+            ],
         ),
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [
-                    {
-                        "type": "tool_use",
-                        "index": 0,
-                        "id": "tool-1",
-                        "name": "test_tool",
-                        "partial_json": '{"arg1": "value"}',
-                    }
-                ],
-                "response_metadata": {"stop_reason": "tool_use"},
-                "tool_calls": [
-                    {
-                        "id": "tool-1",
-                        "name": "test_tool",
-                        "args": {"arg1": "value"},
-                        "type": "tool_call",
-                    }
-                ],
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "index": 0,
+                            "id": "tool-1",
+                            "name": "test_tool",
+                            "partial_json": '{"arg1": "value"}',
+                        }
+                    ],
+                    "response_metadata": {"stop_reason": "tool_use"},
+                    "tool_calls": [
+                        {
+                            "id": "tool-1",
+                            "name": "test_tool",
+                            "args": {"arg1": "value"},
+                            "type": "tool_call",
+                        }
+                    ],
+                }
+            ],
         ),
     ]
 
@@ -212,16 +219,18 @@ async def test_tool_call_buffering(handler):
 
 async def test_namespace_tracking(handler):
     """Test namespace tracking in ParsedChunk."""
-    # Test with namespace
+    # Test with namespace (data wrapped in array)
     chunks = [
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "Hello"}],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "Hello"}],
+                    "response_metadata": {},
+                }
+            ],
         )
     ]
 
@@ -242,21 +251,23 @@ async def test_namespace_tracking(handler):
 
 async def test_usage_tracking(handler, session):
     """Test usage metadata extraction and session tracking."""
-    # Final chunk with usage
+    # Final chunk with usage (data wrapped in array)
     chunks = [
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "Done"}],
-                "response_metadata": {"stop_reason": "end_turn"},
-                "usage_metadata": {
-                    "input_tokens": 100,
-                    "output_tokens": 50,
-                    "total_tokens": 150,
-                },
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "Done"}],
+                    "response_metadata": {"stop_reason": "end_turn"},
+                    "usage_metadata": {
+                        "input_tokens": 100,
+                        "output_tokens": 50,
+                        "total_tokens": 150,
+                    },
+                }
+            ],
         )
     ]
 
@@ -311,12 +322,14 @@ async def test_empty_content_handling(handler):
     chunks = [
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [],  # Empty content
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [],  # Empty content
+                    "response_metadata": {},
+                }
+            ],
         )
     ]
 
@@ -333,21 +346,25 @@ async def test_multiple_messages_in_stream(handler):
     chunks = [
         (
             "messages/partial",
-            {
-                "id": "msg-1",
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "First"}],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-1",
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "First"}],
+                    "response_metadata": {},
+                }
+            ],
         ),
         (
             "messages/partial",
-            {
-                "id": "msg-2",  # Different message ID
-                "type": "ai",
-                "content": [{"type": "text", "index": 0, "text": "Second"}],
-                "response_metadata": {},
-            },
+            [
+                {
+                    "id": "msg-2",  # Different message ID
+                    "type": "ai",
+                    "content": [{"type": "text", "index": 0, "text": "Second"}],
+                    "response_metadata": {},
+                }
+            ],
         ),
     ]
 
@@ -365,14 +382,106 @@ async def test_multiple_messages_in_stream(handler):
     assert text_chunks[1].message_id == "msg-2"
 
 
-async def test_parse_interrupt_stub(handler):
-    """Test _parse_interrupt stub (Phase 2)."""
-    # Should return None for now
+def test_parse_interrupt_valid(handler):
+    """Test _parse_interrupt with valid interrupt data."""
+    # Valid interrupt structure
+    updates_data = {
+        "__interrupt__": [
+            {
+                "value": {
+                    "tool": "sql_db_query",
+                    "args": {"query": "SELECT * FROM users"}
+                }
+            }
+        ]
+    }
+
+    result = handler._parse_interrupt(updates_data)
+
+    assert result is not None
+    assert result.id.startswith("interrupt_sql_db_query_")
+    assert result.value == {
+        "tool": "sql_db_query",
+        "args": {"query": "SELECT * FROM users"}
+    }
+
+
+def test_parse_interrupt_no_interrupt_key(handler):
+    """Test _parse_interrupt with no __interrupt__ key."""
     result = handler._parse_interrupt({})
     assert result is None
 
+    result = handler._parse_interrupt({"other_key": "data"})
+    assert result is None
+
+
+def test_parse_interrupt_empty_array(handler):
+    """Test _parse_interrupt with empty interrupt array."""
+    result = handler._parse_interrupt({"__interrupt__": []})
+    assert result is None
+
+
+def test_parse_interrupt_invalid_format(handler):
+    """Test _parse_interrupt with invalid interrupt format."""
+    # Not a list
     result = handler._parse_interrupt({"__interrupt__": {"some": "data"}})
-    assert result is None  # Stub implementation
+    assert result is None
+
+    # Not a dict in array
+    result = handler._parse_interrupt({"__interrupt__": ["string"]})
+    assert result is None
+
+
+async def test_interrupt_detection_from_updates_stream(handler):
+    """Test that INTERRUPT chunks are yielded from updates stream."""
+    # Simulate updates stream with interrupt
+    chunks = [
+        (
+            "updates",
+            {
+                "__interrupt__": [
+                    {
+                        "value": {
+                            "tool": "sql_db_query",
+                            "args": {"query": "DELETE FROM users"}
+                        }
+                    }
+                ]
+            }
+        )
+    ]
+
+    results = [c async for c in handler.process_stream(_async_iter(chunks))]
+
+    # Should have INTERRUPT chunk
+    interrupt_chunks = [c for c in results if c.chunk_type == ChunkType.INTERRUPT]
+    assert len(interrupt_chunks) == 1
+
+    # Check interrupt details
+    interrupt = interrupt_chunks[0].interrupt
+    assert interrupt is not None
+    assert interrupt.id.startswith("interrupt_sql_db_query_")
+    assert interrupt.value["tool"] == "sql_db_query"
+    assert interrupt.value["args"]["query"] == "DELETE FROM users"
+
+
+async def test_updates_stream_without_interrupt(handler):
+    """Test that updates without __interrupt__ don't yield INTERRUPT chunks."""
+    # Updates stream with no interrupt
+    chunks = [
+        (
+            "updates",
+            {
+                "some_state": {"key": "value"}
+            }
+        )
+    ]
+
+    results = [c async for c in handler.process_stream(_async_iter(chunks))]
+
+    # Should not have INTERRUPT chunks
+    interrupt_chunks = [c for c in results if c.chunk_type == ChunkType.INTERRUPT]
+    assert len(interrupt_chunks) == 0
 
 
 async def test_extract_text_delta_method(handler):
