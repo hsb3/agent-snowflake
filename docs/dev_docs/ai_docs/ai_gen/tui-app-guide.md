@@ -1,7 +1,12 @@
 ---
+doc_id: CC-2026-072
 title: "REPL TUI Application Guide"
 date: 2026-01-24
-tags: ["tui", "repl", "textual", "guide"]
+type: solution
+project: repl_client
+focus: tui
+status: complete
+tags: [tui, repl, textual, guide, usage]
 ---
 
 # REPL TUI Application Guide

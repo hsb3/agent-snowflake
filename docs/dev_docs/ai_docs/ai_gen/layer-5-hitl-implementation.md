@@ -1,9 +1,14 @@
 ---
+doc_id: CC-2026-070
 title: Layer 5 HITL Handler Implementation
 date: 2026-01-23
+type: solution
+project: repl_client
+focus: hitl
 status: complete
 layer: 5
 phase: 2
+tags: [repl, layer5, hitl, streaming, tool-approval]
 ---
 
 # Layer 5: HITL Handler Implementation

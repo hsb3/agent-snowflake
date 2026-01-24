@@ -1,7 +1,10 @@
 ---
+doc_id: CC-2026-066
 title: "ChatInput Widget Implementation"
 date: 2026-01-24
 type: solution
+project: repl_client
+focus: tui
 status: complete
 tags: [tui, widgets, repl, textual, history, input]
 ---

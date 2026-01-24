@@ -1,7 +1,7 @@
 {
   // REPL Client Graph - Remaining Development Work
   // StateGraph-based terminal REPL for LangGraph dev server
-  // Reference: docs/dev_docs/spec-repl-graph/GRAPH_REPL_TODO.md
+  // Reference: docs/dev_docs/GRAPH_REPL_TODO.md
 
   "project": {
     "name": "repl_client_graph",

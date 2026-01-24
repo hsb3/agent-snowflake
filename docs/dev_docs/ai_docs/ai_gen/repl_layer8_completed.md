@@ -1,7 +1,13 @@
 ---
+doc_id: CC-2026-071
 title: "Layer 8 (Main REPL Loop) - Completed"
 date: 2026-01-23
-status: completed
+type: solution
+project: repl_client
+focus: core
+status: complete
+layer: 8
+tags: [repl, layer8, main-loop, integration, tdd]
 ---
 
 # Layer 8: Main REPL Loop - Implementation Complete

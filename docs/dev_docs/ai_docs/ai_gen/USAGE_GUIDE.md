@@ -1,3 +1,14 @@
+---
+doc_id: CC-2026-064
+title: "REPL Client Usage Guide - Layer 0 & 1"
+date: 2026-01-23
+type: solution
+project: repl_client
+focus: core
+status: complete
+tags: [repl, layer0, layer1, logging, http-client, usage, guide]
+---
+
 # REPL Client Usage Guide
 
 Quick reference for using Layer 0 (Logging) and Layer 1 (HTTP Client).

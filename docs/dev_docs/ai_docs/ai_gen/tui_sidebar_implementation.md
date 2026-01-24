@@ -1,7 +1,11 @@
 ---
+doc_id: CC-2026-068
 title: TUI Advanced Layout Implementation
 date: 2026-01-24
-status: completed
+type: solution
+project: repl_client
+focus: tui
+status: complete
 tags: [tui, ui, sidebar, status-bar, responsive]
 ---
 

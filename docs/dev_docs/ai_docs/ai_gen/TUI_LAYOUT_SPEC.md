@@ -1,3 +1,14 @@
+---
+doc_id: CC-2026-065
+title: "TUI Layout Specification"
+date: 2026-01-24
+type: planning
+project: repl_client
+focus: tui
+status: complete
+tags: [tui, layout, specification, design, textual]
+---
+
 # TUI Layout Specification
 
 Based on provided design mockup.

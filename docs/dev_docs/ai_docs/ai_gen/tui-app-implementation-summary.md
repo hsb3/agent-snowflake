@@ -1,7 +1,12 @@
 ---
+doc_id: CC-2026-069
 title: "TUI App Implementation Summary"
 date: 2026-01-24
-tags: ["tui", "implementation", "summary", "textual"]
+type: solution
+project: repl_client
+focus: tui
+status: complete
+tags: [tui, implementation, summary, textual, app]
 ---
 
 # TUI App Implementation Summary

@@ -1,7 +1,12 @@
 ---
+doc_id: CC-2026-067
 title: TUI Message Widgets Implementation
 date: 2026-01-24
+type: solution
+project: repl_client
+focus: tui
 status: complete
+tags: [tui, widgets, messages, textual, markdown, streaming]
 related_docs:
   - spec-repl-v1/repl_spec.json
   - spec-repl-v1/repl_components.jsonc
