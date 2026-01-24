@@ -1,4 +1,10 @@
-"""Base rendering primitives using Rich"""
+"""Base rendering primitives using Rich.
+
+NOTE: This module is used ONLY by the classic terminal REPL (__main__.py).
+The TUI (tui/) uses Textual widgets instead, not Rich console output.
+
+This may be removed if classic REPL is deprecated in favor of TUI.
+"""
 
 from rich.console import Console
 from rich.markdown import Markdown

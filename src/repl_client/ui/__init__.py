@@ -1,19 +1,14 @@
-"""UI rendering components for REPL client"""
+"""UI rendering components for classic REPL client.
 
-from repl_client.ui.content_blocks import (
-    ContentBlock,
-    ContentBlockRenderer,
-    ToolCall,
-    ToolRenderRegistry,
-)
-from repl_client.ui.message import MessageRenderer
+NOTE: This module is used by classic REPL (__main__.py) only.
+TUI uses Textual widgets instead (see tui/widgets/).
+May be deprecated in future if TUI becomes primary interface.
+"""
+
+from repl_client.ui.content_blocks import ToolRenderRegistry
 from repl_client.ui.renderer import Renderer
 
 __all__ = [
     "Renderer",
-    "MessageRenderer",
-    "ContentBlockRenderer",
     "ToolRenderRegistry",
-    "ContentBlock",
-    "ToolCall",
 ]

@@ -1,4 +1,12 @@
-"""Render content blocks and tool calls with registry-based tool formatters"""
+"""Tool rendering registry for formatting tool previews.
+
+NOTE: ToolRenderRegistry is used by streaming/hitl.py for HITL approval prompts.
+This is shared infrastructure between classic REPL and TUI (both need tool formatting).
+
+ContentBlockRenderer was removed (dead code). See git history if needed.
+
+Future: Consider extracting ToolRenderRegistry to core/formatters.py for clearer ownership.
+"""
 
 from dataclasses import dataclass
 from typing import Callable
@@ -90,72 +98,7 @@ class ToolRenderRegistry:
         return f"Tool: {tool_name}\nArgs:\n{args_str}"
 
 
-class ContentBlockRenderer:
-    """Render content blocks and tool calls"""
-
-    def __init__(self, renderer: Renderer, registry: ToolRenderRegistry | None = None):
-        """Initialize with renderer and optional tool registry
-
-        Args:
-            renderer: Base Renderer instance
-            registry: ToolRenderRegistry for custom formatters. If None, creates default.
-        """
-        self.renderer = renderer
-        self.registry = registry or ToolRenderRegistry()
-
-    def render_content_block(self, block: ContentBlock) -> None:
-        """Route content block to type-specific renderer
-
-        Args:
-            block: ContentBlock to render
-        """
-        if block.type == "text" and block.text:
-            self.renderer.render_text(block.text, style="cyan")
-
-        elif block.type == "tool_use":
-            # Render tool call preview
-            if block.tool_name and block.tool_input:
-                preview = self.render_tool_preview(block.tool_name, block.tool_input)
-                self.renderer.render_panel(
-                    content=preview,
-                    title=f"Calling Tool: {block.tool_name}",
-                    style="yellow"
-                )
-
-        elif block.type == "tool_result":
-            # Render tool result
-            result_text = block.text or "(no output)"
-            self.renderer.render_panel(
-                content=result_text,
-                title=f"Tool Result: {block.tool_id or 'unknown'}",
-                style="blue"
-            )
-
-        else:
-            # Unknown block type - just log or ignore
-            pass
-
-    def render_tool_call(self, tool_call: ToolCall) -> None:
-        """Show tool call preview
-
-        Args:
-            tool_call: ToolCall to render
-        """
-        preview = self.render_tool_preview(tool_call.name, tool_call.args)
-        self.renderer.render_panel(
-            content=preview,
-            title=f"Tool Call: {tool_call.name}",
-            style="yellow"
-        )
-
-    def render_tool_preview(self, tool_name: str, args: dict) -> str:
-        """Format tool for preview using registry
-
-        Args:
-            tool_name: Name of the tool
-            args: Tool arguments
-
-        Returns:
-            Formatted preview string
-        """
-        return self.registry.format(tool_name, args)
+# NOTE: ContentBlockRenderer was removed (dead code - never used in production)
+# Classic REPL renders chunks inline in __main__.py _handle_stream()
+# TUI uses Textual widgets (ToolCallMessage, AssistantMessage)
+# If content block rendering is needed in future, see git history for ContentBlockRenderer class

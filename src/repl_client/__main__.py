@@ -1,11 +1,27 @@
-"""Main REPL loop (Layer 8).
+"""Main REPL loop (Layer 8) - Classic Terminal REPL.
 
-Entry point for the REPL client. Orchestrates all components:
+Entry point for the classic REPL client. Orchestrates all components:
 - Client connection
 - Session state
 - Stream handling
 - Rendering
 - Command routing
+
+NOTE: This is the classic terminal REPL (Phase 1 implementation).
+For production use, consider the Textual TUI instead: python -m repl_client.tui
+
+The TUI provides:
+- Better UX (sidebar, tabs, modals, status area)
+- More features (session management, artifact palette)
+- Proper layout and responsive design
+
+This classic REPL is maintained for:
+- Simplicity/minimalism preference
+- Fallback if TUI has issues
+- Reference implementation
+
+May be deprecated in future releases if TUI proves sufficient.
+See: src/repl_client/tui/ for TUI implementation.
 """
 
 import asyncio
