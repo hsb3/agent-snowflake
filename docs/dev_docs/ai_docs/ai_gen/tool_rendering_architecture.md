@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-061
+document_type: planning
+document_title: "Tool Rendering Architecture"
+document_purpose: "Architecture for tool-specific rendering in subgraph"
+date: 2026-01-24
+status: complete
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, subgraph, tool-rendering, architecture, sql]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # Tool Rendering Architecture
 
 ## Overview

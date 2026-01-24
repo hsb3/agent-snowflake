@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-056
+document_type: investigation
+document_title: "Stream Processing: Coarse vs Fine-Grained Comparison"
+document_purpose: "Detailed comparison of coarse-grained vs fine-grained stream processing"
+date: 2026-01-23
+status: complete
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, architecture, comparison, performance]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # Stream Processing: Coarse vs Fine-Grained Comparison
 
 ## Overview

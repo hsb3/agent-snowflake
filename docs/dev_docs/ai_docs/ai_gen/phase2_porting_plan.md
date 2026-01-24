@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-054
+document_type: planning
+document_title: "Phase 2 Porting Plan: repl_client to repl_client_graph"
+document_purpose: "Plan for porting Phase 2 features from traditional to StateGraph REPL"
+date: 2026-01-23
+status: archived
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, phase2, porting, commands, hitl]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # Phase 2 Porting Plan: repl_client → repl_client_graph
 
 ## What's Available to Copy

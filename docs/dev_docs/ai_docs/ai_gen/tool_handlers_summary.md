@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-057
+document_type: summary
+document_title: "Tool Handlers Summary"
+document_purpose: "Quick reference for tool-specific rendering in REPL subgraph"
+date: 2026-01-24
+status: complete
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, subgraph, tool-rendering, sql]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # Tool Handlers Summary
 
 Quick reference for tool-specific rendering in the REPL subgraph.

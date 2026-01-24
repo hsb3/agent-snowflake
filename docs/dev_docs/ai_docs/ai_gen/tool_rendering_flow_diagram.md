@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-062
+document_type: planning
+document_title: "Tool Rendering Flow Diagram"
+document_purpose: "Visual flow diagram for tool call processing and rendering"
+date: 2026-01-24
+status: complete
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, subgraph, tool-rendering, flow-diagram]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # Tool Rendering Flow Diagram
 
 ## Complete Flow: Tool Call → Rendered Output

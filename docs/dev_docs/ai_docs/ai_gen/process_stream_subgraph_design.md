@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-060
+document_type: planning
+document_title: "Process Stream Subgraph Design"
+document_purpose: "Design analysis for stream processing subgraph options"
+date: 2026-01-24
+status: archived
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, subgraph, design, tool-rendering, architecture]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # Process Stream Subgraph Design
 
 ## Current Problem

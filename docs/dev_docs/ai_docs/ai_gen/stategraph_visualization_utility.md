@@ -1,3 +1,17 @@
+---
+doc_id: CC-2026-059
+document_type: solution
+document_title: "StateGraph Visualization Utility"
+document_purpose: "General-purpose utility for visualizing any StateGraph as PNG/Mermaid"
+date: 2026-01-24
+status: complete
+author: docs-cleanup-agent
+version: 1.0
+tags: [repl, stategraph, visualization, tooling, mermaid]
+project: repl_client_graph
+focus: graph-based-repl
+---
+
 # StateGraph Visualization Utility
 
 ## Overview
