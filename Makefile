@@ -1,4 +1,4 @@
-.PHONY: help install setup-test-db setup-chinook dev test test-fast format lint type-check clean
+.PHONY: help install setup-test-db setup-chinook dev dev-server repl test test-fast format lint type-check clean
 
 # Default target
 help:
@@ -7,6 +7,8 @@ help:
 	@echo "  make setup-test-db  - Create test SQLite database with stub TPC-H data"
 	@echo "  make setup-chinook  - Download Chinook database (digital media store, 11 tables)"
 	@echo "  make dev            - Start LangGraph dev server with Studio UI"
+	@echo "  make dev-server     - Start LangGraph dev server without browser (for REPL)"
+	@echo "  make repl           - Start server + REPL client together"
 	@echo "  make test           - Run all tests with pytest"
 	@echo "  make test-fast      - Run tests excluding slow tests"
 	@echo "  make format         - Format code with ruff"
@@ -28,10 +30,36 @@ setup-chinook:
 
 # Development
 dev:
-	@echo "Starting LangGraph dev server..."
-	@echo "Studio UI will be available at http://localhost:8123"
-	@echo "Note: Using --allow-blocking for SQLite file operations"
-	uv run langgraph dev --allow-blocking
+	@PORT=$$(grep LANGGRAPH_DEV_SERVER_PORT .env 2>/dev/null | cut -d= -f2 | tr -d ' '); \
+	PORT=$${PORT:-2024}; \
+	echo "Starting LangGraph dev server on port $$PORT..."; \
+	echo "Studio UI will be available at http://localhost:$$PORT"; \
+	echo "Note: Using --allow-blocking for SQLite file operations"; \
+	uv run langgraph dev --allow-blocking --port $$PORT
+
+dev-server:
+	@PORT=$$(grep LANGGRAPH_DEV_SERVER_PORT .env 2>/dev/null | cut -d= -f2 | tr -d ' '); \
+	PORT=$${PORT:-2024}; \
+	echo "Starting LangGraph dev server on port $$PORT (no browser)..."; \
+	echo "API available at http://localhost:$$PORT"; \
+	echo "Press Ctrl+C to stop"; \
+	uv run langgraph dev --allow-blocking --port $$PORT --no-browser
+
+repl:
+	@PORT=$$(grep LANGGRAPH_DEV_SERVER_PORT .env 2>/dev/null | cut -d= -f2 | tr -d ' '); \
+	PORT=$${PORT:-2024}; \
+	mkdir -p .repl; \
+	echo "Starting LangGraph server + REPL..."; \
+	echo "Server logs: .repl/server.log"; \
+	uv run langgraph dev --allow-blocking --port $$PORT --no-browser > .repl/server.log 2>&1 & \
+	SERVER_PID=$$!; \
+	trap "echo 'Stopping server...'; kill $$SERVER_PID 2>/dev/null; exit" INT TERM; \
+	sleep 3; \
+	echo "Server ready on port $$PORT"; \
+	echo "Starting REPL client..."; \
+	uv run python -m repl_client || true; \
+	echo "Stopping server..."; \
+	kill $$SERVER_PID 2>/dev/null
 
 # Testing
 test:
