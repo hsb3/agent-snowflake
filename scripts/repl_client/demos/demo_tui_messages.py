@@ -2,7 +2,7 @@
 """Demo app to showcase Textual message widgets.
 
 Run with:
-    uv run python scripts/demo_tui_messages.py
+    uv run python scripts/repl_client/demos/demo_tui_messages.py
 """
 
 from __future__ import annotations

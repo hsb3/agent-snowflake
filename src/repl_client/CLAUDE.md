@@ -337,4 +337,4 @@ repl-tui
 - Check `.repl/client.log` for client-side issues
 - Check `.repl/server.log` (when using make commands) for server issues
 - Use `scripts/debug/test_stream_modes.py` to capture raw SSE streams
-- Visual verification of TUI: `scripts/demo_tui_*.py` scripts
+- Visual verification of TUI: `scripts/repl_client/demos/demo_tui_*.py` scripts

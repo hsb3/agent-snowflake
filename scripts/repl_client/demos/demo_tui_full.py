@@ -11,7 +11,7 @@ Prerequisites:
     - Environment configured (.env with LANGGRAPH_DEV_SERVER_PORT)
 
 Run:
-    uv run python scripts/demo_tui_full.py
+    uv run python scripts/repl_client/demos/demo_tui_full.py
 """
 
 from repl_client.core.config import Config

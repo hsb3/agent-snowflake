@@ -9,7 +9,7 @@ This script demonstrates the HITL flow manually:
 5. Shows the final response
 
 Usage:
-    uv run python scripts/test_hitl_manual.py
+    uv run python scripts/repl_client/tests/test_hitl_manual.py
 
 Prerequisites:
 - LangGraph server running (http://localhost:2024)

@@ -5,7 +5,7 @@ Run this after starting the LangGraph dev server:
     langgraph dev
 
 Usage:
-    uv run python scripts/test_repl_client.py
+    uv run python scripts/repl_client/tests/test_repl_client.py
 """
 
 import asyncio

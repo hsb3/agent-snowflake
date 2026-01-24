@@ -1,6 +1,6 @@
 """Demo app for StatusBar and LoadingWidget.
 
-Run with: uv run python scripts/demo_tui_status.py
+Run with: uv run python scripts/repl_client/demos/demo_tui_status.py
 """
 
 import asyncio

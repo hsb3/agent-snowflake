@@ -4,9 +4,9 @@ Test, demo, and debugging scripts for the `repl_client` package (classic async R
 
 ## Scripts
 
-### Integration Tests
+### Integration Tests (`tests/`)
 
-#### `test_repl_client.py`
+#### `tests/test_repl_client.py`
 Quick integration test to verify REPL client works with LangGraph server.
 
 **Purpose:**
@@ -23,7 +23,7 @@ langgraph dev
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/test_repl_client.py
+uv run python scripts/repl_client/tests/test_repl_client.py
 ```
 
 **Tests:**
@@ -46,7 +46,7 @@ uv run python scripts/repl_client/test_repl_client.py
 
 ---
 
-#### `test_hitl_manual.py`
+#### `tests/test_hitl_manual.py`
 Manual verification script for Human-in-the-Loop (HITL) flow.
 
 **Purpose:**
@@ -61,7 +61,7 @@ Manual verification script for Human-in-the-Loop (HITL) flow.
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/test_hitl_manual.py
+uv run python scripts/repl_client/tests/test_hitl_manual.py
 ```
 
 **Expected Flow:**
@@ -76,11 +76,11 @@ uv run python scripts/repl_client/test_hitl_manual.py
 
 ---
 
-### TUI Demos
+### TUI Demos (`demos/`)
 
 All TUI demo scripts demonstrate Textual-based widgets and components used in the REPL interface.
 
-#### `demo_tui_full.py`
+#### `demos/demo_tui_full.py`
 Complete REPL TUI demonstration with all features.
 
 **Purpose:**
@@ -96,7 +96,7 @@ make dev-server
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/demo_tui_full.py
+uv run python scripts/repl_client/demos/demo_tui_full.py
 ```
 
 **Features Demonstrated:**
@@ -117,7 +117,7 @@ uv run python scripts/repl_client/demo_tui_full.py
 
 ---
 
-#### `demo_tui_messages.py`
+#### `demos/demo_tui_messages.py`
 Demo of message widgets (User, AI, Tool).
 
 **Purpose:**
@@ -127,7 +127,7 @@ Demo of message widgets (User, AI, Tool).
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/demo_tui_messages.py
+uv run python scripts/repl_client/demos/demo_tui_messages.py
 ```
 
 **Key Bindings:**
@@ -142,7 +142,7 @@ uv run python scripts/repl_client/demo_tui_messages.py
 
 ---
 
-#### `demo_tui_sidebar.py`
+#### `demos/demo_tui_sidebar.py`
 Demo of sidebar with agent/thread info.
 
 **Purpose:**
@@ -152,7 +152,7 @@ Demo of sidebar with agent/thread info.
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/demo_tui_sidebar.py
+uv run python scripts/repl_client/demos/demo_tui_sidebar.py
 ```
 
 **Features:**
@@ -163,7 +163,7 @@ uv run python scripts/repl_client/demo_tui_sidebar.py
 
 ---
 
-#### `demo_tui_input.py`
+#### `demos/demo_tui_input.py`
 Demo of chat input widget with multi-line support.
 
 **Purpose:**
@@ -173,7 +173,7 @@ Demo of chat input widget with multi-line support.
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/demo_tui_input.py
+uv run python scripts/repl_client/demos/demo_tui_input.py
 ```
 
 **Key Bindings:**
@@ -184,7 +184,7 @@ uv run python scripts/repl_client/demo_tui_input.py
 
 ---
 
-#### `demo_tui_status.py`
+#### `demos/demo_tui_status.py`
 Demo of status bar widget.
 
 **Purpose:**
@@ -194,7 +194,7 @@ Demo of status bar widget.
 
 **Usage:**
 ```bash
-uv run python scripts/repl_client/demo_tui_status.py
+uv run python scripts/repl_client/demos/demo_tui_status.py
 ```
 
 **Status Elements:**
@@ -240,11 +240,11 @@ src/repl_client/
    ```
 3. **Run integration test**:
    ```bash
-   uv run python scripts/repl_client/test_repl_client.py
+   uv run python scripts/repl_client/tests/test_repl_client.py
    ```
 4. **Test TUI changes** with relevant demo:
    ```bash
-   uv run python scripts/repl_client/demo_tui_<component>.py
+   uv run python scripts/repl_client/demos/demo_tui_<component>.py
    ```
 
 ### Testing HITL
@@ -252,7 +252,7 @@ src/repl_client/
 1. Ensure agent has HITL configured in `langgraph.json`
 2. Run manual HITL test:
    ```bash
-   uv run python scripts/repl_client/test_hitl_manual.py
+   uv run python scripts/repl_client/tests/test_hitl_manual.py
    ```
 3. Follow prompts to approve/reject
 
