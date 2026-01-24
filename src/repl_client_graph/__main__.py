@@ -15,8 +15,16 @@ from repl_client.core.config import Config
 from repl_client.core.session import SessionState
 from repl_client.ui.renderer import Renderer
 
-from repl_client_graph.context import set_client, set_renderer, set_session
+from repl_client_graph.context import (
+    set_client,
+    set_renderer,
+    set_session,
+    set_hitl_handler,
+    set_tool_registry,
+)
 from repl_client_graph.graph import REPLState, build_repl_graph
+from repl_client_graph.streaming.hitl import HITLHandler
+from repl_client_graph.ui.content_blocks import ToolRenderRegistry
 
 
 async def main() -> int:
@@ -33,11 +41,15 @@ async def main() -> int:
         client = LangGraphClient(base_url=config.server_url, timeout=30)
         renderer = Renderer()
         session = SessionState()
+        tool_registry = ToolRenderRegistry()
+        hitl_handler = HITLHandler(renderer, tool_registry)
 
         # Set up context vars for dependency injection
         set_client(client)
         set_renderer(renderer)
         set_session(session)
+        set_tool_registry(tool_registry)
+        set_hitl_handler(hitl_handler)
 
         # Test connection
         renderer.render_text("Connecting to LangGraph server...", style="cyan")

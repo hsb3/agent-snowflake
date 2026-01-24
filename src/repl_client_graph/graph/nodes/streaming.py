@@ -3,10 +3,12 @@
 Nodes for sending messages to LangGraph server and processing streaming responses.
 """
 
+from dataclasses import asdict
+
 from repl_client_graph.core.parsers import parse_message_chunk
 from repl_client_graph.context import get_client, get_session
 from repl_client_graph.graph.state import REPLState
-from repl_client_graph.streaming.types import ChunkType
+from repl_client_graph.streaming.types import ChunkType, Interrupt
 
 
 async def send_message_node(state: REPLState) -> REPLState:
@@ -120,14 +122,37 @@ def process_stream_node(state: REPLState) -> REPLState:
             elif event_type == "updates":
                 # data is a dict with state updates from the step
                 if isinstance(data, dict):
+                    # Check for interrupt signal first
+                    if "__interrupt__" in data:
+                        interrupt_list = data["__interrupt__"]
+
+                        # Extract interrupt data (list format from server)
+                        if isinstance(interrupt_list, list) and len(interrupt_list) > 0:
+                            interrupt_data = interrupt_list[0]  # Take first interrupt
+
+                            if isinstance(interrupt_data, dict):
+                                # Extract value (contains tool info)
+                                value = interrupt_data.get("value", {})
+
+                                # Generate interrupt ID
+                                tool_name = value.get("tool", "unknown")
+                                interrupt_id = f"interrupt_{tool_name}_{id(interrupt_data)}"
+
+                                # Create Interrupt object and convert to dict for state
+                                interrupt_obj = Interrupt(
+                                    id=interrupt_id,
+                                    value=value
+                                )
+                                pending_interrupt = asdict(interrupt_obj)
+
+                                # Stop processing stream - interrupt stops streaming
+                                break
+
                     # Add state update to render queue for visibility
                     render_queue.append({
                         "type": "state_update",
                         "content": data,
                     })
-
-            # Check for interrupts in 'updates' stream (Phase 2)
-            # Interrupts appear as __interrupt__ key in updates data
 
         except Exception as e:
             # Log parse error and continue
@@ -142,7 +167,6 @@ def process_stream_node(state: REPLState) -> REPLState:
         **state,
         "render_queue": render_queue,
         "pending_interrupt": pending_interrupt,
-        "usage": usage,
     }
 
 

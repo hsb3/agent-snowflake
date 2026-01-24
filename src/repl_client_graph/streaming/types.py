@@ -36,8 +36,8 @@ class ToolResult:
 class Interrupt:
     """HITL interrupt signal (Phase 2)."""
 
-    # Stub for Phase 2
-    pass
+    id: str
+    value: dict  # The interrupt payload (tool name, args, etc.)
 
 
 @dataclass

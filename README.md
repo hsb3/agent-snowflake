@@ -64,3 +64,18 @@ Answer below questions, one at a time:
 “For each customer, compute: first purchase date, last purchase date, total spend, and number of distinct purchase months. Then return the 20 customers with the most distinct purchase months (tie-break by total spend).”
 
 ```
+
+---
+
+## REPL
+
+
+
+## REPL - GRAPH-BASED
+
+What if we used LangGraph to create engine to power TUI/REPL to interact with agents running on LangGraph API Server?
+
+<table>
+  <tr>
+    <td><img src="docs/assets/graph-based-repl/image.png" alt="Graph-based REPL (Phase 1)" width="400"/></td>
+  </tr>

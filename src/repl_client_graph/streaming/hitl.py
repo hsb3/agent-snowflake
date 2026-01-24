@@ -6,10 +6,10 @@ Handles Human-in-the-Loop (HITL) interrupts:
 - Formats resume commands
 """
 
-from repl_client.streaming.types import Interrupt
-from repl_client.ui.renderer import Renderer
-from repl_client.ui.content_blocks import ToolRenderRegistry
-from repl_client.core.session import SessionState
+from repl_client_graph.streaming.types import Interrupt
+from repl_client_graph.ui.renderer import Renderer
+from repl_client_graph.ui.content_blocks import ToolRenderRegistry
+from repl_client_graph.core.session import SessionState
 
 
 class HITLHandler:
@@ -65,8 +65,9 @@ class HITLHandler:
             style="yellow"
         )
 
-        # Ensure all output is flushed before blocking input
-        self.renderer.flush()
+        # Ensure output is flushed before input prompt
+        import sys
+        sys.stdout.flush()
 
         # Get user input (simple y/n for Phase 2)
         while True:

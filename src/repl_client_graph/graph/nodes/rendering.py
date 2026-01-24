@@ -58,6 +58,16 @@ def render_output_node(state: REPLState) -> REPLState:
             content = item.get("content", "")
             renderer.render_success(content)
 
+        elif item_type == "table":
+            # Table rendering
+            headers = item.get("headers", [])
+            rows = item.get("rows", [])
+            renderer.render_table(headers, rows)
+
+        elif item_type == "clear":
+            # Clear screen
+            renderer.clear()
+
         elif item_type == "command_result":
             # Command result - already formatted
             content = item.get("content", "")

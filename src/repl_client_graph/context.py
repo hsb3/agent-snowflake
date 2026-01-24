@@ -4,6 +4,8 @@ This module provides context variables for injecting dependencies into graph nod
 - LangGraphClient for API communication
 - Renderer for terminal output
 - SessionState for tracking session data
+- HITLHandler for interrupt handling
+- ToolRenderRegistry for tool rendering customization
 
 Context vars allow nodes to access dependencies without explicit parameter passing.
 """
@@ -14,10 +16,18 @@ from repl_client_graph.core.client import LangGraphClient
 from repl_client_graph.core.session import SessionState
 from repl_client_graph.ui.renderer import Renderer
 
+# Forward reference for HITLHandler and ToolRenderRegistry to avoid circular import
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from repl_client_graph.streaming.hitl import HITLHandler
+    from repl_client_graph.ui.content_blocks import ToolRenderRegistry
+
 # Context variables for dependency injection
 _client_ctx: ContextVar[LangGraphClient | None] = ContextVar("client", default=None)
 _renderer_ctx: ContextVar[Renderer | None] = ContextVar("renderer", default=None)
 _session_ctx: ContextVar[SessionState | None] = ContextVar("session", default=None)
+_hitl_handler_ctx: ContextVar["HITLHandler | None"] = ContextVar("hitl_handler", default=None)
+_tool_registry_ctx: ContextVar["ToolRenderRegistry | None"] = ContextVar("tool_registry", default=None)
 
 
 def set_client(client: LangGraphClient) -> None:
@@ -90,3 +100,51 @@ def get_session() -> SessionState:
     if session is None:
         raise RuntimeError("SessionState not set in context. Call set_session() first.")
     return session
+
+
+def set_hitl_handler(hitl_handler: "HITLHandler") -> None:
+    """Set the HITLHandler in context.
+
+    Args:
+        hitl_handler: HITLHandler instance to make available to nodes
+    """
+    _hitl_handler_ctx.set(hitl_handler)
+
+
+def get_hitl_handler() -> "HITLHandler":
+    """Get the HITLHandler from context.
+
+    Returns:
+        HITLHandler instance
+
+    Raises:
+        RuntimeError: If HITLHandler not set in context
+    """
+    hitl_handler = _hitl_handler_ctx.get()
+    if hitl_handler is None:
+        raise RuntimeError("HITLHandler not set in context. Call set_hitl_handler() first.")
+    return hitl_handler
+
+
+def set_tool_registry(registry: "ToolRenderRegistry") -> None:
+    """Set the ToolRenderRegistry in context.
+
+    Args:
+        registry: ToolRenderRegistry instance to make available to nodes
+    """
+    _tool_registry_ctx.set(registry)
+
+
+def get_tool_registry() -> "ToolRenderRegistry":
+    """Get the ToolRenderRegistry from context.
+
+    Returns:
+        ToolRenderRegistry instance
+
+    Raises:
+        RuntimeError: If tool registry not set in context
+    """
+    registry = _tool_registry_ctx.get()
+    if registry is None:
+        raise RuntimeError("ToolRenderRegistry not set in context. Call set_tool_registry() first.")
+    return registry

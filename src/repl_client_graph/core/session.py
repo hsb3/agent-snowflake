@@ -66,3 +66,19 @@ class SessionState:
             "output_tokens": self.session_tokens["output_tokens"],
             "total_tokens": self.session_tokens["total_tokens"],
         }
+
+    def get_display_summary(self) -> str:
+        """Get summary for display (thread/agent/tokens).
+
+        Returns:
+            Formatted string showing session state
+        """
+        thread_info = self.current_thread_id or "No thread"
+        agent_info = self.current_assistant_id or "No agent"
+        tokens = self.session_tokens
+
+        return (
+            f"Thread: {thread_info}\n"
+            f"Agent: {agent_info}\n"
+            f"Tokens: {tokens['input_tokens']} in / {tokens['output_tokens']} out / {tokens['total_tokens']} total"
+        )
