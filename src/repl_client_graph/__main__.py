@@ -1,7 +1,6 @@
 """Main entry point for StateGraph-based REPL.
 
 This module initializes the REPL using LangGraph StateGraph for control flow.
-It follows the coarse-grained approach documented in repl_as_stategraph.md.
 
 Entry point: python -m repl_client_graph
 """
@@ -132,6 +131,7 @@ async def main() -> int:
         except Exception as e:
             renderer.render_error(f"\nGraph execution error: {e}")
             import traceback
+
             traceback.print_exc()
             final_state = initial_state
 

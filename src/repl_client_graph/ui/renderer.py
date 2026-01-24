@@ -36,15 +36,20 @@ class Renderer:
         md = Markdown(text)
         self.console.print(md)
 
-    def render_code(self, code: str, language: str) -> None:
+    def render_code(self, code: str, language: str, title: str | None = None) -> None:
         """Syntax highlighted code block
 
         Args:
             code: Source code to render
             language: Language name for syntax highlighting (python, sql, javascript, etc.)
+            title: Optional title to display above code block
         """
         syntax = Syntax(code, language, theme="monokai", line_numbers=False)
-        self.console.print(syntax)
+        if title:
+            panel = Panel(syntax, title=title, border_style="blue")
+            self.console.print(panel)
+        else:
+            self.console.print(syntax)
 
     def render_panel(self, content: str, title: str, style: str = "blue") -> None:
         """Render Rich Panel with border

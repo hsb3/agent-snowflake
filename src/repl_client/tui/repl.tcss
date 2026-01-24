@@ -1,0 +1,204 @@
+/* Textual CSS for REPL TUI */
+
+/* Global app styling */
+Screen {
+    background: $surface;
+}
+
+/* Main content horizontal container */
+#main-content {
+    height: 1fr;
+    width: 100%;
+}
+
+/* Messages container */
+#messages {
+    height: 1fr;
+    width: 1fr;
+    background: $surface;
+    padding: 0 1;
+    overflow-y: auto;
+}
+
+/* User messages - green border */
+UserMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+    background: $surface;
+    border-left: thick green;
+}
+
+/* Assistant messages - cyan border */
+AssistantMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+AssistantMessage Markdown {
+    padding: 0;
+    margin: 0;
+    border-left: thick cyan;
+}
+
+/* Tool call messages - yellow border */
+ToolCallMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+    background: $surface;
+    border-left: thick yellow;
+}
+
+ToolCallMessage .tool-header {
+    color: yellow;
+    text-style: bold;
+}
+
+ToolCallMessage .tool-args {
+    color: $text-muted;
+    margin-left: 2;
+}
+
+ToolCallMessage .tool-status {
+    margin-left: 2;
+}
+
+ToolCallMessage .tool-status.pending {
+    color: $warning;
+}
+
+ToolCallMessage .tool-status.success {
+    color: $success;
+}
+
+ToolCallMessage .tool-status.error {
+    color: $error;
+}
+
+ToolCallMessage .tool-status.rejected {
+    color: $warning;
+}
+
+ToolCallMessage .tool-output {
+    margin-left: 2;
+    margin-top: 1;
+    padding: 1;
+    background: $surface-darken-1;
+    color: $text-muted;
+    max-height: 20;
+    overflow-y: auto;
+}
+
+ToolCallMessage .tool-output-preview {
+    margin-left: 2;
+    color: $text-muted;
+}
+
+ToolCallMessage .tool-output-hint {
+    margin-left: 2;
+    color: cyan;
+    text-style: italic;
+}
+
+ToolCallMessage:hover {
+    background: $surface-lighten-1;
+}
+
+/* Loading widget */
+LoadingWidget {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+LoadingWidget .loading-spinner {
+    color: cyan;
+    text-style: bold;
+}
+
+/* Chat input */
+ChatInput {
+    height: auto;
+    min-height: 3;
+    max-height: 12;
+    padding: 0;
+    background: $surface;
+    border: solid $primary;
+}
+
+ChatInput .input-row {
+    height: auto;
+    width: 100%;
+}
+
+ChatInput .input-prompt {
+    width: 3;
+    height: 1;
+    padding: 0 1;
+    color: $primary;
+    text-style: bold;
+}
+
+ChatInput ChatTextArea {
+    width: 1fr;
+    height: auto;
+    min-height: 1;
+    max-height: 8;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+ChatInput ChatTextArea:focus {
+    border: none;
+}
+
+/* Status area - two lines between input and footer */
+StatusArea {
+    height: 2;
+    background: $surface;
+    border-top: solid $primary;
+}
+
+/* Status bar - legacy, kept for compatibility */
+StatusBar {
+    height: 1;
+    background: $surface;
+    border-top: solid $primary;
+}
+
+StatusBar .status-item {
+    padding: 0 1;
+}
+
+StatusBar .status-agent {
+    color: cyan;
+}
+
+StatusBar .status-thread {
+    color: yellow;
+}
+
+StatusBar .status-tokens {
+    color: green;
+}
+
+StatusBar .status-message {
+    color: $text;
+}
+
+StatusBar .status-message.error {
+    color: $error;
+}
+
+/* Header */
+Header {
+    background: $primary;
+}
+
+/* Footer */
+Footer {
+    background: $panel;
+}
