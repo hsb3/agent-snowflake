@@ -10,8 +10,8 @@ import pytest
 from langchain_community.utilities import SQLDatabase
 from sqlalchemy import Column, Integer, MetaData, Table, create_engine
 
-from src.agent_snowflake.graph import build_graph
-from src.agent_snowflake.utils import init_model
+from agent_snowflake.graph import build_graph
+from agent_snowflake.utils import init_model
 
 
 @pytest.fixture
