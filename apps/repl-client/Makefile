@@ -1,51 +1,121 @@
-.PHONY: help install repl tui tui-dev test lint format type-check clean
+# =============================================================================
+# REPL Client Makefile
+# Classic REPL/TUI client for LangGraph Dev Server
+#
+# Prerequisites: A running LangGraph Dev Server
+#   - From this monorepo: cd ../agent && make dev-server
+#   - Or configure LANGGRAPH_DEV_SERVER_URL in .env
+# =============================================================================
 
-help:
-	@echo "REPL Client - Classic REPL for LangGraph Dev Server"
+.DEFAULT_GOAL := help
+
+# -----------------------------------------------------------------------------
+# CONFIGURATION
+# -----------------------------------------------------------------------------
+UV         := uv
+SRC_DIR    := src
+TEST_DIR   := tests
+PACKAGE    := repl-client
+
+# Color codes for output
+GREEN      := \033[0;32m
+YELLOW     := \033[0;33m
+CYAN       := \033[0;36m
+BOLD       := \033[1m
+RESET      := \033[0m
+
+# =============================================================================
+# HELP
+# =============================================================================
+
+.PHONY: help
+help: ## Show this help message
 	@echo ""
-	@echo "Prerequisites: A running LangGraph Dev Server"
+	@echo "$(BOLD)REPL Client - Classic REPL/TUI for LangGraph Dev Server$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)Prerequisites:$(RESET) A running LangGraph Dev Server"
 	@echo "  - From this monorepo: cd ../agent && make dev-server"
 	@echo "  - Or configure LANGGRAPH_DEV_SERVER_URL in .env"
 	@echo ""
-	@echo "Commands:"
-	@echo "  make install    - Install dependencies with uv"
-	@echo "  make repl       - Start classic REPL"
-	@echo "  make tui        - Start TUI client"
-	@echo "  make tui-dev    - Start TUI with hot reload"
-	@echo "  make test       - Run tests"
-	@echo "  make lint       - Lint code"
-	@echo "  make format     - Format code"
-	@echo "  make type-check - Type check"
-	@echo "  make clean      - Remove caches"
+	@grep -E '^(## [A-Z]+|[a-zA-Z_-]+:.*?## .*)$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; \
+		/^## / {printf "\n$(CYAN)%s$(RESET)\n", substr($$0, 4)} \
+		!/^## / {printf "  $(GREEN)%-15s$(RESET) %s\n", $$1, $$2}'
+	@echo ""
 
-install:
-	uv sync --package repl-client
+# =============================================================================
+## SETUP
+# =============================================================================
 
-repl:
-	uv run python -m repl_client
+.PHONY: install
+install: ## Install dependencies with uv
+	$(UV) sync --package $(PACKAGE)
 
-tui:
-	@echo "Starting TUI client..."
-	@echo "Tip: Press Ctrl+P for commands, F4 for sidebar"
-	uv run python -m repl_client.tui
+# =============================================================================
+## RUN
+# =============================================================================
 
-tui-dev:
-	@echo "Starting TUI in dev mode..."
-	TEXTUAL_DEVTOOLS=1 uv run python -m repl_client.tui
+.PHONY: repl
+repl: ## Start classic REPL interface
+	$(UV) run python -m repl_client
 
-test:
-	uv run pytest tests/ -v
+.PHONY: tui
+tui: ## Start TUI client
+	@echo "$(CYAN)Starting TUI client...$(RESET)"
+	@echo "$(YELLOW)Tip:$(RESET) Press Ctrl+P for commands, F4 for sidebar"
+	$(UV) run python -m repl_client.tui
 
-lint:
-	uv run ruff check src/ tests/
+.PHONY: tui-dev
+tui-dev: ## Start TUI with hot reload (dev mode)
+	@echo "$(CYAN)Starting TUI in dev mode...$(RESET)"
+	TEXTUAL_DEVTOOLS=1 $(UV) run python -m repl_client.tui
 
-format:
-	uv run ruff format src/ tests/
+# =============================================================================
+## TEST
+# =============================================================================
 
-type-check:
-	uv run ty check src/
+.PHONY: test
+test: ## Run all tests
+	$(UV) run pytest $(TEST_DIR)/ -v
 
-clean:
+.PHONY: test-fast
+test-fast: ## Run tests excluding slow/integration tests
+	$(UV) run pytest $(TEST_DIR)/ -v -m "not integration"
+
+.PHONY: test-core
+test-core: ## Run core module tests only
+	$(UV) run pytest $(TEST_DIR)/repl_client/core/ -v
+
+.PHONY: test-tui
+test-tui: ## Run TUI widget tests only
+	$(UV) run pytest $(TEST_DIR)/repl_client/tui/ -v
+
+# =============================================================================
+## QUALITY
+# =============================================================================
+
+.PHONY: lint
+lint: ## Lint code with ruff
+	$(UV) run ruff check $(SRC_DIR)/ $(TEST_DIR)/
+
+.PHONY: format
+format: ## Format code with ruff
+	$(UV) run ruff format $(SRC_DIR)/ $(TEST_DIR)/
+
+.PHONY: type-check
+type-check: ## Type check with ty
+	$(UV) run ty check $(SRC_DIR)/
+
+.PHONY: check
+check: lint type-check test ## Run lint, type-check, and tests
+
+# =============================================================================
+## MAINTENANCE
+# =============================================================================
+
+.PHONY: clean
+clean: ## Remove caches and generated files
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
+	@echo "$(GREEN)Cleaned caches$(RESET)"
