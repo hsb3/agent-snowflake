@@ -433,7 +433,7 @@ work documentation should be stored in docs/dev_docs/ai_gen/
 **Work Doc Frontmatter Template:**
 ```yaml
 ---
-doc_id:CC-YYYY-NNN
+doc_id: CC-YYYY-NNN
 title: Brief description
 date: YYYY-MM-DD
 type: planning|solution|investigation|status|summary

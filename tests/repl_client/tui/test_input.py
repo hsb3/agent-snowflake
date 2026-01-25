@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from textual.widgets import TextArea
 
 from repl_client.tui.widgets.history import HistoryManager
 from repl_client.tui.widgets.input import ChatInput, ChatTextArea
@@ -193,7 +192,7 @@ class TestChatInput:
 
     async def test_initialization(self, app_with_input) -> None:
         """Test widget initialization."""
-        async with app_with_input.run_test() as pilot:
+        async with app_with_input.run_test():
             chat_input = app_with_input.query_one(ChatInput)
             assert chat_input is not None
             assert chat_input.mode == "normal"
@@ -344,7 +343,7 @@ class TestChatInput:
 
     async def test_value_property(self, app_with_input) -> None:
         """Test value property getter/setter."""
-        async with app_with_input.run_test() as pilot:
+        async with app_with_input.run_test():
             chat_input = app_with_input.query_one(ChatInput)
 
             chat_input.value = "test value"

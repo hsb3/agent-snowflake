@@ -11,6 +11,7 @@ from repl_client_graph.ui.renderer import Renderer
 @dataclass
 class ContentBlock:
     """Content block from message stream"""
+
     type: str
     index: int
     text: str | None = None
@@ -23,6 +24,7 @@ class ContentBlock:
 @dataclass
 class ToolCall:
     """Complete tool call"""
+
     id: str
     name: str
     args: dict
@@ -39,6 +41,7 @@ class ToolRenderRegistry:
 
     def _register_builtins(self) -> None:
         """Register builtin formatters for common tools"""
+
         # SQL query formatter with syntax highlighting info
         def format_sql(args: dict) -> str:
             query = args.get("query", "")
@@ -117,9 +120,7 @@ class ContentBlockRenderer:
             if block.tool_name and block.tool_input:
                 preview = self.render_tool_preview(block.tool_name, block.tool_input)
                 self.renderer.render_panel(
-                    content=preview,
-                    title=f"Calling Tool: {block.tool_name}",
-                    style="yellow"
+                    content=preview, title=f"Calling Tool: {block.tool_name}", style="yellow"
                 )
 
         elif block.type == "tool_result":
@@ -128,7 +129,7 @@ class ContentBlockRenderer:
             self.renderer.render_panel(
                 content=result_text,
                 title=f"Tool Result: {block.tool_id or 'unknown'}",
-                style="blue"
+                style="blue",
             )
 
         else:
@@ -143,9 +144,7 @@ class ContentBlockRenderer:
         """
         preview = self.render_tool_preview(tool_call.name, tool_call.args)
         self.renderer.render_panel(
-            content=preview,
-            title=f"Tool Call: {tool_call.name}",
-            style="yellow"
+            content=preview, title=f"Tool Call: {tool_call.name}", style="yellow"
         )
 
     def render_tool_preview(self, tool_name: str, args: dict) -> str:

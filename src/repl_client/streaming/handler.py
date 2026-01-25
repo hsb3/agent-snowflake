@@ -137,9 +137,7 @@ class StreamHandler:
                         current_text = block.get("text", "")
 
                         # Extract delta
-                        delta = self._extract_text_delta(
-                            message_id, current_text, prev_text_map
-                        )
+                        delta = self._extract_text_delta(message_id, current_text, prev_text_map)
 
                         # Only yield if there's new text
                         if delta:
@@ -336,7 +334,4 @@ class StreamHandler:
         tool_name = value.get("tool", "unknown")
         interrupt_id = f"interrupt_{tool_name}_{id(interrupt_data)}"
 
-        return Interrupt(
-            id=interrupt_id,
-            value=value
-        )
+        return Interrupt(id=interrupt_id, value=value)

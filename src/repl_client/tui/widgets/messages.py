@@ -365,13 +365,17 @@ class ToolCallMessage(Vertical):
 
         if self._expanded:
             # Show full output
-            self._preview_widget.display = False
-            self._hint_widget.display = False
-            self._full_widget.update(self._output)
-            self._full_widget.display = True
+            if self._preview_widget:
+                self._preview_widget.display = False
+            if self._hint_widget:
+                self._hint_widget.display = False
+            if self._full_widget:
+                self._full_widget.update(self._output)
+                self._full_widget.display = True
         else:
             # Show preview
-            self._full_widget.display = False
+            if self._full_widget:
+                self._full_widget.display = False
             if needs_truncation:
                 # Truncate by lines first, then by chars
                 if total_lines > self._PREVIEW_LINES:
@@ -383,20 +387,26 @@ class ToolCallMessage(Vertical):
                 if len(preview_text) > self._PREVIEW_CHARS:
                     preview_text = preview_text[: self._PREVIEW_CHARS] + "..."
 
-                self._preview_widget.update(preview_text)
-                self._preview_widget.display = True
+                if self._preview_widget:
+                    self._preview_widget.update(preview_text)
+                    self._preview_widget.display = True
 
                 # Show expand hint
-                self._hint_widget.update("[dim]... (click to expand)[/dim]")
-                self._hint_widget.display = True
+                if self._hint_widget:
+                    self._hint_widget.update("[dim]... (click to expand)[/dim]")
+                    self._hint_widget.display = True
             elif output_stripped:
                 # Output fits in preview, just show it
-                self._preview_widget.update(output_stripped)
-                self._preview_widget.display = True
-                self._hint_widget.display = False
+                if self._preview_widget:
+                    self._preview_widget.update(output_stripped)
+                    self._preview_widget.display = True
+                if self._hint_widget:
+                    self._hint_widget.display = False
             else:
-                self._preview_widget.display = False
-                self._hint_widget.display = False
+                if self._preview_widget:
+                    self._preview_widget.display = False
+                if self._hint_widget:
+                    self._hint_widget.display = False
 
     @property
     def has_output(self) -> bool:

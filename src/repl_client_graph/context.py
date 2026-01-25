@@ -18,6 +18,7 @@ from repl_client_graph.ui.renderer import Renderer
 
 # Forward reference for HITLHandler and ToolRenderRegistry to avoid circular import
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from repl_client_graph.streaming.hitl import HITLHandler
     from repl_client_graph.ui.content_blocks import ToolRenderRegistry
@@ -27,7 +28,9 @@ _client_ctx: ContextVar[LangGraphClient | None] = ContextVar("client", default=N
 _renderer_ctx: ContextVar[Renderer | None] = ContextVar("renderer", default=None)
 _session_ctx: ContextVar[SessionState | None] = ContextVar("session", default=None)
 _hitl_handler_ctx: ContextVar["HITLHandler | None"] = ContextVar("hitl_handler", default=None)
-_tool_registry_ctx: ContextVar["ToolRenderRegistry | None"] = ContextVar("tool_registry", default=None)
+_tool_registry_ctx: ContextVar["ToolRenderRegistry | None"] = ContextVar(
+    "tool_registry", default=None
+)
 
 
 def set_client(client: LangGraphClient) -> None:

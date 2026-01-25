@@ -1,3 +1,16 @@
+/* DEPRECATED: This file has been replaced by modular CSS files in styles/
+ *
+ * The CSS has been split into:
+ * - styles/theme.tcss - Design tokens and theme variables
+ * - styles/layout.tcss - Screen structure and layout rules
+ * - styles/components.tcss - Widget-specific styling
+ * - styles/states.tcss - State-based styling (focus, hover, error states)
+ * - styles/index.tcss - Master import file
+ *
+ * This file is kept temporarily for reference but is no longer used.
+ * It will be removed after Phase 2 of the TUI refactor is complete.
+ */
+
 /* Textual CSS for REPL TUI */
 
 /* Global app styling */

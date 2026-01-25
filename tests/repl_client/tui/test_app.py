@@ -11,7 +11,8 @@ from textual.widgets import Footer, Header
 
 from repl_client.core.config import Config
 from repl_client.tui.app import REPLApp
-from repl_client.tui.widgets import ChatInput, Sidebar, StatusArea
+from repl_client.tui.views import SidebarView, StatusAreaView
+from repl_client.tui.widgets import ChatInput
 
 
 @pytest.fixture
@@ -40,14 +41,14 @@ async def test_app_mount():
     )
     app = REPLApp(config=config)
 
-    async with app.run_test() as pilot:
+    async with app.run_test():
         # Check that key widgets are mounted
         assert app.query_one(Header)
         assert app.query_one(ChatInput)
-        assert app.query_one(StatusArea)  # Updated to StatusArea
+        assert app.query_one(StatusAreaView)
         assert app.query_one(Footer)
-        assert app.query_one("#messages")
-        assert app.query_one(Sidebar)  # New sidebar widget
+        assert app.query_one("#message-area")
+        assert app.query_one(SidebarView)
 
 
 async def test_clear_messages_action():
@@ -58,9 +59,9 @@ async def test_clear_messages_action():
     )
     app = REPLApp(config=config)
 
-    async with app.run_test() as pilot:
+    async with app.run_test():
         # Get messages container
-        messages = app.query_one("#messages")
+        messages = app.query_one("#message-area")
 
         # Initially should be empty
         assert len(messages.children) == 0
@@ -80,15 +81,15 @@ async def test_help_command():
     )
     app = REPLApp(config=config)
 
-    async with app.run_test() as pilot:
+    async with app.run_test():
         # Get messages container
-        messages = app.query_one("#messages")
+        messages = app.query_one("#message-area")
 
         # Initially empty
         assert len(messages.children) == 0
 
         # Execute help command
-        await app._handle_command("/help")
+        await app._handle_command_routing("/help")
 
         # Should have added a message
         assert len(messages.children) == 1
@@ -102,16 +103,16 @@ async def test_info_command():
     )
     app = REPLApp(config=config)
 
-    async with app.run_test() as pilot:
+    async with app.run_test():
         # Set some session state
         app.session.set_agent("test-agent-123")
         app.session.set_thread("test-thread-456")
 
         # Get messages container
-        messages = app.query_one("#messages")
+        messages = app.query_one("#message-area")
 
         # Execute info command
-        await app._handle_command("/info")
+        await app._handle_command_routing("/info")
 
         # Should have added a message
         assert len(messages.children) == 1
@@ -125,12 +126,12 @@ async def test_unknown_command():
     )
     app = REPLApp(config=config)
 
-    async with app.run_test() as pilot:
+    async with app.run_test():
         # Get messages container
-        messages = app.query_one("#messages")
+        messages = app.query_one("#message-area")
 
         # Execute unknown command
-        await app._handle_command("/unknowncommand")
+        await app._handle_command_routing("/unknowncommand")
 
         # Should have added an error message
         assert len(messages.children) == 1
@@ -162,5 +163,5 @@ def test_app_initialization(app):
 
 
 def test_app_css_path(app):
-    """Test that CSS path is set."""
-    assert app.CSS_PATH == "repl.tcss"
+    """Test that CSS path is set to modular index."""
+    assert app.CSS_PATH == "styles/index.tcss"

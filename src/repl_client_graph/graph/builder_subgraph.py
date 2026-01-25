@@ -1,4 +1,5 @@
-"""Alternative StateGraph builder using process_stream as a subgraph.
+"""EXPERIMENTAL
+Alternative StateGraph builder using process_stream as a subgraph.
 
 This module provides an alternative implementation of build_repl_graph() that
 replaces the single process_stream_node with a fine-grained subgraph.
@@ -134,6 +135,7 @@ def build_repl_graph_with_subgraph() -> Any:
         if chunks:
             # Count event types
             from collections import Counter
+
             event_types = Counter(chunk[0] for chunk in chunks)
             print(f"[DEBUG] Event types: {dict(event_types)}")
 
@@ -150,6 +152,7 @@ def build_repl_graph_with_subgraph() -> Any:
         except Exception as e:
             print(f"[DEBUG] Subgraph error: {e}")
             import traceback
+
             traceback.print_exc()
             subgraph_output = subgraph_input  # Return input unchanged on error
 
@@ -158,7 +161,7 @@ def build_repl_graph_with_subgraph() -> Any:
 
         # Debug: Print what we got
         print(f"[DEBUG] Subgraph produced {len(result.get('render_queue', []))} render items")
-        if result.get('render_queue'):
+        if result.get("render_queue"):
             print(f"[DEBUG] First item type: {result['render_queue'][0].get('type')}")
 
         return result

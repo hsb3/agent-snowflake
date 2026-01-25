@@ -463,44 +463,100 @@ class EnhancedContextSchema:
         return cls(
             # Base configuration
             model=os.environ.get("SNOWFLAKE_AGENT_MODEL", settings.model),
-            temperature=float(os.environ.get("SNOWFLAKE_AGENT_TEMPERATURE", str(settings.temperature))),
+            temperature=float(
+                os.environ.get("SNOWFLAKE_AGENT_TEMPERATURE", str(settings.temperature))
+            ),
             snowflake_uri=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
-            snowflake_account=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account),
-            snowflake_user=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_USER", settings.snowflake_user),
-            snowflake_password=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password),
-            snowflake_database=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database),
-            snowflake_schema=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema),
-            snowflake_warehouse=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse),
-            snowflake_role=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", settings.snowflake_role),
-            allowed_schemas=os.environ.get("SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas),
-            allowed_tables=os.environ.get("SNOWFLAKE_AGENT_ALLOWED_TABLES", settings.allowed_tables),
-            read_only=os.environ.get("SNOWFLAKE_AGENT_READ_ONLY", str(settings.read_only).lower()).lower() == "true",
-            query_timeout=int(os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", str(settings.query_timeout))),
-            max_iterations=int(os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", str(settings.max_iterations))),
-            enable_debug=os.environ.get("SNOWFLAKE_AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()).lower() == "true",
+            snowflake_account=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account
+            ),
+            snowflake_user=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_USER", settings.snowflake_user
+            ),
+            snowflake_password=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
+            ),
+            snowflake_database=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
+            ),
+            snowflake_schema=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema
+            ),
+            snowflake_warehouse=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
+            ),
+            snowflake_role=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", settings.snowflake_role
+            ),
+            allowed_schemas=os.environ.get(
+                "SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas
+            ),
+            allowed_tables=os.environ.get(
+                "SNOWFLAKE_AGENT_ALLOWED_TABLES", settings.allowed_tables
+            ),
+            read_only=os.environ.get(
+                "SNOWFLAKE_AGENT_READ_ONLY", str(settings.read_only).lower()
+            ).lower()
+            == "true",
+            query_timeout=int(
+                os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", str(settings.query_timeout))
+            ),
+            max_iterations=int(
+                os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", str(settings.max_iterations))
+            ),
+            enable_debug=os.environ.get(
+                "SNOWFLAKE_AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
+            ).lower()
+            == "true",
             # Middleware configuration
             middleware_mode=os.environ.get("SNOWFLAKE_AGENT_MIDDLEWARE_MODE", "enhanced"),
             enable_hitl=os.environ.get("SNOWFLAKE_AGENT_ENABLE_HITL", "true").lower() == "true",
-            hitl_allowed_decisions=os.environ.get("SNOWFLAKE_AGENT_HITL_ALLOWED_DECISIONS", "approve,edit,reject"),
-            model_call_thread_limit=int(os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_THREAD_LIMIT", "10")),
+            hitl_allowed_decisions=os.environ.get(
+                "SNOWFLAKE_AGENT_HITL_ALLOWED_DECISIONS", "approve,edit,reject"
+            ),
+            model_call_thread_limit=int(
+                os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_THREAD_LIMIT", "10")
+            ),
             model_call_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_RUN_LIMIT", "5")),
-            model_call_exit_behavior=cast(Literal["end", "error"], os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_EXIT_BEHAVIOR", "end")),
-            tool_call_thread_limit=int(os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_THREAD_LIMIT", "20")),
+            model_call_exit_behavior=cast(
+                Literal["end", "error"],
+                os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_EXIT_BEHAVIOR", "end"),
+            ),
+            tool_call_thread_limit=int(
+                os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_THREAD_LIMIT", "20")
+            ),
             tool_call_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_RUN_LIMIT", "10")),
-            tool_call_exit_behavior=cast(Literal["continue", "error", "end"], os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_EXIT_BEHAVIOR", "continue")),
-            sql_query_thread_limit=int(os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_THREAD_LIMIT", "10")),
+            tool_call_exit_behavior=cast(
+                Literal["continue", "error", "end"],
+                os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_EXIT_BEHAVIOR", "continue"),
+            ),
+            sql_query_thread_limit=int(
+                os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_THREAD_LIMIT", "10")
+            ),
             sql_query_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_RUN_LIMIT", "5")),
             retry_max_retries=int(os.environ.get("SNOWFLAKE_AGENT_RETRY_MAX_RETRIES", "3")),
-            retry_backoff_factor=float(os.environ.get("SNOWFLAKE_AGENT_RETRY_BACKOFF_FACTOR", "2.0")),
+            retry_backoff_factor=float(
+                os.environ.get("SNOWFLAKE_AGENT_RETRY_BACKOFF_FACTOR", "2.0")
+            ),
             retry_initial_delay=float(os.environ.get("SNOWFLAKE_AGENT_RETRY_INITIAL_DELAY", "1.0")),
             retry_max_delay=float(os.environ.get("SNOWFLAKE_AGENT_RETRY_MAX_DELAY", "60.0")),
             retry_jitter=os.environ.get("SNOWFLAKE_AGENT_RETRY_JITTER", "true").lower() == "true",
-            enable_summarization=os.environ.get("SNOWFLAKE_AGENT_ENABLE_SUMMARIZATION", "true").lower() == "true",
-            summarization_model=os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_MODEL", "gpt-4o-mini"),
-            summarization_trigger_tokens=int(os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_TRIGGER_TOKENS", "4000")),
-            summarization_keep_messages=int(os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_KEEP_MESSAGES", "20")),
+            enable_summarization=os.environ.get(
+                "SNOWFLAKE_AGENT_ENABLE_SUMMARIZATION", "true"
+            ).lower()
+            == "true",
+            summarization_model=os.environ.get(
+                "SNOWFLAKE_AGENT_SUMMARIZATION_MODEL", "gpt-4o-mini"
+            ),
+            summarization_trigger_tokens=int(
+                os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_TRIGGER_TOKENS", "4000")
+            ),
+            summarization_keep_messages=int(
+                os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_KEEP_MESSAGES", "20")
+            ),
             enable_todo=os.environ.get("SNOWFLAKE_AGENT_ENABLE_TODO", "true").lower() == "true",
-            enable_fallback=os.environ.get("SNOWFLAKE_AGENT_ENABLE_FALLBACK", "true").lower() == "true",
+            enable_fallback=os.environ.get("SNOWFLAKE_AGENT_ENABLE_FALLBACK", "true").lower()
+            == "true",
             fallback_models=os.environ.get("SNOWFLAKE_AGENT_FALLBACK_MODELS", ""),
         )
 

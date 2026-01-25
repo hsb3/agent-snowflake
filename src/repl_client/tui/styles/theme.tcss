@@ -1,0 +1,35 @@
+/* Theme section - Design tokens and theme variables
+ *
+ * NOTE: This file is part of the modular CSS organization but is not directly
+ * imported (Textual CSS doesn't support @import). Instead, this content is
+ * included in index.tcss under the "THEME" section.
+ *
+ * This file serves as documentation and reference for theme-related styles.
+ */
+
+/* Theme variables and design tokens - DESIGN SYSTEM */
+
+/* NOTE: Textual provides built-in design tokens via $variables.
+   This file documents which tokens are used throughout the app.
+   See: https://textual.textualize.io/guide/design/#design-tokens */
+
+/* Textual built-in tokens used:
+   - $surface: Background color
+   - $surface-lighten-1: Lighter background for hover states
+   - $surface-darken-1: Darker background for nested content
+   - $panel: Panel background
+   - $primary: Primary accent color (blue/cyan)
+   - $text: Normal text color
+   - $text-muted: Secondary/muted text
+   - $success: Success state color (green)
+   - $warning: Warning state color (yellow)
+   - $error: Error state color (red)
+*/
+
+/* Custom extensions could be added here if needed:
+   - Custom color variables
+   - Spacing scale overrides
+   - Typography tokens
+   - Border definitions
+   - Shadow definitions
+*/

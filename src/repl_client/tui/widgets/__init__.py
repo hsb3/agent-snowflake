@@ -1,5 +1,6 @@
 """TUI widgets for REPL client."""
 
+from .command_palette import Command, CommandPalette
 from .history import HistoryManager
 from .input import ChatInput, ChatTextArea
 from .loading import LoadingWidget
@@ -13,6 +14,8 @@ __all__ = [
     "ChatInput",
     "ChatTextArea",
     "ClientInfoLine",
+    "Command",
+    "CommandPalette",
     "HistoryManager",
     "LoadingWidget",
     "Sidebar",

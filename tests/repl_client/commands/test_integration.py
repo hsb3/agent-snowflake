@@ -54,7 +54,7 @@ class TestCommandSystemIntegration:
     def test_full_workflow(self, full_system):
         """Test typical command workflow."""
         registry = full_system["registry"]
-        session = full_system["session"]
+        full_system["session"]
         renderer = full_system["renderer"]
 
         # 1. Start with /help

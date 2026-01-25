@@ -29,7 +29,13 @@ make dev-server           # Start server without browser (for REPL clients)
 
 ### REPL Clients
 ```bash
+# Standalone TUI (server must be running separately)
+make tui                  # Start TUI only
+make tui-dev              # Start TUI in dev mode with hot reload
+
+# Combined (server + client)
 make repl                 # Start server + classic REPL together
+make repl-tui             # Start server + TUI client together
 make repl-graph           # Start server + StateGraph REPL together
 ```
 
@@ -46,6 +52,7 @@ uv run pytest tests/test_agent.py::test_name -v # Test specific function
 make format              # Format with ruff
 make lint                # Lint with ruff
 make type-check          # Type check with ty
+make check-repl          # Run lint + type-check + test on repl_client only
 ```
 
 ### Utilities

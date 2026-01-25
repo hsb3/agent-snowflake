@@ -14,7 +14,6 @@ To run these tests:
 2. Terminal 2: uv run pytest tests/repl_client/test_integration_phase1.py -v
 """
 
-import asyncio
 import os
 
 import pytest
@@ -234,7 +233,7 @@ class TestPhase1Integration:
             )
 
             # Try to consume stream
-            async for parsed in repl_loop.stream_handler.process_stream(chunks):
+            async for _parsed in repl_loop.stream_handler.process_stream(chunks):
                 pass
 
         except Exception as e:

@@ -6,8 +6,6 @@ Test-driven development for configuration loading.
 import os
 from unittest.mock import patch
 
-import pytest
-
 from repl_client.core.config import Config
 
 

@@ -106,5 +106,6 @@ class Renderer:
     def flush(self) -> None:
         """Flush console output to ensure it's displayed before blocking input."""
         import sys
+
         sys.stdout.flush()
         sys.stderr.flush()

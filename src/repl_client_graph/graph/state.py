@@ -7,6 +7,15 @@ streaming, rendering, and session management.
 
 from typing import Literal, TypedDict
 
+"""
+NOTE:
+We can also use state to store things like:
+  command history, assistant info, thread info, etc.
+  treat state similar to browser localStorage/sessionStorage
+"""
+
+# TODO: The below should be built on defined types for each field. Use dataclasses or pydantic models.
+
 
 class REPLState(TypedDict, total=False):
     """State that flows through the REPL StateGraph.
@@ -44,6 +53,7 @@ class REPLState(TypedDict, total=False):
     input_type: Literal["command", "message", "empty", "exit"] | None
 
     # Session context
+    # TODO: Below should be typed as uuid's and have proper validation/error handling
     current_thread_id: str | None
     current_assistant_id: str
     current_run_id: str | None

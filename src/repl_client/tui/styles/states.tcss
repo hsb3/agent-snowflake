@@ -1,0 +1,42 @@
+/* States section - State-dependent styling
+ *
+ * NOTE: This file is part of the modular CSS organization but is not directly
+ * imported (Textual CSS doesn't support @import). Instead, this content is
+ * included in index.tcss under the "STATES" section.
+ *
+ * This file serves as documentation and reference for state-related styles.
+ */
+
+/* State-dependent styling - INTERACTION STATES */
+
+/* Focus states */
+ChatInput ChatTextArea:focus {
+    border: none;
+}
+
+/* Tool call status states */
+ToolCallMessage .tool-status.pending {
+    color: $warning;
+}
+
+ToolCallMessage .tool-status.success {
+    color: $success;
+}
+
+ToolCallMessage .tool-status.error {
+    color: $error;
+}
+
+ToolCallMessage .tool-status.rejected {
+    color: $warning;
+}
+
+/* Hover states */
+ToolCallMessage:hover {
+    background: $surface-lighten-1;
+}
+
+/* Status bar error state */
+StatusBar .status-message.error {
+    color: $error;
+}

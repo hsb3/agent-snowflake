@@ -16,6 +16,7 @@ class TestToolRenderRegistry:
 
     def test_register_custom_formatter(self, registry):
         """Test registering a custom formatter"""
+
         def custom_formatter(args: dict) -> str:
             return f"Custom: {args}"
 
@@ -25,6 +26,7 @@ class TestToolRenderRegistry:
 
     def test_format_with_registered_formatter(self, registry):
         """Test format uses registered formatter"""
+
         def sql_formatter(args: dict) -> str:
             return f"SQL: {args.get('query', '')}"
 

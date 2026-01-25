@@ -46,8 +46,4 @@ class MessageRenderer:
         style = "green" if status == "success" else "yellow" if status == "error" else "blue"
 
         # Create panel with tool name as title
-        self.renderer.render_panel(
-            content=result,
-            title=f"Tool: {tool_name}",
-            style=style
-        )
+        self.renderer.render_panel(content=result, title=f"Tool: {tool_name}", style=style)

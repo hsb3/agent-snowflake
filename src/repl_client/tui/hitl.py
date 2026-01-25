@@ -69,16 +69,11 @@ class HITLHandler:
             True if approved, False if rejected
         """
         # Format tool preview
-        preview = self._format_tool_preview(tool_name, tool_args)
+        self._format_tool_preview(tool_name, tool_args)
 
         # Use Textual's action_question for simple y/n prompt
         # Note: This is a simple implementation for Phase 2
         # Phase 3 can upgrade to ApprovalMenu widget (like deepagents)
-        message = f"""Tool Approval Required: {tool_name}
-
-{preview}
-
-Approve this tool call?"""
 
         # For now, default to approve (Phase 2 MVP)
         # TODO: Implement proper approval modal in Phase 3

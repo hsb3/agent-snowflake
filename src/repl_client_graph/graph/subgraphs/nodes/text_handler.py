@@ -45,13 +45,15 @@ def extract_text_delta_node(state: dict) -> dict:
 
                         # Extract delta
                         if current_text and current_text != prev_text:
-                            delta = current_text[len(prev_text):]
+                            delta = current_text[len(prev_text) :]
                             if delta:
                                 # Add to render queue
-                                render_queue.append({
-                                    "type": "text",
-                                    "content": delta,
-                                })
+                                render_queue.append(
+                                    {
+                                        "type": "text",
+                                        "content": delta,
+                                    }
+                                )
                                 # Update prev_text
                                 prev_text = current_text
 

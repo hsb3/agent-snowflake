@@ -6,10 +6,10 @@ Handles Human-in-the-Loop (HITL) interrupts:
 - Formats resume commands
 """
 
-from repl_client.streaming.types import Interrupt
-from repl_client.ui.renderer import Renderer
-from repl_client.ui.content_blocks import ToolRenderRegistry
 from repl_client.core.session import SessionState
+from repl_client.streaming.types import Interrupt
+from repl_client.ui.content_blocks import ToolRenderRegistry
+from repl_client.ui.renderer import Renderer
 
 
 class HITLHandler:
@@ -60,9 +60,7 @@ class HITLHandler:
 
         # Show in panel
         self.renderer.render_panel(
-            content=preview,
-            title=f"Tool Approval Required: {tool_name}",
-            style="yellow"
+            content=preview, title=f"Tool Approval Required: {tool_name}", style="yellow"
         )
 
         # Ensure all output is flushed before blocking input
@@ -72,9 +70,9 @@ class HITLHandler:
         while True:
             response = input("\nApprove? (y/n): ").strip().lower()
 
-            if response in ('y', 'yes'):
+            if response in ("y", "yes"):
                 return True
-            elif response in ('n', 'no'):
+            elif response in ("n", "no"):
                 return False
             else:
                 # Invalid input - reprompt
@@ -102,8 +100,4 @@ class HITLHandler:
         Returns:
             Command dict: {"resume": {"approve": bool}}
         """
-        return {
-            "resume": {
-                "approve": approved
-            }
-        }
+        return {"resume": {"approve": approved}}

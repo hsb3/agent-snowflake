@@ -79,6 +79,46 @@ async def test_status_area_set_connected(app):
     assert client_line.connected is False
 
 
+async def test_status_area_set_connected_with_url(app):
+    """Test setting connection status with server URL."""
+    status_area = app.app.query_one(StatusArea)
+
+    # Set connected with custom URL
+    status_area.set_connected(True, "http://localhost:3000")
+
+    client_line = status_area.query_one("#client-info-line")
+    assert client_line.connected is True
+    assert client_line.server_url == "http://localhost:3000"
+
+    # Set disconnected with URL
+    status_area.set_connected(False, "http://localhost:3000")
+    assert client_line.connected is False
+    assert client_line.server_url == "http://localhost:3000"
+
+
+async def test_status_area_connection_display_text(app):
+    """Test connection indicator displays correct text with URL."""
+    status_area = app.app.query_one(StatusArea)
+
+    # Test connected state
+    status_area.set_connected(True, "http://localhost:2024")
+    await app.pause()
+
+    connection_display = status_area.query_one("#connection-status")
+    # Get the text content from the widget
+    display_text = connection_display.render()
+    assert "●" in str(display_text)
+    assert "http://localhost:2024" in str(display_text)
+
+    # Test disconnected state
+    status_area.set_connected(False, "http://localhost:2024")
+    await app.pause()
+
+    display_text = connection_display.render()
+    assert "○" in str(display_text)
+    assert "http://localhost:2024" in str(display_text)
+
+
 async def test_status_area_set_last_update(app):
     """Test setting last update time."""
     status_area = app.app.query_one(StatusArea)
@@ -130,7 +170,7 @@ async def test_token_formatting(app):
     status_area.set_tokens(456)
     await app.pause()
     user_line = status_area.query_one("#user-status-line")
-    token_display = user_line.query_one("#token-count")
+    user_line.query_one("#token-count")
     # Just verify it doesn't crash and updates
     assert user_line.tokens == 456
 

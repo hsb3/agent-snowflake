@@ -1,0 +1,916 @@
+/* Master CSS - Modular organization in a single file
+ *
+ * NOTE: Textual CSS does not support @import statements.
+ * This file consolidates all styles with clear section boundaries.
+ *
+ * Organization:
+ * 1. Theme - Carbon Design System color palette
+ * 2. Layout - Screen structure and layout rules
+ * 3. Components - Widget-specific styling
+ * 4. States - State-based styling (focus, hover, error states)
+ *
+ * Colors based on Carbon Design System (IBM)
+ * Source: https://carbondesignsystem.com/guidelines/color/usage/
+ * Theme: Gray 100 (Dark Mode)
+ */
+
+/* ============================================================================
+ * 1. THEME - Carbon Design System Colors
+ * ============================================================================ */
+
+/* Foundation - Carbon Gray 100 Palette (used by both themes) */
+$gray-10:  #f4f4f4;
+$gray-20:  #e0e0e0;
+$gray-30:  #c6c6c6;
+$gray-40:  #a8a8a8;
+$gray-50:  #8d8d8d;
+$gray-60:  #6f6f6f;
+$gray-70:  #525252;
+$gray-80:  #393939;
+$gray-90:  #262626;
+$gray-100: #161616;
+$white:    #ffffff;
+$black:    #000000;
+
+/* Foundation - Carbon Blue Palette */
+$blue-40: #78a9ff;
+$blue-50: #4589ff;
+$blue-60: #0f62fe;
+$blue-70: #0043ce;
+$blue-80: #002d9c;
+
+/* Foundation - Carbon Status Palettes (same in both modes) */
+$green-40: #42be65;
+$green-50: #24a148;
+$green-60: #198038;
+
+$red-50:   #fa4d56;
+$red-60:   #da1e28;
+
+$yellow-30: #f1c21b;
+
+/* ============================================================================
+ * Light Mode Colors (Default)
+ * ============================================================================ */
+
+/* Semantic - Surfaces (Light Mode) - Base: gray-30 */
+$c-surface-sunken-light:    $gray-10;
+$c-surface-primary-light:   $gray-30;   /* Base: gray-30 instead of white */
+$c-surface-secondary-light: $gray-20;   /* Lighter panels */
+$c-surface-tertiary-light:  $gray-10;   /* Lightest nested */
+$c-surface-overlay-light:   $gray-30;
+
+/* Semantic - Content (Text - Light Mode) - Adjusted for gray-30 base */
+$c-text-primary-light:   $black;      /* Pure black for max contrast on gray-30 */
+$c-text-secondary-light: $gray-100;   /* Very dark gray for secondary text */
+$c-text-tertiary-light:  $gray-80;    /* Dark gray for subtle text */
+$c-text-disabled-light:  $gray-60;    /* Mid-gray for disabled */
+
+/* Semantic - Interactive (Light Mode) */
+$c-interactive-light:        $blue-60;
+$c-interactive-hover-light:  $blue-70;  /* Darker on hover */
+$c-interactive-active-light: $blue-80;
+
+/* Semantic - Borders (Light Mode) - Adjusted for gray-30 base */
+$c-border-subtle-light:   $gray-40;     /* Darker for visibility on gray-30 */
+$c-border-default-light:  $gray-50;
+$c-border-strong-light:   $gray-70;
+$c-border-focus-light:    $blue-60;
+$c-border-selected-light: $blue-60;
+
+/* ============================================================================
+ * Dark Mode Colors
+ * ============================================================================ */
+
+/* Semantic - Surfaces (Dark Mode) - Base: gray-90 */
+$c-surface-sunken-dark:    $gray-100;   /* Darker sunken */
+$c-surface-primary-dark:   $gray-90;    /* Base: gray-90 instead of gray-100 */
+$c-surface-secondary-dark: $gray-80;    /* Lighter panels */
+$c-surface-tertiary-dark:  $gray-70;    /* Even lighter nested */
+$c-surface-overlay-dark:   $gray-80;
+
+/* Semantic - Content (Text - Dark Mode) */
+$c-text-primary-dark:   $gray-10;
+$c-text-secondary-dark: $gray-30;
+$c-text-tertiary-dark:  $gray-40;
+$c-text-disabled-dark:  $gray-70;
+
+/* Semantic - Interactive (Dark Mode) */
+$c-interactive-dark:        $blue-60;
+$c-interactive-hover-dark:  $blue-50;  /* Lighter on hover */
+$c-interactive-active-dark: $blue-40;
+
+/* Semantic - Borders (Dark Mode) */
+$c-border-subtle-dark:   $gray-80;
+$c-border-default-dark:  $gray-70;
+$c-border-strong-dark:   $gray-50;
+$c-border-focus-dark:    $white;
+$c-border-selected-dark: $blue-50;
+
+/* ============================================================================
+ * Active Theme Selection (Dark Mode Default)
+ * ============================================================================ */
+
+/* Default to dark mode (current behavior) */
+$c-surface-sunken:    $c-surface-sunken-dark;
+$c-surface-primary:   $c-surface-primary-dark;
+$c-surface-secondary: $c-surface-secondary-dark;
+$c-surface-tertiary:  $c-surface-tertiary-dark;
+$c-surface-overlay:   $c-surface-overlay-dark;
+
+$c-text-primary:   $c-text-primary-dark;
+$c-text-secondary: $c-text-secondary-dark;
+$c-text-tertiary:  $c-text-tertiary-dark;
+$c-text-disabled:  $c-text-disabled-dark;
+
+$c-interactive:        $c-interactive-dark;
+$c-interactive-hover:  $c-interactive-hover-dark;
+$c-interactive-active: $c-interactive-active-dark;
+
+/* Semantic - Status (same in both modes) */
+$c-success:  $green-40;
+$c-error:    $red-60;
+$c-warning:  $yellow-30;
+$c-info:     $blue-50;
+
+$c-border-subtle:   $c-border-subtle-dark;
+$c-border-default:  $c-border-default-dark;
+$c-border-strong:   $c-border-strong-dark;
+$c-border-focus:    $c-border-focus-dark;
+$c-border-selected: $c-border-selected-dark;
+
+/* ============================================================================
+ * Textual Built-in Overrides (Prevent auto-generation)
+ * ============================================================================ */
+/* Override Textual's default variables with our Carbon values */
+
+$surface:      $c-surface-primary;
+$text:         $c-text-primary;
+$text-muted:   $c-text-secondary;
+$primary:      $c-interactive;
+$secondary:    $c-surface-secondary;
+$accent:       $c-interactive;
+
+/* Override auto-generated modifiers to use our semantic tokens */
+$surface-lighten-1: $c-surface-secondary;  /* One step lighter */
+$surface-lighten-2: $c-surface-tertiary;   /* Two steps lighter */
+$surface-darken-1:  $c-surface-sunken;     /* One step darker */
+
+$primary-lighten-1: $c-interactive-hover;   /* Lighter interactive */
+$primary-darken-1:  $c-interactive-active;  /* Darker interactive */
+
+/* ============================================================================
+ * 2. LAYOUT - Screen and container layout
+ * ============================================================================ */
+
+/* Global app styling - Dark Mode (default) */
+Screen {
+    background: $c-surface-primary-dark;
+}
+
+/* Global app styling - Light Mode */
+Screen:light {
+    background: $c-surface-primary-light;
+}
+
+/* Main content horizontal container */
+#main-content {
+    height: 1fr;
+    width: 100%;
+}
+
+/* Messages container */
+#messages {
+    height: 1fr;
+    width: 1fr;
+    background: $c-surface-primary;
+    padding: 0 1;
+    overflow-y: auto;
+}
+
+/* Chat input */
+ChatInput {
+    height: auto;
+    min-height: 3;
+    max-height: 12;
+    padding: 0;
+    background: $c-surface-primary;
+    border: solid $c-interactive;
+}
+
+ChatInput .input-row {
+    height: auto;
+    width: 100%;
+}
+
+ChatInput .input-prompt {
+    width: 3;
+    height: 1;
+    padding: 0 1;
+}
+
+ChatInput ChatTextArea {
+    width: 1fr;
+    height: auto;
+    min-height: 1;
+    max-height: 8;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+/* Status area - two lines between input and footer */
+StatusArea {
+    layout: vertical;
+    height: 3;  /* 1 for border + 2 for content lines */
+    width: 100%;
+    background: $c-surface-primary;
+    border-top: solid $c-interactive;
+}
+
+/* Status area line 1: User status (agent, thread, tokens) */
+UserStatusLine {
+    height: 1;
+    width: 100%;
+    background: $c-surface-primary;
+    padding: 0 1;
+}
+
+UserStatusLine .status-agent {
+    width: auto;
+    padding: 0 1;
+    color: $c-info;
+}
+
+UserStatusLine .status-thread {
+    width: auto;
+    padding: 0 1;
+    color: $c-warning;
+}
+
+UserStatusLine .status-tokens {
+    width: auto;
+    padding: 0 1;
+    color: $c-success;
+}
+
+UserStatusLine .status-divider {
+    color: $c-text-secondary;
+    padding: 0 1;
+}
+
+UserStatusLine .status-spacer {
+    width: 1fr;
+}
+
+/* Status area line 2: Client info (connection, status messages) */
+ClientInfoLine {
+    height: 1;
+    width: 100%;
+    background: $c-surface-primary;
+    padding: 0 1;
+}
+
+ClientInfoLine .status-connection {
+    width: auto;
+    padding: 0 1;
+}
+
+ClientInfoLine .status-connection.connected {
+    color: $c-success;
+}
+
+ClientInfoLine .status-connection.disconnected {
+    color: $c-error;
+}
+
+ClientInfoLine .status-last-update {
+    width: auto;
+    padding: 0 1;
+    color: $c-text-secondary;
+}
+
+ClientInfoLine .status-message {
+    width: auto;
+    padding: 0 1;
+    color: $c-text-primary;
+}
+
+ClientInfoLine .status-message.error {
+    color: $c-error;
+}
+
+ClientInfoLine .status-message.warning {
+    color: $c-warning;
+}
+
+ClientInfoLine .status-divider {
+    color: $c-text-secondary;
+    padding: 0 1;
+}
+
+ClientInfoLine .status-spacer {
+    width: 1fr;
+}
+
+/* Status bar - legacy, kept for compatibility */
+StatusBar {
+    height: 1;
+    background: $c-surface-primary;
+    border-top: solid $c-interactive;
+}
+
+/* Header */
+Header {
+    background: $c-interactive;
+}
+
+/* Footer - keybindings display */
+Footer {
+    dock: bottom;
+    height: 1;
+    background: $c-surface-secondary-dark;  /* gray-80 */
+}
+
+/* ============================================================================
+ * 3. COMPONENTS - Individual widget styling
+ * ============================================================================ */
+
+/* User messages - green border */
+UserMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+    background: $c-surface-primary;
+    border-left: thick $c-success;
+}
+
+/* Assistant messages - blue border */
+AssistantMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+AssistantMessage Markdown {
+    padding: 0;
+    margin: 0;
+    border-left: thick $c-interactive;
+}
+
+/* Tool call messages - yellow border */
+ToolCallMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+    background: $c-surface-primary;
+    border-left: thick $c-warning;
+}
+
+ToolCallMessage .tool-header {
+    color: $c-warning;
+    text-style: bold;
+}
+
+ToolCallMessage .tool-args {
+    color: $c-text-secondary;
+    margin-left: 2;
+}
+
+ToolCallMessage .tool-status {
+    margin-left: 2;
+}
+
+ToolCallMessage .tool-output {
+    margin-left: 2;
+    margin-top: 1;
+    padding: 1;
+    background: $c-surface-tertiary;
+    color: $c-text-secondary;
+    max-height: 20;
+    overflow-y: auto;
+}
+
+ToolCallMessage .tool-output-preview {
+    margin-left: 2;
+    color: $c-text-secondary;
+}
+
+ToolCallMessage .tool-output-hint {
+    margin-left: 2;
+    color: $c-info;
+    text-style: italic;
+}
+
+/* System messages - informational */
+.system-message {
+    height: auto;
+    padding: 1;
+    margin: 1 0;
+    background: $c-surface-tertiary;
+    border-left: thick $c-interactive;
+    color: $c-text-primary;
+}
+
+/* Loading widget */
+LoadingWidget {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+LoadingWidget .loading-spinner {
+    color: $c-info;
+    text-style: bold;
+}
+
+/* Chat input prompt styling */
+ChatInput .input-prompt {
+    color: $c-interactive;
+    text-style: bold;
+}
+
+/* Status bar items */
+StatusBar .status-item {
+    padding: 0 1;
+}
+
+StatusBar .status-agent {
+    color: $c-info;
+}
+
+StatusBar .status-thread {
+    color: $c-warning;
+}
+
+StatusBar .status-tokens {
+    color: $c-success;
+}
+
+StatusBar .status-message {
+    color: $c-text-primary;
+}
+
+/* ============================================================================
+ * 4. STATES - State-dependent styling
+ * ============================================================================ */
+
+/* Focus states */
+ChatInput ChatTextArea:focus {
+    border: none;
+}
+
+/* Tool call status states */
+ToolCallMessage .tool-status.pending {
+    color: $c-warning;
+}
+
+ToolCallMessage .tool-status.success {
+    color: $c-success;
+}
+
+ToolCallMessage .tool-status.error {
+    color: $c-error;
+}
+
+ToolCallMessage .tool-status.rejected {
+    color: $c-warning;
+}
+
+/* Hover states */
+ToolCallMessage:hover {
+    background: $c-surface-secondary;
+}
+
+/* Status bar error state */
+StatusBar .status-message.error {
+    color: $c-error;
+}
+
+/* Sidebar focus states */
+Sidebar TabbedContent:focus-within {
+    border: tall $c-interactive;
+}
+
+Sidebar .thread-item.focused {
+    background: $c-surface-secondary;
+    border-left: thick $c-interactive;
+}
+
+Sidebar .agent-item.focused {
+    background: $c-surface-secondary;
+    border-left: thick $c-interactive;
+}
+
+/* ============================================================================
+ * 5. COMMAND PALETTE - Master command navigation modal
+ * ============================================================================ */
+
+/* Command palette modal overlay */
+CommandPalette {
+    align: center middle;
+}
+
+/* Command palette container */
+CommandPalette > Container {
+    width: 80;
+    height: auto;
+    max-height: 30;
+    background: $c-surface-secondary-dark;  /* gray-80 */
+    border: thick $c-interactive;
+    padding: 1;
+}
+
+/* Search input in command palette */
+CommandPalette Input {
+    width: 100%;
+    margin-bottom: 1;
+    border: solid $c-interactive;
+}
+
+/* Command palette header label */
+CommandPalette Label {
+    width: 100%;
+    margin-bottom: 1;
+    text-align: center;
+    color: $c-text-secondary;
+    text-style: italic;
+}
+
+/* Command list options */
+CommandPalette OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 20;
+    border: none;
+    background: $c-surface-primary;
+}
+
+/* Individual command options */
+CommandPalette OptionList > .option-list--option {
+    padding: 0 1;
+}
+
+/* Highlighted command option */
+CommandPalette OptionList > .option-list--option-highlighted {
+    background: $c-interactive;
+}
+
+/* Command category headers */
+CommandPalette .command-category {
+    color: $c-interactive;
+    text-style: bold;
+    padding: 1 0 0 0;
+}
+
+/* Command label styling */
+CommandPalette .command-label {
+    text-style: bold;
+}
+
+/* Command description text */
+CommandPalette .command-description {
+    color: $c-text-secondary;
+    text-style: italic;
+}
+
+/* ============================================================================
+ * 6. MODAL SCREENS - Agent and Thread selection modals
+ * ============================================================================ */
+
+/* Agent selection modal */
+AgentSelectionScreen {
+    align: center middle;
+}
+
+AgentSelectionScreen > Container {
+    width: 60;
+    height: auto;
+    max-height: 25;
+    background: $c-surface-secondary-dark;  /* gray-80 */
+    border: thick $c-interactive;
+    padding: 1;
+}
+
+AgentSelectionScreen Label {
+    width: 100%;
+    text-align: center;
+    color: $c-text-secondary;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+AgentSelectionScreen OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 15;
+    border: none;
+    background: $c-surface-primary;
+}
+
+/* Thread selection modal */
+ThreadSelectionScreen {
+    align: center middle;
+}
+
+ThreadSelectionScreen > Container {
+    width: 70;
+    height: auto;
+    max-height: 30;
+    background: $c-surface-secondary-dark;  /* gray-80 */
+    border: thick $c-interactive;
+    padding: 1;
+}
+
+ThreadSelectionScreen Label {
+    width: 100%;
+    text-align: center;
+    color: $c-text-secondary;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+ThreadSelectionScreen OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 20;
+    border: none;
+    background: $c-surface-primary;
+}
+
+/* ============================================================================
+ * 7. LIGHT MODE OVERRIDES
+ * ============================================================================ */
+
+/* Light mode uses :light pseudo-class selector */
+
+/* Layout - Surfaces and containers */
+Screen:light #messages {
+    background: $c-surface-primary-light;
+}
+
+Screen:light ChatInput {
+    background: $c-surface-primary-light;
+    border: solid $c-interactive-light;
+}
+
+Screen:light StatusArea {
+    background: $c-surface-primary-light;
+    border-top: solid $c-interactive-light;
+}
+
+Screen:light UserStatusLine {
+    background: $c-surface-primary-light;
+}
+
+Screen:light ClientInfoLine {
+    background: $c-surface-primary-light;
+}
+
+Screen:light StatusBar {
+    background: $c-surface-primary-light;
+    border-top: solid $c-interactive-light;
+}
+
+Screen:light Header {
+    background: $c-interactive-light;
+}
+
+Screen:light Footer {
+    background: $c-surface-secondary-light;
+}
+
+/* Components - Messages */
+Screen:light UserMessage {
+    background: $c-surface-primary-light;
+    border-left: thick $c-success;
+}
+
+Screen:light AssistantMessage Markdown {
+    border-left: thick $c-interactive-light;
+}
+
+Screen:light ToolCallMessage {
+    background: $c-surface-primary-light;
+    border-left: thick $c-warning;
+}
+
+Screen:light ToolCallMessage .tool-header {
+    color: $c-warning;
+}
+
+Screen:light ToolCallMessage .tool-args {
+    color: $c-text-secondary-light;
+}
+
+Screen:light ToolCallMessage .tool-output {
+    background: $c-surface-tertiary-light;
+    color: $c-text-secondary-light;
+}
+
+Screen:light ToolCallMessage .tool-output-preview {
+    color: $c-text-secondary-light;
+}
+
+Screen:light ToolCallMessage .tool-output-hint {
+    color: $c-info;
+}
+
+Screen:light .system-message {
+    background: $c-surface-tertiary-light;
+    border-left: thick $c-interactive-light;
+    color: $c-text-primary-light;
+}
+
+/* Components - Status area items */
+Screen:light UserStatusLine .status-agent {
+    color: $c-info;
+}
+
+Screen:light UserStatusLine .status-thread {
+    color: $c-warning;
+}
+
+Screen:light UserStatusLine .status-tokens {
+    color: $c-success;
+}
+
+Screen:light UserStatusLine .status-divider {
+    color: $c-text-secondary-light;
+}
+
+Screen:light ClientInfoLine .status-connection.connected {
+    color: $c-success;
+}
+
+Screen:light ClientInfoLine .status-connection.disconnected {
+    color: $c-error;
+}
+
+Screen:light ClientInfoLine .status-last-update {
+    color: $c-text-secondary-light;
+}
+
+Screen:light ClientInfoLine .status-message {
+    color: $c-text-primary-light;
+}
+
+Screen:light ClientInfoLine .status-message.error {
+    color: $c-error;
+}
+
+Screen:light ClientInfoLine .status-message.warning {
+    color: $c-warning;
+}
+
+Screen:light ClientInfoLine .status-divider {
+    color: $c-text-secondary-light;
+}
+
+/* Components - Chat input */
+Screen:light ChatInput .input-prompt {
+    color: $c-interactive-light;
+}
+
+/* Components - Status bar */
+Screen:light StatusBar .status-agent {
+    color: $c-info;
+}
+
+Screen:light StatusBar .status-thread {
+    color: $c-warning;
+}
+
+Screen:light StatusBar .status-tokens {
+    color: $c-success;
+}
+
+Screen:light StatusBar .status-message {
+    color: $c-text-primary-light;
+}
+
+Screen:light StatusBar .status-message.error {
+    color: $c-error;
+}
+
+/* Components - Loading widget */
+Screen:light LoadingWidget .loading-spinner {
+    color: $c-info;
+}
+
+/* States - Hover states */
+Screen:light ToolCallMessage:hover {
+    background: $c-surface-secondary-light;
+}
+
+/* Command Palette - Light Mode */
+Screen:light CommandPalette > Container {
+    background: $c-surface-secondary-light;
+    border: thick $c-interactive-light;
+}
+
+Screen:light CommandPalette Input {
+    border: solid $c-interactive-light;
+}
+
+Screen:light CommandPalette Label {
+    color: $c-text-secondary-light;
+}
+
+Screen:light CommandPalette OptionList {
+    background: $c-surface-primary-light;
+}
+
+Screen:light CommandPalette OptionList > .option-list--option-highlighted {
+    background: $c-interactive-light;
+}
+
+Screen:light CommandPalette .command-category {
+    color: $c-interactive-light;
+}
+
+Screen:light CommandPalette .command-description {
+    color: $c-text-secondary-light;
+}
+
+/* Modal Screens - Light Mode */
+Screen:light AgentSelectionScreen > Container {
+    background: $c-surface-secondary-light;
+    border: thick $c-interactive-light;
+}
+
+Screen:light AgentSelectionScreen Label {
+    color: $c-text-secondary-light;
+}
+
+Screen:light AgentSelectionScreen OptionList {
+    background: $c-surface-primary-light;
+}
+
+Screen:light ThreadSelectionScreen > Container {
+    background: $c-surface-secondary-light;
+    border: thick $c-interactive-light;
+}
+
+Screen:light ThreadSelectionScreen Label {
+    color: $c-text-secondary-light;
+}
+
+Screen:light ThreadSelectionScreen OptionList {
+    background: $c-surface-primary-light;
+}
+
+/* Sidebar - Light Mode */
+Screen:light Sidebar {
+    background: $c-surface-primary-light;
+}
+
+Screen:light Sidebar TabbedContent:focus-within {
+    border: tall $c-interactive-light;
+}
+
+Screen:light Sidebar .thread-item {
+    background: $c-surface-primary-light;
+}
+
+Screen:light Sidebar .thread-item:hover {
+    background: $c-surface-secondary-light;
+}
+
+Screen:light Sidebar .thread-item.current {
+    background: $c-interactive-hover-light;
+}
+
+Screen:light Sidebar .thread-item.focused {
+    background: $c-surface-tertiary-light;
+    border-left: thick $c-interactive-light;
+}
+
+Screen:light Sidebar .agent-item {
+    background: $c-surface-primary-light;
+}
+
+Screen:light Sidebar .agent-item:hover {
+    background: $c-surface-secondary-light;
+}
+
+Screen:light Sidebar .agent-item.current {
+    background: $c-interactive-hover-light;
+}
+
+Screen:light Sidebar .agent-item.focused {
+    background: $c-surface-tertiary-light;
+    border-left: thick $c-interactive-light;
+}
+
+Screen:light Sidebar .session-info {
+    background: $c-surface-primary-light;
+}
+
+Screen:light Sidebar .tool-call-item {
+    background: $c-surface-primary-light;
+}
+
+Screen:light Sidebar .tool-call-item:hover {
+    background: $c-surface-secondary-light;
+}

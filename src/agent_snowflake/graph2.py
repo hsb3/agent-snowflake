@@ -94,9 +94,7 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
             "sql_db_schema": False,
             "sql_db_list_tables": False,
         }
-        middleware.append(
-            HumanInTheLoopMiddleware(interrupt_on=cast(Any, interrupt_config))
-        )
+        middleware.append(HumanInTheLoopMiddleware(interrupt_on=cast(Any, interrupt_config)))
         if context.enable_debug:
             logger.info(f"Added HumanInTheLoopMiddleware with decisions: {allowed_decisions}")
 
@@ -105,8 +103,12 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     if context.model_call_thread_limit > 0 or context.model_call_run_limit > 0:
         middleware.append(
             ModelCallLimitMiddleware(
-                thread_limit=context.model_call_thread_limit if context.model_call_thread_limit > 0 else None,
-                run_limit=context.model_call_run_limit if context.model_call_run_limit > 0 else None,
+                thread_limit=context.model_call_thread_limit
+                if context.model_call_thread_limit > 0
+                else None,
+                run_limit=context.model_call_run_limit
+                if context.model_call_run_limit > 0
+                else None,
                 exit_behavior=context.model_call_exit_behavior,
             )
         )
@@ -121,7 +123,9 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     if context.tool_call_thread_limit > 0 or context.tool_call_run_limit > 0:
         middleware.append(
             ToolCallLimitMiddleware(
-                thread_limit=context.tool_call_thread_limit if context.tool_call_thread_limit > 0 else None,
+                thread_limit=context.tool_call_thread_limit
+                if context.tool_call_thread_limit > 0
+                else None,
                 run_limit=context.tool_call_run_limit if context.tool_call_run_limit > 0 else None,
                 exit_behavior=context.tool_call_exit_behavior,
             )
@@ -137,7 +141,9 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
         middleware.append(
             ToolCallLimitMiddleware(
                 tool_name="sql_db_query",
-                thread_limit=context.sql_query_thread_limit if context.sql_query_thread_limit > 0 else None,
+                thread_limit=context.sql_query_thread_limit
+                if context.sql_query_thread_limit > 0
+                else None,
                 run_limit=context.sql_query_run_limit if context.sql_query_run_limit > 0 else None,
                 exit_behavior=context.tool_call_exit_behavior,
             )
@@ -227,9 +233,7 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     )
 
     if context.enable_debug:
-        logger.info(
-            f"Enhanced graph built successfully with nodes: {list(agent.nodes.keys())}"
-        )
+        logger.info(f"Enhanced graph built successfully with nodes: {list(agent.nodes.keys())}")
         logger.info(f"Middleware stack: {[type(m).__name__ for m in middleware]}")
 
     return agent  # type: ignore

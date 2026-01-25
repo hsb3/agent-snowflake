@@ -1,16 +1,10 @@
-"""Main Textual TUI application for REPL client.
+"""Main Textual TUI application for REPL client - WITH CONTROLLERS.
 
-Integrates all widgets (UserMessage, AssistantMessage, ToolCallMessage, ChatInput,
-StatusBar, LoadingWidget) with the streaming backend (LangGraphClient, StreamHandler,
-HITLHandler, SessionState).
-
-Architecture:
-- Layer 1: LangGraphClient (HTTP/SSE)
-- Layer 2: Parsers (SSE → ParsedChunk)
-- Layer 3: SessionState (thread/agent tracking)
-- Layer 4: StreamHandler (ParsedChunk generator)
-- Layer 5: HITLHandler (approval prompts)
-- Layer 8: This app (orchestration + widgets)
+Architecture (Phase 3 refactor):
+- Controllers: Business logic (MessageController, SessionController, CommandController, InterruptController)
+- Services: External integrations (LangGraphService, StreamService)
+- Views: Presentational components (LayoutView, MessageAreaView, etc.)
+- App: Event routing only
 """
 
 from __future__ import annotations
@@ -21,9 +15,10 @@ from typing import TYPE_CHECKING, ClassVar
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, ScrollableContainer
+from textual.containers import Container
+from textual.reactive import reactive
 from textual.screen import ModalScreen
-from textual.widgets import Footer, Header, Label, OptionList
+from textual.widgets import Label, OptionList
 from textual.widgets.option_list import Option
 
 from repl_client.core.client import LangGraphClient
@@ -31,20 +26,20 @@ from repl_client.core.config import Config
 from repl_client.core.logging import get_logger
 from repl_client.core.session import SessionState
 from repl_client.streaming.handler import StreamHandler
-from repl_client.streaming.types import ChunkType
-from repl_client.tui.hitl import HITLHandler
-from repl_client.tui.widgets import (
-    AssistantMessage,
-    ChatInput,
-    LoadingWidget,
-    Sidebar,
-    StatusArea,
-    ToolCallMessage,
-    UserMessage,
+from repl_client.tui.controllers import (
+    CommandController,
+    InterruptController,
+    MessageController,
+    SessionController,
 )
+from repl_client.tui.hitl import HITLHandler
+from repl_client.tui.models import AppState
+from repl_client.tui.services import LangGraphService, StreamService
+from repl_client.tui.views import LayoutView, MessageAreaView, SidebarView, StatusAreaView
+from repl_client.tui.widgets import ChatInput, Command, CommandPalette
 
 if TYPE_CHECKING:
-    from textual.widgets import Static
+    pass
 
 logger = get_logger("tui.app")
 
@@ -59,23 +54,19 @@ class AgentSelectionScreen(ModalScreen[str | None]):
 
     def compose(self) -> ComposeResult:
         """Compose the selection screen."""
-        yield Label("Select Agent (Enter to confirm, Esc to cancel)")
+        with Container():
+            yield Label("Select Agent (Enter to confirm, Esc to cancel)")
 
-        # Build options
-        options = []
-        for agent in self.agents:
-            agent_id = agent.get("assistant_id", "")
-            graph_id = agent.get("graph_id", "")
-            is_current = " ✓" if agent_id == self.current_agent_id else ""
+            # Build options
+            options = []
+            for agent in self.agents:
+                agent_id = agent.get("assistant_id", "")
+                graph_id = agent.get("graph_id", "")
+                is_current = " ✓" if agent_id == self.current_agent_id else ""
 
-            options.append(
-                Option(
-                    f"{graph_id}{is_current}",
-                    id=agent_id
-                )
-            )
+                options.append(Option(f"{graph_id}{is_current}", id=agent_id))
 
-        yield OptionList(*options, id="agent-list")
+            yield OptionList(*options, id="agent-list")
 
     def on_mount(self) -> None:
         """Focus the option list on mount."""
@@ -101,21 +92,22 @@ class ThreadSelectionScreen(ModalScreen[str | None]):
 
     def compose(self) -> ComposeResult:
         """Compose the selection screen."""
-        yield Label("Select Thread (Enter to confirm, Esc to cancel, N for new)")
+        with Container():
+            yield Label("Select Thread (Enter to confirm, Esc to cancel, N for new)")
 
-        # Build options
-        options = [Option("+ New Thread", id="__new__")]
+            # Build options
+            options = [Option("+ New Thread", id="__new__")]
 
-        for thread in self.threads:
-            thread_id = thread.get("thread_id", "")
-            created = thread.get("created_at", "")
-            is_current = " ✓" if thread_id == self.current_thread_id else ""
+            for thread in self.threads:
+                thread_id = thread.get("thread_id", "")
+                created = thread.get("created_at", "")
+                is_current = " ✓" if thread_id == self.current_thread_id else ""
 
-            # Format: "thread-id... (created time) ✓"
-            display = f"{thread_id[:16]}... ({created[:10]}){is_current}"
-            options.append(Option(display, id=thread_id))
+                # Format: "thread-id... (created time) ✓"
+                display = f"{thread_id[:16]}... ({created[:10]}){is_current}"
+                options.append(Option(display, id=thread_id))
 
-        yield OptionList(*options, id="thread-list")
+            yield OptionList(*options, id="thread-list")
 
     def on_mount(self) -> None:
         """Focus the option list on mount."""
@@ -134,27 +126,36 @@ class ThreadSelectionScreen(ModalScreen[str | None]):
 class REPLApp(App[None]):
     """Main REPL TUI application.
 
-    Features:
-    - Connect to LangGraph server
-    - Stream messages with real-time rendering
-    - Handle HITL interrupts
-    - Display user/AI/tool messages
-    - Status bar with connection/agent info
+    Responsibilities (after Phase 3 refactor):
+    - Event routing (user input → controllers)
+    - UI coordination (modals, key bindings)
+    - Component initialization
+    - NO business logic (delegated to controllers)
 
     Key bindings:
     - Ctrl+C: Quit
     - Ctrl+L: Clear messages
+    - Ctrl+D: Toggle light/dark mode
+    - F2: Agent selection
+    - F3: Thread selection
     """
 
-    CSS_PATH = "repl.tcss"
+    CSS_PATH = "styles/index.tcss"
+    ENABLE_COMMAND_PALETTE = False  # Disable Textual's built-in (we use custom)
+
+    # Start in dark mode (Carbon Gray 100 theme)
+    dark: reactive[bool] = reactive(True)
 
     BINDINGS: ClassVar[list[Binding]] = [
         Binding("ctrl+c", "quit", "Quit", show=True),
-        Binding("ctrl+l", "clear_messages", "Clear", show=True),
-        Binding("f2", "select_agent", "Agents", show=True),
-        Binding("f3", "select_thread", "Threads", show=True),
+        Binding("ctrl+p", "show_command_palette", "Commands", show=True),  # Our custom palette
         Binding("f4", "toggle_sidebar", "Sidebar", show=True),
-        Binding("f5", "expand_sidebar", "Expand", show=True),
+        Binding("ctrl+l", "clear_messages", "Clear", show=True),
+        Binding("ctrl+d", "toggle_dark", "Light/Dark", show=True),
+        Binding("f2", "select_agent", "Agents", show=True),
+        Binding("f3", "select_thread", "Threads", show=False),
+        Binding("f5", "expand_sidebar", "Expand", show=False),
+        Binding("ctrl+b", "focus_sidebar", "Focus Sidebar", show=False),
     ]
 
     def __init__(
@@ -171,6 +172,10 @@ class REPLApp(App[None]):
         super().__init__(**kwargs)
         self.config = config or Config.from_env()
 
+        # Centralized reactive state (NEW - Phase 5)
+        self.app_state = AppState()
+        self.app_state.set_connection(False, self.config.server_url)
+
         # Core components
         self.client = LangGraphClient(
             base_url=self.config.server_url,
@@ -180,47 +185,56 @@ class REPLApp(App[None]):
         self.stream_handler = StreamHandler(self.session)
         self.hitl_handler = HITLHandler(app=self)
 
-        # Widget references (set in on_mount)
-        self._status_area: StatusArea | None = None
-        self._chat_input: ChatInput | None = None
-        self._messages_container: ScrollableContainer | None = None
-        self._sidebar: Sidebar | None = None
+        # Services
+        self.langgraph_service = LangGraphService(self.client)
+        self.stream_service = StreamService(self.stream_handler)
 
-        # State
-        self._streaming = False
-        self._agents: list[dict] = []
-        self._threads_cache: list[dict] = []
+        # Controllers (Phase 3) with AppState (Phase 5)
+        self.session_controller = SessionController(
+            self.langgraph_service, self.session, self.app_state
+        )
+        self.command_controller = CommandController(
+            self.langgraph_service, self.session, self.session_controller
+        )
+
+        # Message and Interrupt controllers have circular dependency, create them together
+        self.interrupt_controller = InterruptController(
+            self.langgraph_service, self.stream_service, self.hitl_handler, self.session
+        )
+        self.message_controller = MessageController(
+            self.langgraph_service,
+            self.stream_service,
+            self.session,
+            self.interrupt_controller,
+            self.app_state,
+        )
+
+        # Set circular references
+        self.interrupt_controller.set_message_controller(self.message_controller)
+        self.message_controller.set_interrupt_controller(self.interrupt_controller)
+
+        # View references (set in on_mount)
+        self._layout: LayoutView | None = None
+        self._status_area: StatusAreaView | None = None
+        self._chat_input: ChatInput | None = None
+        self._message_area: MessageAreaView | None = None
+        self._sidebar: SidebarView | None = None
 
     def compose(self) -> ComposeResult:
-        """Compose the app layout.
-
-        Layout from top to bottom:
-        - Header (docked top)
-        - Horizontal container with:
-          - Messages (scrollable, fills remaining space)
-          - Sidebar (toggleable, hidden by default)
-        - ChatInput (multi-line, auto-height)
-        - StatusArea (2 lines, shows agent/thread/tokens + connection)
-        - Footer (docked bottom, shows key bindings)
-        """
-        yield Header()
-        with Horizontal(id="main-content"):
-            yield ScrollableContainer(id="messages")
-            yield Sidebar(id="sidebar")
-        yield ChatInput(
+        """Compose the app layout using LayoutView."""
+        yield LayoutView(
             cwd=Path.cwd(),
             history_file=Path.cwd() / ".repl" / "history.jsonl",
         )
-        yield StatusArea()
-        yield Footer()
 
     async def on_mount(self) -> None:
         """Initialize after mounting."""
-        # Cache widget references
-        self._status_area = self.query_one(StatusArea)
-        self._chat_input = self.query_one(ChatInput)
-        self._messages_container = self.query_one("#messages", ScrollableContainer)
-        self._sidebar = self.query_one("#sidebar", Sidebar)
+        # Cache view references
+        self._layout = self.query_one(LayoutView)
+        self._status_area = self._layout.get_status_area()
+        self._chat_input = self._layout.get_chat_input()
+        self._message_area = self._layout.get_message_area()
+        self._sidebar = self._layout.get_sidebar()
 
         # Start connection and setup
         self._startup()
@@ -228,213 +242,140 @@ class REPLApp(App[None]):
     @work(exclusive=True)
     async def _startup(self) -> None:
         """Connect to server, load agents, create thread, update status."""
-        # Update status
-        if self._status_area:
-            self._status_area.set_status("Connecting to server...")
+        self.app_state.set_status("Connecting to server...")
 
-        # Connect to server
         try:
             connected = await self.client.connect()
             if not connected:
+                self.app_state.set_status("Connection failed", error=True)
+                self.app_state.set_connection(False, self.config.server_url)
                 if self._status_area:
-                    self._status_area.set_status("Connection failed", error=True)
+                    self._status_area.update_connection_status(False, self.config.server_url)
                 logger.error("Failed to connect to server")
                 return
 
+            self.app_state.set_connection(True, self.config.server_url)
             if self._status_area:
-                self._status_area.set_status("Loading agents...")
+                self._status_area.update_connection_status(True, self.config.server_url)
+            self.app_state.set_status("Loading agents...")
 
-            # List agents
-            self._agents = await self.client.list_agents(limit=10)
-            if not self._agents:
-                if self._status_area:
-                    self._status_area.set_status("No agents available", error=True)
+            # List agents via service
+            agents = await self.langgraph_service.get_agents(limit=10)
+            if not agents:
+                self.app_state.set_status("No agents available", error=True)
                 logger.error("No agents available")
                 return
 
-            # Set default agent (first one or from config)
+            # Update app state with agents list
+            self.app_state.update_agents_cache(agents)
+
+            # Set default agent
             default_agent = None
             if self.config.default_agent:
-                # Find agent by ID
-                for agent in self._agents:
+                for agent in agents:
                     if agent.get("assistant_id") == self.config.default_agent:
                         default_agent = agent
                         break
 
             if not default_agent:
-                default_agent = self._agents[0]
+                default_agent = agents[0]
 
             agent_id = default_agent.get("assistant_id", "")
-            agent_name = default_agent.get("name", agent_id)
+            agent_name = default_agent.get("graph_id") or default_agent.get("name", agent_id)
+
+            # Update state (both legacy and new)
             self.session.set_agent(agent_id)
+            self.app_state.set_agent(agent_id, agent_name)
 
-            if self._status_area:
-                self._status_area.set_status(f"Creating thread...")
+            self.app_state.set_status("Creating thread...")
 
-            # Create initial thread
-            thread_id = await self.client.create_thread()
-            self.session.set_thread(thread_id)
+            # Create initial thread via SessionController to handle caching
+            create_result = await self.session_controller.create_thread()
 
-            # Update status bar
+            if not create_result["success"]:
+                self.app_state.set_status("Failed to create thread", error=True)
+                logger.error(f"Failed to create thread: {create_result['message']}")
+                return
+
+            thread_id = create_result["thread_id"]
+
+            # Update status bar (still needed for immediate UI update)
             if self._status_area:
                 self._status_area.set_agent(agent_name)
-                self._status_area.set_thread(thread_id[:8])  # Show first 8 chars
-                self._status_area.set_status("Ready", error=False)
+                self._status_area.set_thread(thread_id[:8])
+
+            self.app_state.set_status("Ready - Press Ctrl+P for commands", error=False)
+
+            # Add welcome message to message area
+            if self._message_area:
+                from textual.widgets import Markdown
+
+                welcome_text = (
+                    "**Welcome to REPL!**\n\n"
+                    "**Quick Start:**\n"
+                    "- **Ctrl+P** - Open command palette (all commands & shortcuts)\n"
+                    "- **F4** - Toggle sidebar (view threads, agents, session info)\n"
+                    "- Type `/help` to see available slash commands\n\n"
+                    "**Common Shortcuts:**\n"
+                    "- **Ctrl+D** - Toggle light/dark mode\n"
+                    "- **F2** - Quick agent selection\n"
+                    "- **Ctrl+L** - Clear messages\n"
+                    "- **Ctrl+C** - Quit\n\n"
+                    "Start chatting or press **Ctrl+P** to explore!"
+                )
+                welcome_widget = Markdown(welcome_text)
+                welcome_widget.add_class("system-message")
+                await self._message_area.mount(welcome_widget)
+                self._message_area.scroll_to_bottom()
 
             logger.info(f"Connected to server, agent={agent_name}, thread={thread_id}")
 
         except Exception as e:
             logger.exception("Startup failed")
-            if self._status_area:
-                self._status_area.set_status(f"Startup failed: {e}", error=True)
+            self.app_state.set_status(f"Startup failed: {e}", error=True)
 
     async def on_chat_input_submitted(self, message: ChatInput.Submitted) -> None:
-        """Handle user input submission.
+        """Route user input to appropriate controller.
 
         Args:
             message: Submitted message event
         """
         user_text = message.value
 
-        # Handle commands (start with /)
+        # Route commands to CommandController
         if message.mode == "command":
-            await self._handle_command(user_text)
+            await self._handle_command_routing(user_text)
             return
 
-        # Handle normal messages
-        # Note: _send_message is decorated with @work, returns Worker (not awaitable)
+        # Route messages to MessageController
         self._send_message(user_text)
 
-    async def _handle_command(self, command: str) -> None:
-        """Handle slash commands.
+    async def _handle_command_routing(self, command: str) -> None:
+        """Route command to CommandController and display result.
 
         Args:
             command: Command string (includes leading /)
         """
-        cmd = command.lower().strip()
-
-        if cmd == "/help":
-            await self._show_help()
-        elif cmd == "/clear":
+        # Special case: /clear clears UI directly
+        if command.lower().strip() == "/clear":
             self.action_clear_messages()
-        elif cmd == "/agents":
-            await self._list_agents()
-        elif cmd.startswith("/agents "):
-            # Switch agent
-            agent_id = command.split(maxsplit=1)[1].strip()
-            await self._switch_agent(agent_id)
-        elif cmd == "/new":
-            await self._new_thread()
-        elif cmd == "/info":
-            await self._show_info()
-        else:
-            # Unknown command
-            if self._messages_container:
-                error_msg = UserMessage(f"Unknown command: {cmd}")
-                await self._messages_container.mount(error_msg)
-
-    async def _show_help(self) -> None:
-        """Show help message."""
-        help_text = """Available commands:
-/help          - Show this help
-/clear         - Clear message history
-/agents        - List available agents
-/agents <id>   - Switch to agent
-/new           - Create new thread
-/info          - Show session info"""
-
-        if self._messages_container:
-            msg = UserMessage(help_text)
-            await self._messages_container.mount(msg)
-
-    async def _list_agents(self) -> None:
-        """List available agents."""
-        if not self._agents:
-            if self._messages_container:
-                msg = UserMessage("No agents available")
-                await self._messages_container.mount(msg)
             return
 
-        agent_list = "Available agents:\n"
-        for agent in self._agents:
-            agent_id = agent.get("assistant_id", "")
-            agent_name = agent.get("name", agent_id)
-            current = " (current)" if agent_id == self.session.current_assistant_id else ""
-            agent_list += f"  - {agent_name} [{agent_id}]{current}\n"
+        # Execute command via controller
+        result_message = await self.command_controller.execute_command(command)
 
-        if self._messages_container:
-            msg = UserMessage(agent_list)
-            await self._messages_container.mount(msg)
-
-    async def _switch_agent(self, agent_id: str) -> None:
-        """Switch to a different agent.
-
-        Args:
-            agent_id: Agent ID to switch to
-        """
-        # Find agent
-        agent = None
-        for a in self._agents:
-            if a.get("assistant_id") == agent_id:
-                agent = a
-                break
-
-        if not agent:
-            if self._messages_container:
-                msg = UserMessage(f"Agent not found: {agent_id}")
-                await self._messages_container.mount(msg)
-            return
-
-        agent_name = agent.get("name", agent_id)
-        self.session.set_agent(agent_id)
-
-        if self._status_area:
-            self._status_area.set_agent(agent_name)
-
-        if self._messages_container:
-            msg = UserMessage(f"Switched to agent: {agent_name}")
-            await self._messages_container.mount(msg)
-
-    async def _new_thread(self) -> None:
-        """Create a new thread."""
-        try:
-            thread_id = await self.client.create_thread()
-            self.session.set_thread(thread_id)
-
-            if self._status_area:
-                self._status_area.set_thread(thread_id[:8])
-
-            if self._messages_container:
-                msg = UserMessage(f"Created new thread: {thread_id}")
-                await self._messages_container.mount(msg)
-
-            logger.info(f"Created new thread: {thread_id}")
-        except Exception as e:
-            logger.exception("Failed to create thread")
-            if self._messages_container:
-                msg = UserMessage(f"Failed to create thread: {e}")
-                await self._messages_container.mount(msg)
-
-    async def _show_info(self) -> None:
-        """Show session info."""
-        tokens = self.session.get_token_summary()
-        info = f"""Session info:
-Thread: {self.session.current_thread_id}
-Agent: {self.session.current_assistant_id}
-Tokens: {tokens['total']} (in: {tokens['input']}, out: {tokens['output']})"""
-
-        if self._messages_container:
-            msg = UserMessage(info)
-            await self._messages_container.mount(msg)
+        # Display result via view
+        if self._message_area and result_message and not result_message.startswith("("):
+            await self._message_area.add_user_message(result_message)
 
     @work(exclusive=True)
     async def _send_message(self, text: str) -> None:
-        """Send message to agent and stream response.
+        """Delegate message sending to MessageController.
 
         Args:
             text: User message text
         """
-        if self._streaming:
+        if self.app_state.streaming:
             logger.warning("Already streaming, ignoring new message")
             return
 
@@ -442,180 +383,78 @@ Tokens: {tokens['total']} (in: {tokens['input']}, out: {tokens['output']})"""
             logger.error("No thread or agent set")
             return
 
-        self._streaming = True
+        self.app_state.streaming = True
 
         # Disable input during streaming
         if self._chat_input:
             self._chat_input.set_disabled(disabled=True)
 
         try:
-            # Add user message widget
-            user_msg = UserMessage(text)
-            if self._messages_container:
-                await self._messages_container.mount(user_msg)
-                self._messages_container.scroll_end(animate=False)
-
-            # Show loading indicator
-            loading = LoadingWidget()
-            if self._messages_container:
-                await self._messages_container.mount(loading)
-                self._messages_container.scroll_end(animate=False)
-
-            # Update status
-            if self._status_area:
-                self._status_area.set_status("Streaming...")
-
-            # Stream from server
-            chunks = self.client.stream_message(
-                thread_id=self.session.current_thread_id,
-                message=text,
-                assistant_id=self.session.current_assistant_id,
-            )
-
-            # Create assistant message (empty initially)
-            ai_msg = AssistantMessage()
-            if self._messages_container:
-                await self._messages_container.mount(ai_msg)
-
-            # Remove loading widget
-            await loading.remove()
-
-            # Process stream
-            await self._handle_stream(chunks, ai_msg)
-
-            # Finalize assistant message
-            await ai_msg.stop_stream()
-
-            # Update status
-            if self._status_area:
-                self._status_area.set_status("Ready")
+            # Delegate to MessageController
+            if self._message_area:
+                await self.message_controller.send_message(
+                    text,
+                    self._message_area,  # MessageAreaView IS the ScrollableContainer
+                    self._status_area,
+                )
 
         except Exception as e:
             logger.exception("Failed to send message")
-            if self._status_area:
-                self._status_area.set_status(f"Error: {e}", error=True)
+            self.app_state.set_status(f"Error: {e}", error=True)
         finally:
-            self._streaming = False
+            self.app_state.streaming = False
             if self._chat_input:
                 self._chat_input.set_disabled(disabled=False)
                 self._chat_input.focus_input()
 
-    async def _handle_stream(
-        self,
-        chunks,
-        ai_msg: AssistantMessage,
-    ) -> None:
-        """Process stream chunks and update widgets.
-
-        Args:
-            chunks: AsyncIterator of (event_type, data) tuples
-            ai_msg: Assistant message widget to update
-        """
-        current_tool_msg: ToolCallMessage | None = None
-
-        async for parsed in self.stream_handler.process_stream(chunks):
-            # Handle text deltas
-            if parsed.chunk_type == ChunkType.TEXT_DELTA and parsed.text_delta:
-                await ai_msg.append_content(parsed.text_delta)
-                if self._messages_container:
-                    self._messages_container.scroll_end(animate=False)
-
-            # Handle complete tool calls
-            elif parsed.chunk_type == ChunkType.TOOL_CALL_COMPLETE and parsed.tool_call:
-                tool_call = parsed.tool_call
-                tool_msg = ToolCallMessage(
-                    tool_name=tool_call.name,
-                    args=tool_call.args,
-                )
-                if self._messages_container:
-                    await self._messages_container.mount(tool_msg)
-                    self._messages_container.scroll_end(animate=False)
-                current_tool_msg = tool_msg
-
-            # Handle tool results
-            elif parsed.chunk_type == ChunkType.TOOL_RESULT and parsed.tool_result:
-                # Update the current tool message with result
-                if current_tool_msg:
-                    result = parsed.tool_result.result
-                    if parsed.tool_result.status == "error":
-                        current_tool_msg.set_error(result)
-                    else:
-                        current_tool_msg.set_success(result)
-                    current_tool_msg = None
-
-            # Handle interrupts (HITL)
-            elif parsed.chunk_type == ChunkType.INTERRUPT and parsed.interrupt:
-                await self._handle_interrupt(parsed.interrupt, ai_msg)
-
-            # Handle usage metadata
-            elif parsed.chunk_type == ChunkType.USAGE and parsed.usage:
-                self.session.track_tokens(
-                    parsed.usage.input_tokens,
-                    parsed.usage.output_tokens,
-                )
-                if self._status_area:
-                    tokens = self.session.get_token_summary()
-                    self._status_area.set_tokens(tokens["total"])
-
-    async def _handle_interrupt(self, interrupt, ai_msg: AssistantMessage) -> None:
-        """Handle HITL interrupt.
-
-        Args:
-            interrupt: Interrupt object
-            ai_msg: Current assistant message
-        """
-        # Show approval prompt via HITL handler
-        approved = await self.hitl_handler.handle_interrupt(interrupt, self.session)
-
-        # Build resume command
-        command = {"resume": {"approve": approved}}
-
-        # Resume stream with approval decision
-        if self.session.current_thread_id and self.session.current_assistant_id:
-            chunks = self.client.resume_after_interrupt(
-                thread_id=self.session.current_thread_id,
-                assistant_id=self.session.current_assistant_id,
-                command=command,
-            )
-            # Continue streaming
-            await self._handle_stream(chunks, ai_msg)
-
     def action_clear_messages(self) -> None:
         """Clear all messages from the container."""
-        if self._messages_container:
-            self._messages_container.remove_children()
+        if self._message_area:
+            self._message_area.remove_children()
             logger.info("Cleared message history")
 
+    def action_toggle_dark(self) -> None:
+        """Toggle between light and dark mode."""
+        self.dark = not self.dark
+        mode = "dark" if self.dark else "light"
+        logger.info(f"Switched to {mode} mode")
+        self.app_state.set_status(f"Switched to {mode} mode")
+
     async def action_select_agent(self) -> None:
-        """Show agent selection screen."""
-        if not self._agents:
-            # Load agents if not cached
-            try:
-                self._agents = await self.client.list_agents()
-            except Exception as e:
-                logger.error(f"Failed to load agents: {e}")
-                return
+        """Show agent selection modal and delegate switching to SessionController."""
+        try:
+            # Force refresh to get latest agents
+            agents = await self.langgraph_service.get_agents(force_refresh=True)
+            # Update app_state cache
+            self.app_state.update_agents_cache(agents)
+        except Exception as e:
+            logger.error(f"Failed to load agents: {e}")
+            return
 
         # Show selection screen
         result = await self.push_screen(
-            AgentSelectionScreen(self._agents, self.session.current_assistant_id)
+            AgentSelectionScreen(agents, self.session.current_assistant_id)
         )
 
         if result:
-            # User selected an agent
-            self.session.set_agent(result)
-            if self._status_area:
-                # Extract graph_id for display
-                agent = next((a for a in self._agents if a.get("assistant_id") == result), None)
-                display_name = agent.get("graph_id", result[:8]) if agent else result[:8]
-                self._status_area.set_agent(display_name)
-            logger.info(f"Switched to agent: {result}")
+            # Delegate to SessionController
+            switch_result = await self.session_controller.switch_agent(result)
+
+            if switch_result["success"] and self._status_area:
+                self._status_area.set_agent(switch_result["display_name"])
+                logger.info(f"Switched to agent: {result}")
+                # Update sidebar to show current agent
+                self._update_sidebar_content()
+            else:
+                logger.error(f"Failed to switch agent: {switch_result['message']}")
 
     async def action_select_thread(self) -> None:
-        """Show thread selection screen."""
+        """Show thread selection modal and delegate to SessionController."""
         try:
-            threads = await self.client.list_threads(limit=20)
-            self._threads_cache = threads  # Cache for sidebar
+            # Force refresh to get latest threads
+            threads = await self.langgraph_service.get_threads(limit=20, force_refresh=True)
+            # Update app_state cache
+            self.app_state.update_threads_cache(threads)
         except Exception as e:
             logger.error(f"Failed to load threads: {e}")
             return
@@ -627,73 +466,410 @@ Tokens: {tokens['total']} (in: {tokens['input']}, out: {tokens['output']})"""
 
         if result:
             if result == "__new__":
-                # Create new thread
-                try:
-                    new_thread_id = await self.client.create_thread()
-                    self.session.set_thread(new_thread_id)
+                # Delegate to SessionController
+                create_result = await self.session_controller.create_thread()
+                if create_result["success"]:
                     if self._status_area:
-                        self._status_area.set_thread(new_thread_id[:8])
-                    logger.info(f"Created new thread: {new_thread_id}")
-
-                    # Clear messages for new thread
+                        self._status_area.set_thread(create_result["thread_id"][:8])
+                    logger.info(f"Created new thread: {create_result['thread_id']}")
                     self.action_clear_messages()
-                except Exception as e:
-                    logger.error(f"Failed to create thread: {e}")
+                    # Update sidebar to show new thread
+                    self._update_sidebar_content()
+                else:
+                    logger.error(f"Failed to create thread: {create_result['message']}")
             else:
-                # Resume existing thread
-                self.session.set_thread(result)
-                if self._status_area:
-                    self._status_area.set_thread(result[:8])
-                logger.info(f"Switched to thread: {result}")
+                # Delegate to SessionController
+                switch_result = await self.session_controller.switch_thread(result)
+                if switch_result["success"]:
+                    if self._status_area:
+                        self._status_area.set_thread(result[:8])
+                    logger.info(f"Switched to thread: {result}")
+                    self.action_clear_messages()
+                    # Update sidebar to show current thread
+                    self._update_sidebar_content()
+                else:
+                    logger.error(f"Failed to switch thread: {switch_result['message']}")
 
-                # Clear messages when switching threads
-                self.action_clear_messages()
-
-    def action_toggle_sidebar(self) -> None:
+    async def action_toggle_sidebar(self) -> None:
         """Toggle sidebar visibility."""
         if self._sidebar:
             self._sidebar.toggle()
-
-            # Update sidebar content when shown
+            self.app_state.sidebar_visible = self._sidebar.visible
             if self._sidebar.visible:
+                # Refresh data when opening sidebar
+                await self._refresh_sidebar_data()
                 self._update_sidebar_content()
 
-    def action_expand_sidebar(self) -> None:
+    async def action_expand_sidebar(self) -> None:
         """Toggle expanded sidebar mode."""
         if self._sidebar:
             self._sidebar.expand()
-
-            # Update sidebar content when shown
+            self.app_state.sidebar_expanded = not self.app_state.sidebar_expanded
             if self._sidebar.visible:
+                # Refresh data when opening sidebar
+                await self._refresh_sidebar_data()
                 self._update_sidebar_content()
 
+    async def action_focus_sidebar(self) -> None:
+        """Focus sidebar and make visible if hidden."""
+        if self._sidebar:
+            if not self._sidebar.visible:
+                self._sidebar.toggle()
+                self.app_state.sidebar_visible = True
+                # Refresh data when opening sidebar
+                await self._refresh_sidebar_data()
+                self._update_sidebar_content()
+            self._sidebar.focus()
+
     def _update_sidebar_content(self) -> None:
-        """Update sidebar with current session data."""
+        """Update sidebar with current session data.
+
+        Uses app_state as single source of truth for consistency.
+        """
         if not self._sidebar:
             return
 
-        # Update threads tab
+        # Use app_state as single source of truth
+        # If empty, sidebar will show "No threads/agents available"
+        threads = self.app_state.threads
+        agents = self.app_state.agents
+
+        # Update tabs
         self._sidebar.populate_threads(
-            self._threads_cache,
-            self.session.current_thread_id or "",
+            threads, self.app_state.current_thread_id or self.session.current_thread_id or ""
         )
-
-        # Update agents tab
         self._sidebar.populate_agents(
-            self._agents,
-            self.session.current_assistant_id or "",
+            agents, self.app_state.current_agent_id or self.session.current_assistant_id or ""
         )
 
-        # Update session info tab
         tokens = self.session.get_token_summary()
         self._sidebar.populate_session_info(
-            thread_id=self.session.current_thread_id or "(none)",
-            agent_id=self.session.current_assistant_id or "(none)",
+            thread_id=self.app_state.current_thread_id
+            or self.session.current_thread_id
+            or "(none)",
+            agent_id=self.app_state.current_agent_id
+            or self.session.current_assistant_id
+            or "(none)",
             tokens=tokens,
         )
 
-        # Update tools tab (placeholder - need to track tool calls)
         self._sidebar.populate_tools([])
+
+    async def _refresh_sidebar_data(self) -> None:
+        """Refresh sidebar data from server.
+
+        Fetches latest agents and threads, updates app_state cache.
+        Call this before showing sidebar to ensure data is fresh.
+        """
+        try:
+            # Fetch latest data with force_refresh
+            agents = await self.langgraph_service.get_agents(force_refresh=True)
+            threads = await self.langgraph_service.get_threads(force_refresh=True)
+
+            # Update app_state cache
+            self.app_state.update_agents_cache(agents)
+            self.app_state.update_threads_cache(threads)
+
+            logger.debug(f"Refreshed sidebar data: {len(agents)} agents, {len(threads)} threads")
+        except Exception as e:
+            logger.error(f"Failed to refresh sidebar data: {e}")
+            # Continue with stale data rather than crashing
+
+    async def on_sidebar_agent_selected(self, message) -> None:
+        """Handle agent selection from sidebar."""
+        from repl_client.tui.widgets.sidebar import Sidebar
+
+        if not isinstance(message, Sidebar.AgentSelected):
+            return
+
+        # Delegate to SessionController
+        switch_result = await self.session_controller.switch_agent(message.agent_id)
+
+        if switch_result["success"] and self._status_area:
+            self._status_area.set_agent(switch_result["display_name"])
+            logger.info(f"Switched to agent: {message.agent_id}")
+            self._update_sidebar_content()
+        else:
+            logger.error(f"Failed to switch agent: {switch_result['message']}")
+
+    async def on_sidebar_thread_selected(self, message) -> None:
+        """Handle thread selection from sidebar."""
+        from repl_client.tui.widgets.sidebar import Sidebar
+
+        if not isinstance(message, Sidebar.ThreadSelected):
+            return
+
+        # Delegate to SessionController
+        switch_result = await self.session_controller.switch_thread(message.thread_id)
+
+        if switch_result["success"] and self._status_area:
+            self._status_area.set_thread(message.thread_id[:8])
+            logger.info(f"Switched to thread: {message.thread_id}")
+            self.action_clear_messages()
+            self._update_sidebar_content()
+        else:
+            logger.error(f"Failed to switch thread: {switch_result['message']}")
+
+    async def on_sidebar_new_thread_requested(self, message) -> None:
+        """Handle new thread request from sidebar."""
+        from repl_client.tui.widgets.sidebar import Sidebar
+
+        if not isinstance(message, Sidebar.NewThreadRequested):
+            return
+
+        # Delegate to SessionController
+        create_result = await self.session_controller.create_thread()
+
+        if create_result["success"]:
+            if self._status_area:
+                self._status_area.set_thread(create_result["thread_id"][:8])
+            logger.info(f"Created new thread: {create_result['thread_id']}")
+            self.action_clear_messages()
+            self._update_sidebar_content()
+        else:
+            logger.error(f"Failed to create thread: {create_result['message']}")
+
+    async def action_show_command_palette(self) -> None:
+        """Show command palette for quick navigation."""
+        commands = self._build_command_list()
+        result = await self.push_screen(CommandPalette(commands))
+
+        if result:
+            # Execute the selected command's action
+            try:
+                await result.action()
+            except Exception as e:
+                logger.exception(f"Failed to execute command: {result.id}")
+                self.app_state.set_status(f"Command failed: {e}", error=True)
+
+    def _build_command_list(self) -> list[Command]:
+        """Build list of available commands for palette.
+
+        Returns:
+            List of Command objects
+        """
+        commands = []
+
+        # Agent operations
+        commands.append(
+            Command(
+                id="agents-list",
+                label="List Agents",
+                category="Agents",
+                description="Show all available agents",
+                action=self.action_select_agent,
+            )
+        )
+        commands.append(
+            Command(
+                id="agents-switch",
+                label="Switch Agent",
+                category="Agents",
+                description="Change current agent (F2)",
+                action=self.action_select_agent,
+            )
+        )
+
+        # Thread operations
+        commands.append(
+            Command(
+                id="threads-list",
+                label="List Threads",
+                category="Threads",
+                description="Show all threads",
+                action=self.action_select_thread,
+            )
+        )
+        commands.append(
+            Command(
+                id="threads-switch",
+                label="Switch Thread",
+                category="Threads",
+                description="Change current thread (F3)",
+                action=self.action_select_thread,
+            )
+        )
+        commands.append(
+            Command(
+                id="threads-new",
+                label="New Thread",
+                category="Threads",
+                description="Create new conversation thread",
+                action=self._cmd_new_thread,
+            )
+        )
+
+        # Navigation operations
+        commands.append(
+            Command(
+                id="nav-toggle-sidebar",
+                label="Toggle Sidebar",
+                category="Navigation",
+                description="Show/hide sidebar (F4)",
+                action=self._cmd_toggle_sidebar,
+            )
+        )
+        commands.append(
+            Command(
+                id="nav-expand-sidebar",
+                label="Expand Sidebar",
+                category="Navigation",
+                description="Toggle sidebar width (F5)",
+                action=self._cmd_expand_sidebar,
+            )
+        )
+        commands.append(
+            Command(
+                id="nav-focus-chat",
+                label="Focus Chat Input",
+                category="Navigation",
+                description="Move focus to chat input",
+                action=self._cmd_focus_chat,
+            )
+        )
+
+        # Command operations (slash commands)
+        commands.append(
+            Command(
+                id="cmd-help",
+                label="/help",
+                category="Commands",
+                description="Show help and command list",
+                action=self._cmd_help,
+            )
+        )
+        commands.append(
+            Command(
+                id="cmd-info",
+                label="/info",
+                category="Commands",
+                description="Show session information",
+                action=self._cmd_info,
+            )
+        )
+        commands.append(
+            Command(
+                id="cmd-agents",
+                label="/agents",
+                category="Commands",
+                description="List all agents",
+                action=self._cmd_agents,
+            )
+        )
+        commands.append(
+            Command(
+                id="cmd-threads",
+                label="/threads",
+                category="Commands",
+                description="List all threads",
+                action=self._cmd_threads,
+            )
+        )
+        commands.append(
+            Command(
+                id="cmd-clear",
+                label="/clear",
+                category="Commands",
+                description="Clear message history (Ctrl+L)",
+                action=self._cmd_clear,
+            )
+        )
+        commands.append(
+            Command(
+                id="cmd-session",
+                label="/session",
+                category="Commands",
+                description="Show detailed session state",
+                action=self._cmd_session,
+            )
+        )
+
+        # System operations
+        commands.append(
+            Command(
+                id="sys-toggle-dark",
+                label="Toggle Light/Dark Mode",
+                category="System",
+                description="Switch between light and dark themes (Ctrl+D)",
+                action=self._cmd_toggle_dark,
+            )
+        )
+        commands.append(
+            Command(
+                id="sys-clear-messages",
+                label="Clear Messages",
+                category="System",
+                description="Clear all messages (Ctrl+L)",
+                action=self._cmd_clear,
+            )
+        )
+        commands.append(
+            Command(
+                id="sys-quit",
+                label="Quit",
+                category="System",
+                description="Exit application (Ctrl+C)",
+                action=self.action_quit,
+            )
+        )
+
+        return commands
+
+    # Command action helpers
+
+    async def _cmd_new_thread(self) -> None:
+        """Create new thread via session controller."""
+        create_result = await self.session_controller.create_thread()
+        if create_result["success"]:
+            if self._status_area:
+                self._status_area.set_thread(create_result["thread_id"][:8])
+            logger.info(f"Created new thread: {create_result['thread_id']}")
+            self.action_clear_messages()
+            # Update sidebar to show new thread
+            self._update_sidebar_content()
+        else:
+            logger.error(f"Failed to create thread: {create_result['message']}")
+
+    async def _cmd_toggle_sidebar(self) -> None:
+        """Toggle sidebar visibility."""
+        await self.action_toggle_sidebar()
+
+    async def _cmd_expand_sidebar(self) -> None:
+        """Toggle expanded sidebar."""
+        await self.action_expand_sidebar()
+
+    async def _cmd_focus_chat(self) -> None:
+        """Focus the chat input."""
+        if self._chat_input:
+            self._chat_input.focus_input()
+
+    async def _cmd_help(self) -> None:
+        """Execute /help command."""
+        await self._handle_command_routing("/help")
+
+    async def _cmd_info(self) -> None:
+        """Execute /info command."""
+        await self._handle_command_routing("/info")
+
+    async def _cmd_agents(self) -> None:
+        """Execute /agents command."""
+        await self._handle_command_routing("/agents")
+
+    async def _cmd_threads(self) -> None:
+        """Execute /threads command."""
+        await self._handle_command_routing("/threads")
+
+    async def _cmd_clear(self) -> None:
+        """Execute /clear command."""
+        self.action_clear_messages()
+
+    async def _cmd_session(self) -> None:
+        """Execute /session command."""
+        await self._handle_command_routing("/session")
+
+    async def _cmd_toggle_dark(self) -> None:
+        """Toggle dark mode."""
+        self.action_toggle_dark()
 
     async def action_quit(self) -> None:
         """Quit the application."""

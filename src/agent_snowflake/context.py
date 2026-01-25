@@ -255,21 +255,51 @@ class ContextSchema:
         """
         return cls(
             model=os.environ.get("SNOWFLAKE_AGENT_MODEL", settings.model),
-            temperature=float(os.environ.get("SNOWFLAKE_AGENT_TEMPERATURE", str(settings.temperature))),
+            temperature=float(
+                os.environ.get("SNOWFLAKE_AGENT_TEMPERATURE", str(settings.temperature))
+            ),
             snowflake_uri=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
-            snowflake_account=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account),
-            snowflake_user=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_USER", settings.snowflake_user),
-            snowflake_password=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password),
-            snowflake_database=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database),
-            snowflake_schema=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema),
-            snowflake_warehouse=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse),
-            snowflake_role=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", settings.snowflake_role),
-            allowed_schemas=os.environ.get("SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas),
-            allowed_tables=os.environ.get("SNOWFLAKE_AGENT_ALLOWED_TABLES", settings.allowed_tables),
-            read_only=os.environ.get("SNOWFLAKE_AGENT_READ_ONLY", str(settings.read_only).lower()).lower() == "true",
-            query_timeout=int(os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", str(settings.query_timeout))),
-            max_iterations=int(os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", str(settings.max_iterations))),
-            enable_debug=os.environ.get("SNOWFLAKE_AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()).lower() == "true",
+            snowflake_account=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account
+            ),
+            snowflake_user=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_USER", settings.snowflake_user
+            ),
+            snowflake_password=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
+            ),
+            snowflake_database=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
+            ),
+            snowflake_schema=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema
+            ),
+            snowflake_warehouse=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
+            ),
+            snowflake_role=os.environ.get(
+                "SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", settings.snowflake_role
+            ),
+            allowed_schemas=os.environ.get(
+                "SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas
+            ),
+            allowed_tables=os.environ.get(
+                "SNOWFLAKE_AGENT_ALLOWED_TABLES", settings.allowed_tables
+            ),
+            read_only=os.environ.get(
+                "SNOWFLAKE_AGENT_READ_ONLY", str(settings.read_only).lower()
+            ).lower()
+            == "true",
+            query_timeout=int(
+                os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", str(settings.query_timeout))
+            ),
+            max_iterations=int(
+                os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", str(settings.max_iterations))
+            ),
+            enable_debug=os.environ.get(
+                "SNOWFLAKE_AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
+            ).lower()
+            == "true",
         )
 
     def to_dict(self) -> dict:

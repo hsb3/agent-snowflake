@@ -4,7 +4,7 @@ Provides command registration and routing using the registry pattern.
 Similar to agent0's command system.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 

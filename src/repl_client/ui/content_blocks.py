@@ -8,17 +8,16 @@ ContentBlockRenderer was removed (dead code). See git history if needed.
 Future: Consider extracting ToolRenderRegistry to core/formatters.py for clearer ownership.
 """
 
+import json
 from dataclasses import dataclass
 from typing import Callable
-import json
-
-from repl_client.ui.renderer import Renderer
 
 
 # Data structures for content blocks and tool calls
 @dataclass
 class ContentBlock:
     """Content block from message stream"""
+
     type: str
     index: int
     text: str | None = None
@@ -31,6 +30,7 @@ class ContentBlock:
 @dataclass
 class ToolCall:
     """Complete tool call"""
+
     id: str
     name: str
     args: dict
@@ -47,6 +47,7 @@ class ToolRenderRegistry:
 
     def _register_builtins(self) -> None:
         """Register builtin formatters for common tools"""
+
         # SQL query formatter with syntax highlighting info
         def format_sql(args: dict) -> str:
             query = args.get("query", "")

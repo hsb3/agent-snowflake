@@ -18,13 +18,18 @@ def fetch_next_chunk_node(state: dict) -> dict:
 
     # DEBUG
     import sys
+
     print(f"[FETCH] Index={index}, Total={len(chunks)}", file=sys.stderr, flush=True)
 
     # Get chunk at current index
     current_chunk = None
     if index < len(chunks):
         current_chunk = chunks[index]
-        print(f"[FETCH] Got chunk: {current_chunk[0] if current_chunk else None}", file=sys.stderr, flush=True)
+        print(
+            f"[FETCH] Got chunk: {current_chunk[0] if current_chunk else None}",
+            file=sys.stderr,
+            flush=True,
+        )
 
     return {
         **state,

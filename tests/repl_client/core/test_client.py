@@ -1,6 +1,5 @@
 """Tests for LangGraph HTTP client."""
 
-import json
 
 import httpx
 import pytest
@@ -241,8 +240,9 @@ class TestStreamingOperations:
         # Verify we got expected message event types
         messages_event_types = {et for et, _ in messages_events}
         expected_message_types = {"messages/partial", "messages/metadata", "messages/complete"}
-        assert len(messages_event_types & expected_message_types) > 0, \
+        assert len(messages_event_types & expected_message_types) > 0, (
             f"Should receive expected message event types, got: {messages_event_types}"
+        )
 
     @pytest.mark.asyncio
     async def test_stream_message_sse_format(self, client):
@@ -267,7 +267,12 @@ class TestStreamingOperations:
             assert isinstance(data, (dict, list))
 
             # Common event types from spec
-            if event_type in ["metadata", "messages/metadata", "messages/partial", "messages/complete"]:
+            if event_type in [
+                "metadata",
+                "messages/metadata",
+                "messages/partial",
+                "messages/complete",
+            ]:
                 assert True  # Expected event types
 
             # Collect a few events then break
@@ -282,7 +287,7 @@ class TestStreamingOperations:
         """Test error handling for invalid stream requests."""
         check_server()
         # Try to stream with invalid thread_id
-        with pytest.raises(Exception):  # Should raise some exception
+        with pytest.raises((httpx.HTTPStatusError, ValueError)):
             async for _ in client.stream_message(
                 thread_id="invalid-thread-id", message="test", assistant_id="invalid-assistant-id"
             ):
@@ -308,18 +313,16 @@ class TestStreamingOperations:
         # Stream a message that might trigger a tool call
         # (which could trigger an interrupt if HITL is configured)
         all_events = []
-        interrupt_found = False
 
         async for event_type, data in client.stream_message(
             thread_id=thread_id,
             message="List the database tables",  # Likely to trigger sql_db_list_tables
-            assistant_id=assistant_id
+            assistant_id=assistant_id,
         ):
             all_events.append((event_type, data))
 
             # Check for interrupt in updates stream
             if event_type == "updates" and "__interrupt__" in data:
-                interrupt_found = True
                 # Verify interrupt structure
                 assert isinstance(data["__interrupt__"], list)
                 # Each interrupt should have task info
@@ -403,7 +406,7 @@ class TestResumeAfterInterrupt:
             if event_types:
                 # Should be able to handle both stream types
                 assert True
-        except Exception as e:
+        except Exception:
             # Expected if no interrupt is pending
             # The important thing is the method signature is correct
             assert True
@@ -414,7 +417,6 @@ class TestSSEParsing:
 
     def test_parse_sse_line_data(self):
         """Test parsing SSE data line."""
-        line = 'data: {"test": "value"}'
 
         # Client should parse this internally
         # This tests the _parse_sse_line method if it's exposed or we test via stream
@@ -422,7 +424,6 @@ class TestSSEParsing:
 
     def test_parse_sse_line_event(self):
         """Test parsing SSE event line."""
-        line = "event: messages/partial"
 
         # Tested via stream_message integration tests
         assert True

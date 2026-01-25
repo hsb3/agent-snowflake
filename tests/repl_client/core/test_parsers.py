@@ -5,22 +5,22 @@ Tests use real data from scripts/debug/output/*.json files.
 """
 
 import json
-import pytest
 from pathlib import Path
 
+import pytest
+
 from repl_client.core.parsers import (
-    parse_sse_line,
-    extract_text_delta,
-    parse_message_chunk,
-    extract_content_blocks,
-    detect_tool_call,
-    is_stream_complete,
-    ParsedChunk,
     ContentBlock,
+    ParsedChunk,
     ToolCall,
     Usage,
+    detect_tool_call,
+    extract_content_blocks,
+    extract_text_delta,
+    is_stream_complete,
+    parse_message_chunk,
+    parse_sse_line,
 )
-
 
 # Test data directory
 TEST_DATA_DIR = Path(__file__).parent.parent.parent.parent / "scripts" / "debug" / "output"
@@ -106,15 +106,17 @@ class TestExtractTextDelta:
         delta = extract_text_delta(prev, curr)
         assert delta == "\nLine 3"
 
+    @pytest.mark.skipif(
+        not (TEST_DATA_DIR / "stream_messages_20260123_210128.json").exists(),
+        reason="Test data file not available",
+    )
     def test_extract_delta_from_real_data(self):
         """Test with real streaming data."""
         chunks = load_test_data("stream_messages_20260123_210128.json")
 
         # Find text chunks
         text_chunks = [
-            c for c in chunks
-            if c["event"] == "messages/partial"
-            and c["data"][0].get("content")
+            c for c in chunks if c["event"] == "messages/partial" and c["data"][0].get("content")
         ]
 
         # Extract first two text updates
@@ -139,7 +141,7 @@ class TestParseMessageChunk:
             "type": "ai",
             "id": "msg_123",
             "tool_calls": [],
-            "usage_metadata": None
+            "usage_metadata": None,
         }
 
         chunk = parse_message_chunk(event_type, data)
@@ -155,13 +157,11 @@ class TestParseMessageChunk:
         """Parse chunk with text content."""
         event_type = "messages/partial"
         data = {
-            "content": [
-                {"type": "text", "text": "Hello", "index": 0}
-            ],
+            "content": [{"type": "text", "text": "Hello", "index": 0}],
             "type": "ai",
             "id": "msg_123",
             "tool_calls": [],
-            "usage_metadata": None
+            "usage_metadata": None,
         }
 
         chunk = parse_message_chunk(event_type, data)
@@ -171,6 +171,10 @@ class TestParseMessageChunk:
         assert chunk.content_blocks[0].text == "Hello"
         assert chunk.content_blocks[0].index == 0
 
+    @pytest.mark.skipif(
+        not (TEST_DATA_DIR / "stream_messages_20260123_210128.json").exists(),
+        reason="Test data file not available",
+    )
     def test_parse_final_chunk_with_usage(self):
         """Parse final chunk with usage metadata."""
         chunks = load_test_data("stream_messages_20260123_210128.json")
@@ -185,6 +189,10 @@ class TestParseMessageChunk:
         assert chunk.usage.total_tokens > 0
         assert chunk.stop_reason == "end_turn"
 
+    @pytest.mark.skipif(
+        not (TEST_DATA_DIR / "stream_messages_20260123_210128.json").exists(),
+        reason="Test data file not available",
+    )
     def test_parse_chunk_from_real_data(self):
         """Parse actual streaming chunks."""
         chunks = load_test_data("stream_messages_20260123_210128.json")
@@ -205,9 +213,7 @@ class TestExtractContentBlocks:
 
     def test_extract_text_block(self):
         """Extract text content block."""
-        content = [
-            {"type": "text", "text": "Hello world", "index": 0}
-        ]
+        content = [{"type": "text", "text": "Hello world", "index": 0}]
 
         blocks = extract_content_blocks(content)
 
@@ -226,7 +232,7 @@ class TestExtractContentBlocks:
         """Extract multiple content blocks."""
         content = [
             {"type": "text", "text": "First", "index": 0},
-            {"type": "text", "text": "Second", "index": 1}
+            {"type": "text", "text": "Second", "index": 1},
         ]
 
         blocks = extract_content_blocks(content)
@@ -243,7 +249,7 @@ class TestExtractContentBlocks:
                 "id": "tool_123",
                 "name": "search",
                 "input": {"query": "test"},
-                "index": 0
+                "index": 0,
             }
         ]
 
@@ -263,7 +269,7 @@ class TestExtractContentBlocks:
                 "id": "tool_123",
                 "name": "search",
                 "partial_json": '{"query": "te',
-                "index": 0
+                "index": 0,
             }
         ]
 
@@ -281,17 +287,10 @@ class TestDetectToolCall:
     def test_detect_tool_call_complete(self):
         """Detect complete tool call."""
         message = {
-            "response_metadata": {
-                "stop_reason": "tool_use"
-            },
+            "response_metadata": {"stop_reason": "tool_use"},
             "tool_calls": [
-                {
-                    "id": "call_123",
-                    "name": "search",
-                    "args": {"query": "test"},
-                    "type": "tool_call"
-                }
-            ]
+                {"id": "call_123", "name": "search", "args": {"query": "test"}, "type": "tool_call"}
+            ],
         }
 
         tool_call = detect_tool_call(message)
@@ -303,21 +302,14 @@ class TestDetectToolCall:
 
     def test_detect_tool_call_none_without_stop_reason(self):
         """No tool call without stop_reason."""
-        message = {
-            "tool_calls": []
-        }
+        message = {"tool_calls": []}
 
         tool_call = detect_tool_call(message)
         assert tool_call is None
 
     def test_detect_tool_call_none_empty_array(self):
         """No tool call with empty tool_calls array."""
-        message = {
-            "response_metadata": {
-                "stop_reason": "tool_use"
-            },
-            "tool_calls": []
-        }
+        message = {"response_metadata": {"stop_reason": "tool_use"}, "tool_calls": []}
 
         tool_call = detect_tool_call(message)
         assert tool_call is None
@@ -325,13 +317,11 @@ class TestDetectToolCall:
     def test_detect_tool_call_first_only(self):
         """Return only first tool call if multiple."""
         message = {
-            "response_metadata": {
-                "stop_reason": "tool_use"
-            },
+            "response_metadata": {"stop_reason": "tool_use"},
             "tool_calls": [
                 {"id": "1", "name": "tool1", "args": {}, "type": "tool_call"},
-                {"id": "2", "name": "tool2", "args": {}, "type": "tool_call"}
-            ]
+                {"id": "2", "name": "tool2", "args": {}, "type": "tool_call"},
+            ],
         }
 
         tool_call = detect_tool_call(message)
@@ -344,51 +334,35 @@ class TestIsStreamComplete:
 
     def test_complete_with_usage_metadata(self):
         """Stream complete when usage_metadata present."""
-        chunk = {
-            "usage_metadata": {
-                "input_tokens": 100,
-                "output_tokens": 50,
-                "total_tokens": 150
-            }
-        }
+        chunk = {"usage_metadata": {"input_tokens": 100, "output_tokens": 50, "total_tokens": 150}}
 
         assert is_stream_complete(chunk) is True
 
     def test_complete_with_stop_reason(self):
         """Stream complete when stop_reason present."""
-        chunk = {
-            "response_metadata": {
-                "stop_reason": "end_turn"
-            },
-            "usage_metadata": None
-        }
+        chunk = {"response_metadata": {"stop_reason": "end_turn"}, "usage_metadata": None}
 
         assert is_stream_complete(chunk) is True
 
     def test_not_complete_partial_chunk(self):
         """Partial chunk is not complete."""
-        chunk = {
-            "usage_metadata": None,
-            "response_metadata": {}
-        }
+        chunk = {"usage_metadata": None, "response_metadata": {}}
 
         assert is_stream_complete(chunk) is False
 
     def test_complete_with_both(self):
         """Stream complete with both indicators."""
         chunk = {
-            "response_metadata": {
-                "stop_reason": "end_turn"
-            },
-            "usage_metadata": {
-                "input_tokens": 100,
-                "output_tokens": 50,
-                "total_tokens": 150
-            }
+            "response_metadata": {"stop_reason": "end_turn"},
+            "usage_metadata": {"input_tokens": 100, "output_tokens": 50, "total_tokens": 150},
         }
 
         assert is_stream_complete(chunk) is True
 
+    @pytest.mark.skipif(
+        not (TEST_DATA_DIR / "stream_messages_20260123_210128.json").exists(),
+        reason="Test data file not available",
+    )
     def test_detect_completion_in_real_data(self):
         """Detect completion in real streaming data."""
         chunks = load_test_data("stream_messages_20260123_210128.json")
@@ -416,7 +390,7 @@ class TestDataClasses:
             tool_id=None,
             tool_name=None,
             tool_input=None,
-            partial_json=None
+            partial_json=None,
         )
 
         assert block.type == "text"
@@ -424,23 +398,14 @@ class TestDataClasses:
 
     def test_create_tool_call(self):
         """Create ToolCall dataclass."""
-        tool = ToolCall(
-            id="call_123",
-            name="search",
-            args={"query": "test"},
-            type="tool_call"
-        )
+        tool = ToolCall(id="call_123", name="search", args={"query": "test"}, type="tool_call")
 
         assert tool.name == "search"
         assert tool.args["query"] == "test"
 
     def test_create_usage(self):
         """Create Usage dataclass."""
-        usage = Usage(
-            input_tokens=100,
-            output_tokens=50,
-            total_tokens=150
-        )
+        usage = Usage(input_tokens=100, output_tokens=50, total_tokens=150)
 
         assert usage.total_tokens == 150
 
@@ -454,7 +419,7 @@ class TestDataClasses:
             tool_calls=None,
             usage=None,
             stop_reason=None,
-            metadata={}
+            metadata={},
         )
 
         assert chunk.event_type == "messages/partial"

@@ -91,12 +91,14 @@ def process_stream_node(state: REPLState) -> REPLState:
                                 current_text = block.get("text", "")
                                 # Extract delta (new text since last chunk)
                                 if current_text and current_text != prev_text:
-                                    delta = current_text[len(prev_text):]
+                                    delta = current_text[len(prev_text) :]
                                     if delta:
-                                        render_queue.append({
-                                            "type": "text",
-                                            "content": delta,
-                                        })
+                                        render_queue.append(
+                                            {
+                                                "type": "text",
+                                                "content": delta,
+                                            }
+                                        )
                                     prev_text = current_text
 
                     # Check for tool calls (in complete messages)
@@ -104,10 +106,12 @@ def process_stream_node(state: REPLState) -> REPLState:
                         tool_calls = message.get("tool_calls", [])
                         if tool_calls:
                             for tool_call in tool_calls:
-                                render_queue.append({
-                                    "type": "tool_call",
-                                    "tool": tool_call,
-                                })
+                                render_queue.append(
+                                    {
+                                        "type": "tool_call",
+                                        "tool": tool_call,
+                                    }
+                                )
 
                         # Extract usage if present
                         usage_metadata = message.get("usage_metadata")
@@ -139,20 +143,19 @@ def process_stream_node(state: REPLState) -> REPLState:
                                 interrupt_id = f"interrupt_{tool_name}_{id(interrupt_data)}"
 
                                 # Create Interrupt object and convert to dict for state
-                                interrupt_obj = Interrupt(
-                                    id=interrupt_id,
-                                    value=value
-                                )
+                                interrupt_obj = Interrupt(id=interrupt_id, value=value)
                                 pending_interrupt = asdict(interrupt_obj)
 
                                 # Stop processing stream - interrupt stops streaming
                                 break
 
                     # Add state update to render queue for visibility
-                    render_queue.append({
-                        "type": "state_update",
-                        "content": data,
-                    })
+                    render_queue.append(
+                        {
+                            "type": "state_update",
+                            "content": data,
+                        }
+                    )
 
         except Exception as e:
             # Log parse error and continue

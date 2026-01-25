@@ -29,10 +29,12 @@ def process_updates_node(state: dict) -> dict:
 
     # Add state update to render queue
     if isinstance(data, dict):
-        render_queue.append({
-            "type": "state_update",
-            "content": data,
-        })
+        render_queue.append(
+            {
+                "type": "state_update",
+                "content": data,
+            }
+        )
 
     return {
         **state,
@@ -85,10 +87,7 @@ def detect_interrupt_node(state: dict) -> dict:
                     interrupt_id = f"interrupt_{tool_name}_{id(interrupt_data)}"
 
                     # Create Interrupt object and convert to dict for state
-                    interrupt_obj = Interrupt(
-                        id=interrupt_id,
-                        value=value
-                    )
+                    interrupt_obj = Interrupt(id=interrupt_id, value=value)
                     pending_interrupt = asdict(interrupt_obj)
 
     return {

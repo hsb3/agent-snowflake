@@ -1,0 +1,203 @@
+---
+doc_id: CC-2026-002
+title: Fix F2/F3 Modal Display Issue
+date: 2026-01-24
+type: solution
+project: repl_client
+focus: tui
+status: complete
+tags: [textual, modals, ui, bug-fix]
+---
+
+# F2/F3 Modal Fix Summary
+
+## Problem
+
+The F2 (agent selection) and F3 (thread selection) modal screens were not displaying properly in the TUI. The modals appeared to be defined and the key bindings were set up correctly, but the visual display was broken.
+
+## Root Cause
+
+The modal screens (`AgentSelectionScreen` and `ThreadSelectionScreen`) were missing proper container wrapping. They were yielding widgets directly in the `compose()` method, unlike the `CommandPalette` which properly wraps its content in a `Container()`.
+
+Without the container:
+- The modal widgets were not properly centered
+- The background overlay might not have displayed correctly
+- The sizing and positioning CSS rules couldn't be applied properly
+
+## Solution
+
+### 1. Added Container Wrapping
+
+Modified both `AgentSelectionScreen` and `ThreadSelectionScreen` in `src/repl_client/tui/app.py`:
+
+```python
+def compose(self) -> ComposeResult:
+    """Compose the selection screen."""
+    with Container():  # <-- Added this
+        yield Label("...")
+        yield OptionList(...)
+```
+
+### 2. Updated Imports
+
+Added `Container` import to `src/repl_client/tui/app.py`:
+
+```python
+from textual.containers import Container
+```
+
+### 3. Updated CSS Styling
+
+Enhanced `src/repl_client/tui/styles/index.tcss` to properly style the modal containers:
+
+```tcss
+/* Agent selection modal */
+AgentSelectionScreen {
+    align: center middle;
+}
+
+AgentSelectionScreen > Container {
+    width: 60;
+    height: auto;
+    max-height: 25;
+    background: $panel;
+    border: thick $primary;
+    padding: 1;
+}
+
+AgentSelectionScreen Label {
+    width: 100%;
+    text-align: center;
+    color: $text-muted;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+AgentSelectionScreen OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 15;
+    border: none;
+    background: $surface;
+}
+
+/* Thread selection modal */
+ThreadSelectionScreen {
+    align: center middle;
+}
+
+ThreadSelectionScreen > Container {
+    width: 70;
+    height: auto;
+    max-height: 30;
+    background: $panel;
+    border: thick $primary;
+    padding: 1;
+}
+
+ThreadSelectionScreen Label {
+    width: 100%;
+    text-align: center;
+    color: $text-muted;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+ThreadSelectionScreen OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 20;
+    border: none;
+    background: $surface;
+}
+```
+
+## Files Changed
+
+1. `src/repl_client/tui/app.py` - Added Container wrapping to modal screens
+2. `src/repl_client/tui/styles/index.tcss` - Added CSS styling for modal screens
+
+## Testing
+
+### Unit Tests
+
+Created comprehensive test coverage in:
+- `tests/repl_client/tui/test_modals.py` - 8 tests covering modal composition, error handling, and bindings
+- `tests/repl_client/tui/test_modals_integration.py` - 6 integration tests for end-to-end flow
+
+All tests pass:
+```bash
+uv run pytest tests/repl_client/tui/test_modals.py -v  # 8 passed
+uv run pytest tests/repl_client/tui/test_modals_integration.py -v  # 6 passed
+uv run pytest tests/repl_client/tui/ -v  # 130 passed (all TUI tests)
+```
+
+### Backend Logic Verification
+
+Created `test_f2_f3_modals.py` to verify the backend logic (controllers, services) works correctly:
+
+```bash
+uv run python test_f2_f3_modals.py
+```
+
+Results:
+- Agent Switching (F2): ✓ PASS
+- Thread Switching (F3): ✓ PASS
+
+### Manual Testing
+
+To manually test the modals:
+
+```bash
+# Start the TUI with mocked data
+uv run python demo_modals.py
+
+# Then press:
+# - F2 to test agent selection modal
+# - F3 to test thread selection modal
+# - Esc to close modals
+# - Enter to select an option
+```
+
+## Verification
+
+The fix ensures:
+
+1. ✓ F2 modal displays agent list with proper styling
+2. ✓ Selecting an agent switches successfully
+3. ✓ Status bar updates after agent switch
+4. ✓ F3 modal displays thread list with proper styling
+5. ✓ Selecting a thread switches successfully
+6. ✓ Creating a new thread (from F3 modal) works
+7. ✓ Status bar updates after thread operations
+8. ✓ Thread list refreshes after create/switch operations
+9. ✓ Modals are properly centered and sized
+10. ✓ Keyboard navigation (arrow keys, Enter, Esc) works
+
+## Related Components
+
+The modal system interacts with:
+
+- `SessionController` - Handles agent/thread switching logic
+- `LangGraphService` - Fetches agents/threads from server with caching
+- `StatusAreaView` - Displays current agent/thread in status bar
+- `AppState` - Reactive state management
+- `SessionState` - Legacy state tracking
+
+All components were already working correctly; only the modal display layer needed fixing.
+
+## Pattern for Future Modals
+
+When creating new modal screens in Textual:
+
+1. Extend `ModalScreen[ReturnType]`
+2. Wrap content in `Container()` in the `compose()` method
+3. Add CSS rules for:
+   - The modal screen (alignment: `center middle`)
+   - The container (sizing, border, background)
+   - Child widgets (relative sizing within container)
+4. Handle keyboard events:
+   - `Esc` to dismiss with `None`
+   - `Enter` or option selection to dismiss with value
+
+See `CommandPalette` or the fixed modal screens as reference implementations.

@@ -1,4 +1,4 @@
-# Stream Processing Subgraph
+# Stream Processing Subgraph -- EXPERIMENTAL
 
 This directory contains a fine-grained subgraph implementation for processing streaming chunks from the LangGraph server.
 

@@ -168,6 +168,7 @@ class ClientInfoLine(Horizontal):
     """
 
     connected: reactive[bool] = reactive(True, init=False)
+    server_url: reactive[str] = reactive("", init=False)
     last_update: reactive[str] = reactive("", init=False)
     status_message: reactive[str] = reactive("", init=False)
     status_level: reactive[str] = reactive("info", init=False)  # info, error, warning
@@ -190,12 +191,20 @@ class ClientInfoLine(Horizontal):
 
         display.remove_class("connected", "disconnected")
 
+        # Show server URL if available, otherwise just Connected/Disconnected
+        url_part = f" {self.server_url}" if self.server_url else ""
+
         if new_value:
-            display.update("● Connected")
+            display.update(f"●{url_part}" if url_part else "● Connected")
             display.add_class("connected")
         else:
-            display.update("○ Disconnected")
+            display.update(f"○{url_part}" if url_part else "○ Disconnected")
             display.add_class("disconnected")
+
+    def watch_server_url(self, new_url: str) -> None:
+        """Update connection display when server URL changes."""
+        # Trigger connected watcher to update display with new URL
+        self.watch_connected(self.connected)
 
     def watch_last_update(self, new_value: str) -> None:
         """Update last update time when it changes."""
@@ -281,11 +290,18 @@ class StatusArea(Container):
         except NoMatches:
             pass
 
-    def set_connected(self, connected: bool) -> None:  # noqa: FBT001
-        """Set the connection status."""
+    def set_connected(self, connected: bool, server_url: str = "") -> None:  # noqa: FBT001
+        """Set the connection status.
+
+        Args:
+            connected: Whether connected to server
+            server_url: Optional server URL to display
+        """
         try:
             client_line = self.query_one("#client-info-line", ClientInfoLine)
             client_line.connected = connected
+            if server_url:
+                client_line.server_url = server_url
         except NoMatches:
             pass
 

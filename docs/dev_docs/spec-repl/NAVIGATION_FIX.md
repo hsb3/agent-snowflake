@@ -1,0 +1,141 @@
+# TUI Navigation Fix - Sidebar and Footer Visibility
+
+## Problem
+
+After the refactor, users couldn't navigate the TUI:
+- **Sidebar was hidden by default** (width: 0, display: none)
+- **Footer wasn't properly docked** (keybindings not visible)
+- **No indication** of how to access navigation features
+
+## Root Cause
+
+1. **Sidebar** in `widgets/sidebar.py` has `DEFAULT_CSS` that hides it by default:
+   ```css
+   Sidebar {
+       width: 0;
+       display: none;
+   }
+   ```
+
+2. **Footer** in `styles/index.tcss` lacked explicit positioning
+3. **No welcome message** to guide users
+
+## Solution
+
+### 1. Fixed Footer CSS (`styles/index.tcss`)
+
+**Before:**
+```css
+Footer {
+    background: $panel;
+}
+```
+
+**After:**
+```css
+Footer {
+    dock: bottom;
+    height: 1;
+    background: $panel;
+}
+```
+
+**Result**: Footer now properly docked at bottom showing all keybindings (F2, F3, F4, F5, Ctrl+L, Ctrl+C)
+
+### 2. Added Welcome Message (`app.py`)
+
+Added startup message in `_startup()` method that displays:
+
+```
+**Welcome to REPL!**
+
+**Navigation:**
+- **F4** - Toggle sidebar (threads, agents, session, tools)
+- **F2** - Quick agent selection
+- **F3** - Quick thread selection
+- **Ctrl+L** - Clear messages
+- **Ctrl+C** - Quit
+
+Type `/help` for command list or start chatting!
+```
+
+This provides immediate guidance to new users.
+
+### 3. Added System Message Styling (`styles/index.tcss`)
+
+```css
+.system-message {
+    height: auto;
+    padding: 1;
+    margin: 1 0;
+    background: $surface-darken-1;
+    border-left: thick $primary;
+    color: $text;
+}
+```
+
+Visually distinct from user/assistant messages.
+
+### 4. Updated Status Message
+
+Changed ready status from "Ready" to "Ready - Press F4 for sidebar" for additional discoverability.
+
+## Files Modified
+
+1. `src/repl_client/tui/styles/index.tcss` - Footer CSS + system message styles
+2. `src/repl_client/tui/app.py` - Welcome message + status update
+
+## Testing
+
+All tests pass:
+```bash
+uv run pytest tests/repl_client/tui/test_app.py -v
+# 9 passed in 0.81s
+```
+
+## User Experience Improvements
+
+**Before Fix:**
+- Bare interface with no guidance
+- No visible navigation options
+- Keybindings hidden (Footer not visible)
+- Users didn't know about F4 sidebar
+
+**After Fix:**
+- Welcome message on startup with keybinding guide
+- Footer visible at bottom showing all available keybindings
+- Status bar reminds users about F4
+- Clear visual hierarchy
+
+## Keybindings Reference
+
+| Key | Action | Description |
+|-----|--------|-------------|
+| **F2** | select_agent | Quick agent selection modal |
+| **F3** | select_thread | Quick thread selection modal |
+| **F4** | toggle_sidebar | Show/hide sidebar (main navigation) |
+| **F5** | expand_sidebar | Expand sidebar to 60% width |
+| **Ctrl+L** | clear_messages | Clear message history |
+| **Ctrl+C** | quit | Exit application |
+
+## Sidebar Features
+
+When toggled with **F4**, the sidebar shows:
+
+### Tabs:
+1. **Threads** - List of conversation threads
+2. **Agents** - Available agents to switch between
+3. **Session** - Current session info (agent, thread, tokens)
+4. **Tools** - Tool calls history
+
+### Modes:
+- **Normal** - 40% width (F4 toggle)
+- **Expanded** - 60% width (F5)
+- **Hidden** - 0% width (default, F4 to show)
+
+## Notes
+
+- The sidebar being hidden by default is intentional design (maximizes message area)
+- First-time users need guidance (now provided via welcome message)
+- Footer keybindings are the primary discoverability mechanism
+- All navigation features work as designed after users know about F4

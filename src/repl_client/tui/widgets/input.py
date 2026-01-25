@@ -74,7 +74,7 @@ class ChatTextArea(TextArea):
         lines = self.text.split("\n")
         end_row = len(lines) - 1
         end_col = len(lines[end_row])
-        self.selection = ((0, 0), (end_row, end_col))
+        self.selection = ((0, 0), (end_row, end_col))  # type: ignore[assignment]
 
     async def _on_key(self, event: events.Key) -> None:
         """Handle key events."""

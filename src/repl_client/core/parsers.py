@@ -6,7 +6,6 @@ Handles text delta extraction, content block parsing, and tool call detection.
 """
 
 from dataclasses import dataclass, field
-from typing import Any
 
 
 @dataclass

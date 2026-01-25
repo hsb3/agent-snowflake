@@ -51,7 +51,7 @@ class TestLoadingWidgetAnimation:
         await asyncio.sleep(0.05)
         frame_text = str(spinner.content)
         has_braille = any(
-            "\u2800" <= char <= "\u28FF" for char in frame_text if isinstance(char, str)
+            "\u2800" <= char <= "\u28ff" for char in frame_text if isinstance(char, str)
         )
         assert has_braille or "⠋" in frame_text or "⠙" in frame_text
 
@@ -154,7 +154,7 @@ class TestLoadingWidgetPauseResume:
         await asyncio.sleep(0.05)
 
         spinner = loading_widget.query_one(".loading-spinner", Static)
-        frame_before = str(spinner.content)
+        str(spinner.content)
 
         # Wait for animation
         await asyncio.sleep(0.15)
@@ -187,6 +187,4 @@ class TestLoadingWidgetLayout:
     async def test_hint_shows_interrupt_text(self, loading_widget):
         """Test hint shows interrupt instruction."""
         hint = loading_widget.query_one(".loading-hint", Static)
-        assert "esc" in str(hint.content).lower() or "interrupt" in str(
-            hint.content
-        ).lower()
+        assert "esc" in str(hint.content).lower() or "interrupt" in str(hint.content).lower()

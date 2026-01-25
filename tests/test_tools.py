@@ -90,9 +90,7 @@ def test_is_test_connection():
     assert is_test_connection("snowflake://user:pass@test-account/db")
 
     # Production connections
-    assert not is_test_connection(
-        "snowflake://user:pass@myaccount.snowflakecomputing.com/db"
-    )
+    assert not is_test_connection("snowflake://user:pass@myaccount.snowflakecomputing.com/db")
     assert not is_test_connection("snowflake://user:pass@prod-account/db")
 
 
@@ -100,9 +98,7 @@ def test_create_engine_from_uri(test_context):
     """Test engine creation from URI."""
     engine = create_snowflake_engine(test_context)
     assert engine is not None
-    assert (
-        "snowflake" in str(engine.url).lower() or "localhost" in str(engine.url).lower()
-    )
+    assert "snowflake" in str(engine.url).lower() or "localhost" in str(engine.url).lower()
 
 
 def test_create_engine_missing_params():
@@ -132,9 +128,7 @@ def test_create_sql_tools_with_sqlite(mock_llm, sqlite_test_db):
     # Check for expected tools from SQLDatabaseToolkit
     tool_names = [t.name for t in tools]
     assert "sql_db_query" in tool_names or any("query" in name for name in tool_names)
-    assert "sql_db_list_tables" in tool_names or any(
-        "list" in name for name in tool_names
-    )
+    assert "sql_db_list_tables" in tool_names or any("list" in name for name in tool_names)
     assert "sql_db_schema" in tool_names or any(
         "schema" in name or "info" in name for name in tool_names
     )
@@ -158,10 +152,7 @@ def test_sql_tools_read_only_enforcement(mock_llm, sqlite_test_db):
 
     # Check that read-only note is in description
     query_tool = query_tools[0]
-    assert (
-        "read-only" in query_tool.description.lower()
-        or "SELECT" in query_tool.description
-    )
+    assert "read-only" in query_tool.description.lower() or "SELECT" in query_tool.description
 
 
 def test_get_database_context(sqlite_test_db):

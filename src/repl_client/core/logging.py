@@ -6,7 +6,6 @@ Does NOT log server-side agent execution (that's handled by LangGraph).
 """
 
 import logging
-import os
 from pathlib import Path
 
 # Root logger for all REPL client components

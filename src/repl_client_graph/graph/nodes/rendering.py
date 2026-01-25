@@ -52,15 +52,13 @@ def render_output_node(state: REPLState) -> REPLState:
                 renderer.render_panel(
                     f"Requesting schema for tables:\n{table_list}",
                     title="Schema Query",
-                    style="blue"
+                    style="blue",
                 )
 
             elif display_format == "list_tables":
                 # List tables query
                 renderer.render_panel(
-                    "Requesting list of database tables...",
-                    title="List Tables",
-                    style="blue"
+                    "Requesting list of database tables...", title="List Tables", style="blue"
                 )
 
             elif display_format == "question":
@@ -125,6 +123,7 @@ def render_output_node(state: REPLState) -> REPLState:
             # Only show non-empty updates
             if content:
                 import json
+
                 update_str = json.dumps(content, indent=2)
                 renderer.render_text(f"\n[State Update: {len(content)} keys changed]", style="dim")
                 # Uncomment below to see full state updates (verbose):

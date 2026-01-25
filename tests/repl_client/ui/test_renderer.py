@@ -1,8 +1,10 @@
 """Tests for ui/renderer.py - Base Renderer"""
 
-import pytest
 from io import StringIO
+
+import pytest
 from rich.console import Console
+
 from repl_client.ui.renderer import Renderer
 
 

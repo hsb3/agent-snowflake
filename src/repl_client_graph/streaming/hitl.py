@@ -60,22 +60,21 @@ class HITLHandler:
 
         # Show in panel
         self.renderer.render_panel(
-            content=preview,
-            title=f"Tool Approval Required: {tool_name}",
-            style="yellow"
+            content=preview, title=f"Tool Approval Required: {tool_name}", style="yellow"
         )
 
         # Ensure output is flushed before input prompt
         import sys
+
         sys.stdout.flush()
 
         # Get user input (simple y/n for Phase 2)
         while True:
             response = input("\nApprove? (y/n): ").strip().lower()
 
-            if response in ('y', 'yes'):
+            if response in ("y", "yes"):
                 return True
-            elif response in ('n', 'no'):
+            elif response in ("n", "no"):
                 return False
             else:
                 # Invalid input - reprompt
@@ -103,8 +102,4 @@ class HITLHandler:
         Returns:
             Command dict: {"resume": {"approve": bool}}
         """
-        return {
-            "resume": {
-                "approve": approved
-            }
-        }
+        return {"resume": {"approve": approved}}

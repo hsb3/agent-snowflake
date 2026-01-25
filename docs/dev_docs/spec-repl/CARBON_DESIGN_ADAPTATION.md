@@ -1,0 +1,692 @@
+# Carbon Design System Adaptation for REPL TUI
+
+**Source**: `/Users/henry/Developer/DESIGN/style-canon/scaffold/src/styles/theme`
+**Target**: `src/repl_client/tui/styles/`
+**Date**: 2026-01-24
+
+---
+
+## Overview
+
+Your Next.js app uses **Carbon Design System** with a well-structured token system:
+- **Foundation** - Base color palette
+- **Tokens** - Spacing, typography, radius, shadows, motion
+- **Semantic** - Purpose-based naming (surface, content, interactive, status)
+- **Utilities** - Helper classes
+
+---
+
+## What Maps to Textual
+
+### ✅ Can Adapt (High Value)
+
+#### 1. Color Palette - Carbon Gray Scale
+
+**Carbon Foundation** → **Textual Theme**
+
+```tcss
+/* Carbon Gray 100 Palette (Dark Theme Base) */
+$gray-10:  #f4f4f4;  /* Lightest */
+$gray-20:  #e0e0e0;
+$gray-30:  #c6c6c6;
+$gray-40:  #a8a8a8;
+$gray-50:  #8d8d8d;  /* Mid-gray */
+$gray-60:  #6f6f6f;
+$gray-70:  #525252;
+$gray-80:  #393939;
+$gray-90:  #262626;
+$gray-100: #161616;  /* Darkest */
+$white:    #ffffff;
+$black:    #000000;
+```
+
+**Benefit**: Professional, tested gray scale with good contrast ratios
+
+---
+
+#### 2. Status Colors - Carbon Status Palette
+
+**Carbon Foundation** → **Textual Theme**
+
+```tcss
+/* Success (Green) */
+$success-bg:     #a7f0ba;  /* Light green background */
+$success-fg:     #42be65;  /* Green text */
+$success-strong: #24a148;
+$success-bold:   #198038;
+
+/* Error (Red) */
+$error-bg:     #ffd7d9;  /* Light red background */
+$error-fg:     #da1e28;  /* Red text */
+$error-strong: #fa4d56;
+
+/* Warning (Yellow) */
+$warning-bg: #fddc69;  /* Light yellow background */
+$warning-fg: #f1c21b;  /* Yellow text */
+
+/* Info (Blue) */
+$info-bg:     #edf5ff;  /* Light blue background */
+$info-fg:     #0f62fe;  /* Blue text */
+$info-strong: #4589ff;
+```
+
+**Benefit**: Accessible status colors (meet WCAG AA contrast)
+
+---
+
+#### 3. Semantic Color System
+
+**Carbon Semantic** → **Textual Usage**
+
+```tcss
+/* Surfaces (backgrounds) */
+$surface-sunken:    $gray-10;   /* Depressed areas */
+$surface-primary:   $white;     /* Main background */
+$surface-secondary: $gray-10;   /* Cards, panels */
+$surface-tertiary:  $gray-20;   /* Nested panels */
+$surface-raised:    $white;     /* Elevated elements */
+$surface-overlay:   $white;     /* Modals, popovers */
+
+/* Dark Mode */
+$surface-sunken-dark:    $black;
+$surface-primary-dark:   $gray-100;
+$surface-secondary-dark: $gray-90;
+$surface-tertiary-dark:  $gray-80;
+```
+
+**Textual Mapping**:
+- $surface-primary → Screen background, main widgets
+- $surface-secondary → Sidebar, panels
+- $surface-tertiary → Tool outputs, nested content
+- $surface-overlay → Modal backgrounds
+
+---
+
+#### 4. Interactive Colors
+
+**Carbon Interactive** → **Textual Focus/Hover**
+
+```tcss
+/* Interactive states */
+$interactive:        #0f62fe;  /* Primary blue */
+$interactive-hover:  #0043ce;  /* Darker on hover */
+$interactive-active: #002d9c;  /* Darkest when clicked */
+
+/* Dark mode (lighter on hover) */
+$interactive-hover-dark:  #4589ff;
+$interactive-active-dark: #78a9ff;
+```
+
+**Textual Usage**:
+- Focus rings (OptionList:focus, Input:focus)
+- Selected items in sidebar
+- Active keybindings
+
+---
+
+#### 5. Border Colors
+
+**Carbon Borders** → **Textual Borders**
+
+```tcss
+$border-subtle:   $gray-20;  /* Faint dividers */
+$border-default:  $gray-30;  /* Standard borders */
+$border-strong:   $gray-50;  /* Emphasized borders */
+$border-focus:    #0f62fe;   /* Blue focus ring */
+$border-selected: #0f62fe;   /* Blue selected */
+
+/* Dark mode */
+$border-subtle-dark:   $gray-80;
+$border-default-dark:  $gray-70;
+$border-strong-dark:   $gray-50;
+$border-focus-dark:    $white;  /* White focus in dark */
+```
+
+**Textual Usage**:
+- Panel borders
+- Message borders
+- Focus indicators
+- Dividers in status area
+
+---
+
+### ⚠️ Limited Adaptation (Partial Compatibility)
+
+#### 6. Typography Scale
+
+**Carbon Typography** - Formulaic scale (12px → 54px)
+
+**Challenge**: Textual doesn't support font-size or line-height CSS
+- Textual uses terminal character grid (fixed font)
+- No pixel-based sizing
+- Typography scale doesn't translate
+
+**What Could Work**:
+- Text styles (bold, italic, dim) via `text-style:`
+- Semantic naming convention in comments
+
+---
+
+#### 7. Spacing Scale
+
+**Carbon Spacing** - Ordinal scale (2px → 160px)
+
+**Challenge**: Textual uses character-based units, not pixels
+- `width: 40` = 40 characters
+- `height: 3` = 3 lines
+- `padding: 1` = 1 character
+
+**What Could Work**:
+- Map conceptually: spacing-03 (8px) → padding: 1 character
+- Use for proportional relationships, not exact values
+
+---
+
+### ❌ Cannot Adapt (Not Supported)
+
+#### 8. Motion & Animation
+
+**Carbon Motion** - Durations and easings
+
+**Textual Limitation**: No CSS animations or transitions
+- No `transition-duration`
+- No `cubic-bezier()` easing
+- Limited animation support (loading spinners only)
+
+---
+
+#### 9. Shadows
+
+**Carbon Shadows** - Box shadows for depth
+
+**Textual Limitation**: No `box-shadow` support
+- Terminal doesn't support shadows
+- Use borders/colors for depth instead
+
+---
+
+#### 10. Border Radius
+
+**Carbon Radius** - Rounded corners
+
+**Textual Limitation**: No `border-radius`
+- All borders are square
+- Terminal character limitations
+
+---
+
+## Recommended Adaptations
+
+### Priority 1: Color Palette (High Impact)
+
+**Adapt Carbon's dark mode palette**:
+
+```tcss
+/* styles/theme.tcss - Carbon-inspired colors */
+
+/* Foundation Grays (Carbon Gray 100 scale) */
+$gray-10:  #f4f4f4;
+$gray-20:  #e0e0e0;
+$gray-30:  #c6c6c6;
+$gray-50:  #8d8d8d;
+$gray-70:  #525252;
+$gray-80:  #393939;
+$gray-90:  #262626;
+$gray-100: #161616;
+
+/* Semantic Surfaces (Dark Mode) */
+$surface:           $gray-100;  /* Main background */
+$surface-secondary: $gray-90;   /* Sidebar, panels */
+$surface-tertiary:  $gray-80;   /* Nested content */
+$surface-sunken:    #000000;    /* Depressed areas */
+
+/* Semantic Content (Text) */
+$text:           $gray-10;   /* Primary text */
+$text-secondary: $gray-30;   /* Muted text */
+$text-disabled:  $gray-70;   /* Disabled text */
+
+/* Interactive */
+$interactive:        #0f62fe;  /* Blue primary */
+$interactive-hover:  #4589ff;  /* Lighter on hover (dark mode) */
+$interactive-active: #78a9ff;  /* Lightest when active */
+
+/* Status Colors */
+$success: #42be65;  /* Green */
+$error:   #da1e28;  /* Red */
+$warning: #f1c21b;  /* Yellow */
+$info:    #0f62fe;  /* Blue */
+
+/* Borders */
+$border-subtle:   $gray-80;
+$border-default:  $gray-70;
+$border-strong:   $gray-50;
+$border-focus:    #ffffff;     /* White focus in dark mode */
+```
+
+**Impact**:
+- Professional color palette
+- Better contrast and readability
+- Consistent with web app if integrated
+- Proven accessibility (WCAG AA compliant)
+
+---
+
+### Priority 2: Semantic Naming (Medium Impact)
+
+**Adapt naming conventions** for better clarity:
+
+**Current** → **Carbon-inspired**
+
+```tcss
+/* Before */
+$surface                → Keep (maps to surface-primary)
+$surface-lighten-1      → $surface-secondary (more semantic)
+$surface-darken-1       → $surface-tertiary
+$panel                  → $surface-overlay (clearer intent)
+$text-muted             → $text-secondary (consistent naming)
+
+/* Status naming */
+$success, $error, $warning, $info  → Keep (already aligned!)
+
+/* Interactive naming */
+$primary                → $interactive (clearer purpose)
+$primary-darken-1       → $interactive-hover
+```
+
+**Benefit**:
+- Clearer intent (surface vs interactive vs content)
+- Matches Carbon's semantic system
+- Easier to understand relationships
+
+---
+
+### Priority 3: Status Color Consistency (High Impact)
+
+**Use Carbon's status colors** for tool call messages:
+
+**Current**:
+```tcss
+UserMessage { border-left: thick green; }         /* ✓ Matches Carbon success */
+AssistantMessage { border-left: thick cyan; }     /* → Should use $interactive */
+ToolCallMessage { border-left: thick yellow; }    /* ✓ Matches Carbon warning */
+```
+
+**Carbon-aligned**:
+```tcss
+UserMessage { border-left: thick $success; }      /* #42be65 green */
+AssistantMessage { border-left: thick $interactive; } /* #0f62fe blue */
+ToolCallMessage { border-left: thick $warning; }  /* #f1c21b yellow */
+ToolCallMessage.error { border-left: thick $error; } /* #da1e28 red */
+```
+
+**Benefit**: Consistent color language (green=success, blue=interactive, yellow=warning, red=error)
+
+---
+
+## What NOT to Adapt
+
+### ❌ Skip These (Incompatible)
+
+1. **Typography Scale** - Textual uses fixed terminal fonts
+2. **Spacing Scale (pixel-based)** - Textual uses character units
+3. **Border Radius** - Not supported in terminals
+4. **Shadows** - Not supported in terminals
+5. **Motion/Animations** - Limited support in Textual
+6. **Utilities** - CSS utility classes don't apply
+
+---
+
+## Proposed Implementation
+
+### Option A: Full Carbon Color System (Recommended)
+
+**Scope**: Replace entire color palette with Carbon colors
+
+**Changes**:
+1. Update `styles/index.tcss` theme section with Carbon foundation
+2. Use Carbon semantic tokens throughout
+3. Maintain existing spacing/layout (character-based)
+
+**Effort**: Medium (2-3 hours)
+**Impact**: High (professional, accessible, consistent)
+
+---
+
+### Option B: Selective Carbon Colors (Minimal)
+
+**Scope**: Only adapt status colors and interactive colors
+
+**Changes**:
+1. Replace status colors ($success, $error, $warning, $info)
+2. Replace interactive/focus colors ($primary → $interactive)
+3. Keep existing surface grays
+
+**Effort**: Low (1 hour)
+**Impact**: Medium (better status consistency)
+
+---
+
+### Option C: Carbon Semantic Naming Only (Documentation)
+
+**Scope**: Rename existing variables to match Carbon semantics
+
+**Changes**:
+1. $surface remains but documented as surface-primary
+2. $surface-lighten-1 → $surface-secondary
+3. $text-muted → $text-secondary
+4. Add comments mapping to Carbon tokens
+
+**Effort**: Minimal (30 minutes)
+**Impact**: Low (clarity only, no visual change)
+
+---
+
+## Textual-Specific Considerations
+
+### What Textual DOES Support
+
+**Colors**: ✓
+- Hex colors (#ffffff)
+- Built-in color names (cyan, green, yellow, red)
+- ANSI colors
+- RGB functions
+
+**Text Styling**: ✓
+- `text-style: bold italic underline dim`
+- `color:` property
+- `background:` property
+
+**Layout**: ✓
+- Grid and flow layouts
+- Docking (top, bottom, left, right)
+- Sizing (character-based: 1fr, 40%, auto)
+
+### What Textual Does NOT Support
+
+**No Support**: ❌
+- `font-size`, `line-height` (fixed terminal font)
+- `border-radius` (square borders only)
+- `box-shadow` (terminal limitation)
+- `transition`, `animation` (limited support)
+- Pixel-based spacing (character grid only)
+
+---
+
+## Detailed Color Mapping
+
+### Current TUI Colors
+
+```tcss
+/* Current (ad-hoc colors) */
+$surface:           (implicit dark)
+$surface-lighten-1: (Textual built-in)
+$surface-darken-1:  (Textual built-in)
+$panel:            (Textual built-in)
+$text:             (Textual built-in)
+$text-muted:       (Textual built-in)
+$primary:          (Textual built-in - cyan)
+$success:          (Textual built-in - green)
+$warning:          (Textual built-in - yellow)
+$error:            (Textual built-in - red)
+
+/* Specific colors used */
+green:  UserMessage border
+cyan:   AssistantMessage border, status area agent
+yellow: ToolCallMessage border, status area thread
+red:    Error messages
+```
+
+### Proposed Carbon Mapping
+
+```tcss
+/* Carbon-inspired (professional palette) */
+
+/* Surfaces (Dark Mode) */
+$surface-sunken:    #000000;  /* Black - deepest */
+$surface-primary:   #161616;  /* Gray-100 - main bg */
+$surface-secondary: #262626;  /* Gray-90 - sidebar, panels */
+$surface-tertiary:  #393939;  /* Gray-80 - nested content */
+$surface-overlay:   #262626;  /* Gray-90 - modals */
+
+/* Content (Text) */
+$content-primary:   #f4f4f4;  /* Gray-10 - main text */
+$content-secondary: #c6c6c6;  /* Gray-30 - muted text */
+$content-tertiary:  #a8a8a8;  /* Gray-40 - subtle */
+$content-disabled:  #525252;  /* Gray-70 - disabled */
+
+/* Interactive (Focus, Selection) */
+$interactive:        #0f62fe;  /* Blue-60 - primary */
+$interactive-hover:  #4589ff;  /* Blue-50 - lighter on hover */
+$interactive-active: #78a9ff;  /* Blue-40 - lightest when active */
+
+/* Status */
+$status-success:  #42be65;  /* Green-40 */
+$status-error:    #da1e28;  /* Red-60 */
+$status-warning:  #f1c21b;  /* Yellow-30 */
+$status-info:     #4589ff;  /* Blue-50 */
+
+/* Borders */
+$border-subtle:   #393939;  /* Gray-80 */
+$border-default:  #525252;  /* Gray-70 */
+$border-strong:   #8d8d8d;  /* Gray-50 */
+$border-focus:    #ffffff;  /* White - high contrast */
+$border-selected: #4589ff;  /* Blue-50 */
+```
+
+---
+
+## Visual Comparison
+
+### Message Borders
+
+**Current**:
+```tcss
+UserMessage      { border-left: thick green; }      /* Generic green */
+AssistantMessage { border-left: thick cyan; }       /* Generic cyan */
+ToolCallMessage  { border-left: thick yellow; }     /* Generic yellow */
+```
+
+**Carbon-inspired**:
+```tcss
+UserMessage      { border-left: thick #42be65; }    /* Carbon green-40 */
+AssistantMessage { border-left: thick #0f62fe; }    /* Carbon blue-60 */
+ToolCallMessage  { border-left: thick #f1c21b; }    /* Carbon yellow-30 */
+```
+
+**Benefit**: More professional, consistent color language
+
+---
+
+### Status Area Colors
+
+**Current**:
+```tcss
+.status-agent   { color: cyan; }    /* Generic cyan */
+.status-thread  { color: yellow; }  /* Generic yellow */
+.status-tokens  { color: green; }   /* Generic green */
+```
+
+**Carbon-inspired**:
+```tcss
+.status-agent   { color: #4589ff; }  /* Carbon blue-50 */
+.status-thread  { color: #f1c21b; }  /* Carbon yellow-30 */
+.status-tokens  { color: #42be65; }  /* Carbon green-40 */
+```
+
+---
+
+### Connection Indicator
+
+**Current**:
+```tcss
+.connected    { color: $success; }  /* Generic green */
+.disconnected { color: $error; }    /* Generic red */
+```
+
+**Carbon-inspired**:
+```tcss
+.connected    { color: #42be65; }  /* Carbon green-40 */
+.disconnected { color: #da1e28; }  /* Carbon red-60 */
+```
+
+---
+
+## Implementation Recommendation
+
+### Recommended: Option A (Full Carbon Colors)
+
+**Why**:
+1. **Professional palette** - Tested by IBM Design, WCAG AA compliant
+2. **Semantic clarity** - surface vs content vs interactive vs status
+3. **Future-proof** - If you build web UI later, colors match
+4. **Better accessibility** - Carbon's contrast ratios are proven
+5. **Consistent design language** - Status colors mean the same thing
+
+**What to change**:
+- Replace color definitions in `styles/index.tcss` theme section
+- Use semantic names (surface-primary vs surface-lighten-1)
+- Keep existing layout/spacing (character-based)
+
+**What NOT to change**:
+- Spacing (stay with character units)
+- Typography (terminal fonts are fixed)
+- Layout structure (already optimized)
+
+---
+
+## Sample Theme File (Carbon-Adapted)
+
+```tcss
+/* ============================================================================
+ * THEME - Carbon Design System Colors
+ * ============================================================================ */
+
+/* Foundation - Carbon Gray 100 Palette */
+$gray-10:  #f4f4f4;
+$gray-20:  #e0e0e0;
+$gray-30:  #c6c6c6;
+$gray-40:  #a8a8a8;
+$gray-50:  #8d8d8d;
+$gray-60:  #6f6f6f;
+$gray-70:  #525252;
+$gray-80:  #393939;
+$gray-90:  #262626;
+$gray-100: #161616;
+$white:    #ffffff;
+$black:    #000000;
+
+/* Semantic - Surfaces (Dark Mode) */
+$surface:           $gray-100;  /* Main background */
+$surface-secondary: $gray-90;   /* Panels, sidebar */
+$surface-tertiary:  $gray-80;   /* Nested content */
+$surface-sunken:    $black;     /* Depressed areas */
+$surface-overlay:   $gray-90;   /* Modals */
+
+/* Semantic - Content (Text) */
+$text:           $gray-10;   /* Primary text */
+$text-secondary: $gray-30;   /* Muted text */
+$text-tertiary:  $gray-40;   /* Subtle text */
+$text-disabled:  $gray-70;   /* Disabled */
+
+/* Semantic - Interactive */
+$interactive:        #0f62fe;  /* Blue-60 primary */
+$interactive-hover:  #4589ff;  /* Blue-50 lighter */
+$interactive-active: #78a9ff;  /* Blue-40 lightest */
+
+/* Semantic - Status */
+$success:  #42be65;  /* Green-40 */
+$error:    #da1e28;  /* Red-60 */
+$warning:  #f1c21b;  /* Yellow-30 */
+$info:     #4589ff;  /* Blue-50 */
+
+/* Semantic - Borders */
+$border-subtle:   $gray-80;
+$border-default:  $gray-70;
+$border-strong:   $gray-50;
+$border-focus:    $white;      /* High contrast */
+$border-selected: #4589ff;     /* Blue-50 */
+```
+
+---
+
+## Benefits of Carbon Adaptation
+
+### Design Consistency
+- If you build web UI: colors match between TUI and web
+- Shared design language across platforms
+- Professional, tested palette
+
+### Accessibility
+- WCAG AA compliant contrast ratios
+- Status colors have clear meaning
+- Focus states are highly visible
+
+### Maintenance
+- Semantic naming makes updates easier
+- Clear color purposes (surface vs content vs interactive)
+- Design system backing (Carbon docs)
+
+### Future Flexibility
+- Easy to add light mode later (Carbon has both)
+- Documented color relationships
+- Can reference Carbon docs for guidance
+
+---
+
+## Implementation Steps
+
+If you want to proceed with Carbon colors:
+
+1. **Backup current theme**
+   ```bash
+   cp src/repl_client/tui/styles/index.tcss src/repl_client/tui/styles/index.tcss.backup
+   ```
+
+2. **Update theme section**
+   - Replace color definitions with Carbon palette
+   - Use semantic variable names
+   - Update component colors to use semantic tokens
+
+3. **Visual testing**
+   ```bash
+   make repl-tui
+   ```
+   - Verify colors look good
+   - Check contrast/readability
+   - Test all status states
+
+4. **Quality checks**
+   ```bash
+   make check-repl
+   ```
+
+---
+
+## Decision Points
+
+**Questions to consider**:
+
+1. **Color consistency**: Do you want TUI to match your Next.js app visually?
+2. **Design system**: Do you value having a formal design system (Carbon) backing?
+3. **Effort**: Is 2-3 hours of color updating worth the consistency?
+4. **Scope**: Full palette or just status colors?
+
+**Recommendation**: Start with **Priority 1 colors** (full Carbon palette). It's a proven, professional system that would make the TUI look polished and maintain consistency with your web app.
+
+---
+
+## Not Recommended
+
+**Don't try to adapt**:
+- Typography scale (fixed terminal fonts)
+- Spacing scale literally (use character units)
+- Animations/motion (limited Textual support)
+- Shadows (not supported)
+- Border radius (not supported)
+- React components (different framework entirely)
+
+**Focus on**: Colors, semantic naming, status consistency
+
+---
+
+**Next Steps**: Let me know if you want me to implement the Carbon color palette adaptation. It would be a clean upgrade to the TUI's visual design.

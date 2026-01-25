@@ -147,9 +147,7 @@ class REPLLoop:
                 self.session.set_agent(agent_id)
                 self.renderer.render_text(f"Using agent: {agent_id}", style="cyan")
             else:
-                self.renderer.render_text(
-                    "Warning: No agents available", style="yellow"
-                )
+                self.renderer.render_text("Warning: No agents available", style="yellow")
 
             # 3. Create initial thread
             thread_id = await self.client.create_thread()
@@ -308,9 +306,7 @@ class REPLLoop:
             elif parsed.chunk_type == ChunkType.TOOL_CALL_COMPLETE:
                 # Log tool calls
                 if parsed.tool_call:
-                    logger.info(
-                        f"Tool call: {parsed.tool_call.name}({parsed.tool_call.args})"
-                    )
+                    logger.info(f"Tool call: {parsed.tool_call.name}({parsed.tool_call.args})")
 
             elif parsed.chunk_type == ChunkType.USAGE:
                 # Usage already tracked by StreamHandler
@@ -329,21 +325,21 @@ class REPLLoop:
                     self.renderer.render_text("")
 
                     # Show approval prompt and get command
-                    command = self.hitl_handler.handle_interrupt(
-                        parsed.interrupt,
-                        self.session
-                    )
+                    command = self.hitl_handler.handle_interrupt(parsed.interrupt, self.session)
+
+                    # Check required IDs are present before resuming
+                    if not self.session.current_thread_id or not self.session.current_assistant_id:
+                        logger.error("Cannot resume interrupt: missing thread_id or assistant_id")
+                        return
 
                     # Resume with approval
                     resume_chunks = self.client.resume_after_interrupt(
-                        self.session.current_thread_id,
-                        self.session.current_assistant_id,
-                        command
+                        self.session.current_thread_id, self.session.current_assistant_id, command
                     )
 
                     # Continue processing resumed stream (recursive call)
                     # Add newline and reset agent prompt
-                    self.renderer.render_text("\nAgent: ", style="cyan", end="")
+                    self.renderer.render_text("\nAgent: ", style="cyan")
                     await self._handle_stream(resume_chunks)
 
     def _shutdown(self) -> None:

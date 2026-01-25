@@ -1,0 +1,115 @@
+/* Components section - Individual widget styling
+ *
+ * NOTE: This file is part of the modular CSS organization but is not directly
+ * imported (Textual CSS doesn't support @import). Instead, this content is
+ * included in index.tcss under the "COMPONENTS" section.
+ *
+ * This file serves as documentation and reference for component-related styles.
+ */
+
+/* Individual widget styling - COMPONENT LIBRARY */
+
+/* User messages - green border */
+UserMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+    background: $surface;
+    border-left: thick green;
+}
+
+/* Assistant messages - cyan border */
+AssistantMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+AssistantMessage Markdown {
+    padding: 0;
+    margin: 0;
+    border-left: thick cyan;
+}
+
+/* Tool call messages - yellow border */
+ToolCallMessage {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+    background: $surface;
+    border-left: thick yellow;
+}
+
+ToolCallMessage .tool-header {
+    color: yellow;
+    text-style: bold;
+}
+
+ToolCallMessage .tool-args {
+    color: $text-muted;
+    margin-left: 2;
+}
+
+ToolCallMessage .tool-status {
+    margin-left: 2;
+}
+
+ToolCallMessage .tool-output {
+    margin-left: 2;
+    margin-top: 1;
+    padding: 1;
+    background: $surface-darken-1;
+    color: $text-muted;
+    max-height: 20;
+    overflow-y: auto;
+}
+
+ToolCallMessage .tool-output-preview {
+    margin-left: 2;
+    color: $text-muted;
+}
+
+ToolCallMessage .tool-output-hint {
+    margin-left: 2;
+    color: cyan;
+    text-style: italic;
+}
+
+/* Loading widget */
+LoadingWidget {
+    height: auto;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+LoadingWidget .loading-spinner {
+    color: cyan;
+    text-style: bold;
+}
+
+/* Chat input prompt styling */
+ChatInput .input-prompt {
+    color: $primary;
+    text-style: bold;
+}
+
+/* Status bar items */
+StatusBar .status-item {
+    padding: 0 1;
+}
+
+StatusBar .status-agent {
+    color: cyan;
+}
+
+StatusBar .status-thread {
+    color: yellow;
+}
+
+StatusBar .status-tokens {
+    color: green;
+}
+
+StatusBar .status-message {
+    color: $text;
+}

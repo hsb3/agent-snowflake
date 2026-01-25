@@ -131,7 +131,6 @@ def build_stream_processor_subgraph() -> StateGraph:
     # After fetching, always parse (fetch sets current_chunk or None)
     graph.add_edge("fetch_chunk", "parse_chunk")
 
-
     # Route based on event type (including check for None)
     def route_parse_chunk(state):
         if not state.get("current_chunk"):

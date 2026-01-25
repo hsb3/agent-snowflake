@@ -107,18 +107,14 @@ class Settings:
             snowflake_password=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", ""),
             snowflake_database=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", ""),
             snowflake_schema=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", ""),
-            snowflake_warehouse=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", ""
-            ),
+            snowflake_warehouse=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", ""),
             snowflake_role=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", ""),
             allowed_schemas=os.environ.get("SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", "*"),
             allowed_tables=os.environ.get("SNOWFLAKE_AGENT_ALLOWED_TABLES", "*"),
-            read_only=os.environ.get("SNOWFLAKE_AGENT_READ_ONLY", "true").lower()
-            == "true",
+            read_only=os.environ.get("SNOWFLAKE_AGENT_READ_ONLY", "true").lower() == "true",
             query_timeout=int(os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", "30")),
             max_iterations=int(os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", "25")),
-            enable_debug=os.environ.get("SNOWFLAKE_AGENT_ENABLE_DEBUG", "false").lower()
-            == "true",
+            enable_debug=os.environ.get("SNOWFLAKE_AGENT_ENABLE_DEBUG", "false").lower() == "true",
             cors_origins=os.environ.get("SNOWFLAKE_AGENT_CORS_ORIGINS", "*"),
             environment=os.environ.get("SNOWFLAKE_AGENT_ENVIRONMENT", "development"),
         )

@@ -3,7 +3,6 @@
 Test-driven development for main REPL loop orchestration.
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -173,9 +172,13 @@ class TestREPLLoop:
     @pytest.mark.asyncio
     async def test_send_message(self, config, mock_components):
         """Test _send_message streams and renders response."""
+
         # Setup mock stream
         async def mock_stream(thread_id, message, assistant_id):
-            yield ("messages/partial", {"id": "msg-1", "content": [{"type": "text", "text": "Hello"}]})
+            yield (
+                "messages/partial",
+                {"id": "msg-1", "content": [{"type": "text", "text": "Hello"}]},
+            )
 
         mock_components["client"].stream_message = mock_stream
 

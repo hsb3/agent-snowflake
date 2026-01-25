@@ -31,8 +31,6 @@ Display Format Types:
 """
 
 
-
-
 def render_sql_tool_node(state: dict) -> dict:
     """Render SQL-related tool calls with appropriate formatting.
 
@@ -89,17 +87,19 @@ def render_sql_tool_node(state: dict) -> dict:
                         if tool_name in ("sql_db_query", "sql_db_query_checker"):
                             # SQL query or query checker - show SQL with highlighting
                             query = tool_args.get("query", "")
-                            render_queue.append({
-                                "type": "tool_call",
-                                "tool": {
-                                    "name": tool_name,
-                                    "args": tool_args,
-                                    "display": {
-                                        "format": "sql",
-                                        "query": query,
-                                    }
-                                },
-                            })
+                            render_queue.append(
+                                {
+                                    "type": "tool_call",
+                                    "tool": {
+                                        "name": tool_name,
+                                        "args": tool_args,
+                                        "display": {
+                                            "format": "sql",
+                                            "query": query,
+                                        },
+                                    },
+                                }
+                            )
                         elif tool_name == "sql_db_schema":
                             # Schema query - show table names
                             tables = tool_args.get("table_names", "")
@@ -108,29 +108,33 @@ def render_sql_tool_node(state: dict) -> dict:
                                 table_list = [t.strip() for t in tables.split(",") if t.strip()]
                             else:
                                 table_list = tables if isinstance(tables, list) else []
-                            render_queue.append({
-                                "type": "tool_call",
-                                "tool": {
-                                    "name": tool_name,
-                                    "args": tool_args,
-                                    "display": {
-                                        "format": "schema",
-                                        "tables": table_list,
-                                    }
-                                },
-                            })
+                            render_queue.append(
+                                {
+                                    "type": "tool_call",
+                                    "tool": {
+                                        "name": tool_name,
+                                        "args": tool_args,
+                                        "display": {
+                                            "format": "schema",
+                                            "tables": table_list,
+                                        },
+                                    },
+                                }
+                            )
                         elif tool_name == "sql_db_list_tables":
                             # List tables - simple display
-                            render_queue.append({
-                                "type": "tool_call",
-                                "tool": {
-                                    "name": tool_name,
-                                    "args": tool_args,
-                                    "display": {
-                                        "format": "list_tables",
-                                    }
-                                },
-                            })
+                            render_queue.append(
+                                {
+                                    "type": "tool_call",
+                                    "tool": {
+                                        "name": tool_name,
+                                        "args": tool_args,
+                                        "display": {
+                                            "format": "list_tables",
+                                        },
+                                    },
+                                }
+                            )
 
     return {
         **state,
@@ -192,18 +196,20 @@ def render_question_tool_node(state: dict) -> dict:
                             question = tool_args.get("question", "")
                             options = tool_args.get("options", [])
 
-                            render_queue.append({
-                                "type": "tool_call",
-                                "tool": {
-                                    "name": tool_name,
-                                    "args": tool_args,
-                                    "display": {
-                                        "format": "question",
-                                        "question": question,
-                                        "options": options,
-                                    }
-                                },
-                            })
+                            render_queue.append(
+                                {
+                                    "type": "tool_call",
+                                    "tool": {
+                                        "name": tool_name,
+                                        "args": tool_args,
+                                        "display": {
+                                            "format": "question",
+                                            "question": question,
+                                            "options": options,
+                                        },
+                                    },
+                                }
+                            )
 
     return {
         **state,
@@ -256,10 +262,12 @@ def render_generic_tool_node(state: dict) -> dict:
             if tool_calls:
                 for tool_call in tool_calls:
                     if isinstance(tool_call, dict):
-                        render_queue.append({
-                            "type": "tool_call",
-                            "tool": tool_call,
-                        })
+                        render_queue.append(
+                            {
+                                "type": "tool_call",
+                                "tool": tool_call,
+                            }
+                        )
 
     return {
         **state,

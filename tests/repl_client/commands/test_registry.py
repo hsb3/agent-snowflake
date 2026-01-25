@@ -39,9 +39,7 @@ class TestCommandRegistry:
         def echo_handler(args: list[str]) -> str:
             return " ".join(args)
 
-        registry.register(
-            name="echo", handler=echo_handler, description="Echo arguments"
-        )
+        registry.register(name="echo", handler=echo_handler, description="Echo arguments")
 
         # Execute command
         result = registry.execute("echo", ["hello", "world"])
@@ -114,9 +112,7 @@ class TestCommandRegistry:
             description="Show help message",
             syntax="help [command]",
         )
-        registry.register(
-            name="exit", handler=exit_handler, description="Exit the REPL"
-        )
+        registry.register(name="exit", handler=exit_handler, description="Exit the REPL")
 
         help_text = registry.get_help_text()
 

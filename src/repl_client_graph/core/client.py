@@ -151,7 +151,9 @@ class LangGraphClient:
         """
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(f"{self.base_url}/threads/search", json={"limit": limit})
+                response = await client.post(
+                    f"{self.base_url}/threads/search", json={"limit": limit}
+                )
                 response.raise_for_status()
                 data = response.json()
 

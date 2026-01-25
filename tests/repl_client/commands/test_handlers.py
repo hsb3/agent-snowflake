@@ -4,7 +4,7 @@ Test-driven development for command handler implementations.
 Tests both Phase 1 (help, exit) and Phase 2 (agents, threads, new, info) commands.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -21,7 +21,11 @@ def mock_client():
     client.list_agents = AsyncMock(
         return_value=[
             {"assistant_id": "uuid-basic-123", "graph_id": "agent_basic", "name": "Basic Agent"},
-            {"assistant_id": "uuid-enhanced-456", "graph_id": "agent_enhanced", "name": "Enhanced Agent"},
+            {
+                "assistant_id": "uuid-enhanced-456",
+                "graph_id": "agent_enhanced",
+                "name": "Enhanced Agent",
+            },
         ]
     )
     client.list_threads = AsyncMock(

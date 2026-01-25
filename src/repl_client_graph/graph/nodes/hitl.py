@@ -40,8 +40,7 @@ async def handle_interrupt_node(state: REPLState) -> REPLState:
 
     # Convert dict to Interrupt object
     interrupt = Interrupt(
-        id=pending_interrupt.get("id", ""),
-        value=pending_interrupt.get("value", {})
+        id=pending_interrupt.get("id", ""), value=pending_interrupt.get("value", {})
     )
 
     # Use HITLHandler to show approval prompt and get decision

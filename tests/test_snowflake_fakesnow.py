@@ -5,7 +5,6 @@ allowing fast local testing without Docker or real Snowflake credentials.
 """
 
 
-
 class TestBasicConnection:
     """Test basic Snowflake connection with fakesnow."""
 
@@ -90,9 +89,9 @@ class TestDataLoading:
         for table, expected_count in expected_counts.items():
             cursor.execute(f"SELECT COUNT(*) FROM {table}")
             actual_count = cursor.fetchone()[0]
-            assert (
-                actual_count == expected_count
-            ), f"{table} has {actual_count} rows, expected {expected_count}"
+            assert actual_count == expected_count, (
+                f"{table} has {actual_count} rows, expected {expected_count}"
+            )
 
         cursor.close()
 

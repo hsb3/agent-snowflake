@@ -131,13 +131,15 @@ def extract_text_delta_node(state: StreamSubgraphState) -> StreamSubgraphState:
                     current_text = block.get("text", "")
                     # Extract delta (new text since last chunk)
                     if current_text and current_text != prev_text:
-                        delta = current_text[len(prev_text):]
+                        delta = current_text[len(prev_text) :]
                         if delta:
                             render_queue = render_queue.copy()
-                            render_queue.append({
-                                "type": "text",
-                                "content": delta,
-                            })
+                            render_queue.append(
+                                {
+                                    "type": "text",
+                                    "content": delta,
+                                }
+                            )
                         prev_text = current_text
 
     return {
@@ -252,12 +254,14 @@ def render_sql_tool_node(state: StreamSubgraphState) -> StreamSubgraphState:
     args = current_tool.get("args", {})
     query = args.get("query", "") or args.get("command", "")
 
-    render_queue.append({
-        "type": "code_block",
-        "language": "sql",
-        "content": query,
-        "title": f"Tool: {current_tool.get('name', 'sql')}",
-    })
+    render_queue.append(
+        {
+            "type": "code_block",
+            "language": "sql",
+            "content": query,
+            "title": f"Tool: {current_tool.get('name', 'sql')}",
+        }
+    )
 
     return {
         **state,
@@ -281,11 +285,13 @@ def render_question_tool_node(state: StreamSubgraphState) -> StreamSubgraphState
     render_queue = state.get("render_queue", []).copy()
     args = current_tool.get("args", {})
 
-    render_queue.append({
-        "type": "interactive_question",
-        "question": args.get("question", ""),
-        "options": args.get("options", []),
-    })
+    render_queue.append(
+        {
+            "type": "interactive_question",
+            "question": args.get("question", ""),
+            "options": args.get("options", []),
+        }
+    )
 
     return {
         **state,
@@ -309,12 +315,14 @@ def render_code_tool_node(state: StreamSubgraphState) -> StreamSubgraphState:
     render_queue = state.get("render_queue", []).copy()
     args = current_tool.get("args", {})
 
-    render_queue.append({
-        "type": "code_block",
-        "language": "python",
-        "content": args.get("code", ""),
-        "title": f"Tool: {current_tool.get('name', 'code')}",
-    })
+    render_queue.append(
+        {
+            "type": "code_block",
+            "language": "python",
+            "content": args.get("code", ""),
+            "title": f"Tool: {current_tool.get('name', 'code')}",
+        }
+    )
 
     return {
         **state,
@@ -337,10 +345,12 @@ def render_generic_tool_node(state: StreamSubgraphState) -> StreamSubgraphState:
 
     render_queue = state.get("render_queue", []).copy()
 
-    render_queue.append({
-        "type": "tool_call",
-        "tool": current_tool,
-    })
+    render_queue.append(
+        {
+            "type": "tool_call",
+            "tool": current_tool,
+        }
+    )
 
     return {
         **state,

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from repl_client.core.parsers import ToolCall, Usage
 from repl_client.core.session import SessionState
 from repl_client.streaming.handler import StreamHandler
 from repl_client.streaming.types import ChunkType, ParsedChunk
@@ -40,6 +39,9 @@ def sample_stream_data():
         / "output"
         / "stream_messages_20260123_210128.json"
     )
+
+    if not data_file.exists():
+        pytest.skip("Test data file not available")
 
     with open(data_file) as f:
         chunks = json.load(f)
@@ -387,12 +389,7 @@ def test_parse_interrupt_valid(handler):
     # Valid interrupt structure
     updates_data = {
         "__interrupt__": [
-            {
-                "value": {
-                    "tool": "sql_db_query",
-                    "args": {"query": "SELECT * FROM users"}
-                }
-            }
+            {"value": {"tool": "sql_db_query", "args": {"query": "SELECT * FROM users"}}}
         ]
     }
 
@@ -400,10 +397,7 @@ def test_parse_interrupt_valid(handler):
 
     assert result is not None
     assert result.id.startswith("interrupt_sql_db_query_")
-    assert result.value == {
-        "tool": "sql_db_query",
-        "args": {"query": "SELECT * FROM users"}
-    }
+    assert result.value == {"tool": "sql_db_query", "args": {"query": "SELECT * FROM users"}}
 
 
 def test_parse_interrupt_no_interrupt_key(handler):
@@ -440,14 +434,9 @@ async def test_interrupt_detection_from_updates_stream(handler):
             "updates",
             {
                 "__interrupt__": [
-                    {
-                        "value": {
-                            "tool": "sql_db_query",
-                            "args": {"query": "DELETE FROM users"}
-                        }
-                    }
+                    {"value": {"tool": "sql_db_query", "args": {"query": "DELETE FROM users"}}}
                 ]
-            }
+            },
         )
     ]
 
@@ -468,14 +457,7 @@ async def test_interrupt_detection_from_updates_stream(handler):
 async def test_updates_stream_without_interrupt(handler):
     """Test that updates without __interrupt__ don't yield INTERRUPT chunks."""
     # Updates stream with no interrupt
-    chunks = [
-        (
-            "updates",
-            {
-                "some_state": {"key": "value"}
-            }
-        )
-    ]
+    chunks = [("updates", {"some_state": {"key": "value"}})]
 
     results = [c async for c in handler.process_stream(_async_iter(chunks))]
 

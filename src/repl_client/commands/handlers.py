@@ -18,9 +18,7 @@ class CommandHandlers:
     Coordinates between client, session, and renderer to execute commands.
     """
 
-    def __init__(
-        self, client: LangGraphClient, session: SessionState, renderer: Renderer
-    ):
+    def __init__(self, client: LangGraphClient, session: SessionState, renderer: Renderer):
         """Initialize with dependencies.
 
         Args:
@@ -161,8 +159,7 @@ class CommandHandlers:
             agent_id = await self._resolve_agent_id(agent_identifier)
             if not agent_id:
                 self.renderer.render_error(
-                    f"Agent not found: {agent_identifier}\n"
-                    f"Use /agents to see available agents"
+                    f"Agent not found: {agent_identifier}\nUse /agents to see available agents"
                 )
                 return
 

@@ -4,10 +4,10 @@ Tests the complete HITL flow from interrupt detection through resume.
 Requires live LangGraph server with HITL-enabled agent.
 """
 
-import asyncio
+from unittest.mock import Mock, patch
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, Mock, patch
 
 from repl_client.core.client import LangGraphClient
 from repl_client.core.session import SessionState
@@ -54,11 +54,8 @@ class TestHITLInterruptDetection:
         updates_data = {
             "__interrupt__": [
                 {
-                    "value": {
-                        "tool": "sql_db_query",
-                        "args": {"query": "SELECT * FROM users"}
-                    },
-                    "when": "during"
+                    "value": {"tool": "sql_db_query", "args": {"query": "SELECT * FROM users"}},
+                    "when": "during",
                 }
             ]
         }
@@ -73,9 +70,7 @@ class TestHITLInterruptDetection:
     @pytest.mark.asyncio
     async def test_parse_interrupt_returns_none_when_no_interrupt(self, stream_handler):
         """Test _parse_interrupt returns None when no __interrupt__ key"""
-        updates_data = {
-            "some_other_key": "value"
-        }
+        updates_data = {"some_other_key": "value"}
 
         interrupt = stream_handler._parse_interrupt(updates_data)
         assert interrupt is None
@@ -92,12 +87,12 @@ class TestHITLInterruptDetection:
                         {
                             "value": {
                                 "tool": "sql_db_query",
-                                "args": {"query": "SELECT COUNT(*) FROM orders"}
+                                "args": {"query": "SELECT COUNT(*) FROM orders"},
                             },
-                            "when": "during"
+                            "when": "during",
                         }
                     ]
-                }
+                },
             )
         ]
 
@@ -123,14 +118,11 @@ class TestHITLApprovalFlow:
         """Test HITL handler processes approval"""
         interrupt = Interrupt(
             id="int_123",
-            value={
-                "tool": "sql_db_query",
-                "args": {"query": "SELECT * FROM customers"}
-            }
+            value={"tool": "sql_db_query", "args": {"query": "SELECT * FROM customers"}},
         )
 
         # Mock user approving
-        with patch('builtins.input', return_value='y'):
+        with patch("builtins.input", return_value="y"):
             command = hitl_handler.handle_interrupt(interrupt, session)
 
         # Should return resume command with approval
@@ -142,15 +134,11 @@ class TestHITLApprovalFlow:
     def test_hitl_handler_rejection(self, hitl_handler, session):
         """Test HITL handler processes rejection"""
         interrupt = Interrupt(
-            id="int_456",
-            value={
-                "tool": "dangerous_operation",
-                "args": {"action": "delete_all"}
-            }
+            id="int_456", value={"tool": "dangerous_operation", "args": {"action": "delete_all"}}
         )
 
         # Mock user rejecting
-        with patch('builtins.input', return_value='n'):
+        with patch("builtins.input", return_value="n"):
             command = hitl_handler.handle_interrupt(interrupt, session)
 
         # Should return resume command with rejection
@@ -181,7 +169,9 @@ class TestHITLEndToEnd:
         return client
 
     @pytest.mark.asyncio
-    async def test_full_hitl_flow_with_approval(self, client, session, stream_handler, hitl_handler):
+    async def test_full_hitl_flow_with_approval(
+        self, client, session, stream_handler, hitl_handler
+    ):
         """Test complete HITL flow: message -> interrupt -> approval -> resume -> result
 
         This is a manual integration test - requires server with HITL agent.
@@ -194,6 +184,7 @@ class TestHITLEndToEnd:
 
         # For now, mark as skip unless explicit environment variable set
         import os
+
         if not os.getenv("RUN_HITL_E2E_TESTS"):
             pytest.skip("Set RUN_HITL_E2E_TESTS=1 to run live server tests")
 
@@ -218,11 +209,7 @@ class TestHITLEndToEnd:
         message = "Query the customers table"
 
         # Stream message
-        chunks = client.stream_message(
-            thread_id=thread_id,
-            message=message,
-            assistant_id=agent_id
-        )
+        chunks = client.stream_message(thread_id=thread_id, message=message, assistant_id=agent_id)
 
         # Process stream and look for interrupt
         interrupt_detected = False
@@ -232,14 +219,12 @@ class TestHITLEndToEnd:
                 interrupt = parsed.interrupt
 
                 # Mock user approval
-                with patch('builtins.input', return_value='y'):
+                with patch("builtins.input", return_value="y"):
                     command = hitl_handler.handle_interrupt(interrupt, session)
 
                 # Resume
                 resume_chunks = client.resume_after_interrupt(
-                    thread_id=thread_id,
-                    assistant_id=agent_id,
-                    command=command
+                    thread_id=thread_id, assistant_id=agent_id, command=command
                 )
 
                 # Process resumed stream
@@ -272,12 +257,12 @@ class TestHITLMultipleTools:
                         {
                             "value": {
                                 "tool": "sql_db_query",
-                                "args": {"query": "SELECT * FROM users"}
+                                "args": {"query": "SELECT * FROM users"},
                             },
-                            "when": "during"
+                            "when": "during",
                         }
                     ]
-                }
+                },
             ),
             (
                 "messages/partial",
@@ -286,10 +271,10 @@ class TestHITLMultipleTools:
                         "id": "msg-1",
                         "type": "ai",
                         "content": [{"type": "text", "text": "First result"}],
-                        "response_metadata": {}
+                        "response_metadata": {},
                     }
-                ]
-            )
+                ],
+            ),
         ]
 
         async def _async_iter(items):
@@ -331,9 +316,7 @@ class TestHITLErrorHandling:
     @pytest.mark.asyncio
     async def test_empty_interrupt_list(self, stream_handler):
         """Test handling of empty interrupt list"""
-        updates_data = {
-            "__interrupt__": []
-        }
+        updates_data = {"__interrupt__": []}
 
         interrupt = stream_handler._parse_interrupt(updates_data)
         assert interrupt is None
