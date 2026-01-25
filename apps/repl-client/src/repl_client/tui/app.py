@@ -34,6 +34,7 @@ from repl_client.tui.controllers import (
 )
 from repl_client.tui.hitl import HITLHandler
 from repl_client.tui.models import AppState
+from repl_client.tui.screens import AgentConfigScreen, WelcomeScreen
 from repl_client.tui.services import LangGraphService, StreamService
 from repl_client.tui.views import LayoutView, MessageAreaView, SidebarView, StatusAreaView
 from repl_client.tui.widgets import ChatInput, Command, CommandPalette
@@ -140,6 +141,8 @@ class REPLApp(App[None]):
     - F3: Thread selection
     """
 
+    # CSS loaded from concatenated modular files (see styles/README.md)
+    # Build with: cat theme.tcss layout.tcss components.tcss sidebar.tcss modals.tcss states.tcss light-mode.tcss > index.tcss
     CSS_PATH = "styles/index.tcss"
     ENABLE_COMMAND_PALETTE = False  # Disable Textual's built-in (we use custom)
 
@@ -155,6 +158,7 @@ class REPLApp(App[None]):
         Binding("f2", "select_agent", "Agents", show=True),
         Binding("f3", "select_thread", "Threads", show=False),
         Binding("f5", "expand_sidebar", "Expand", show=False),
+        Binding("f6", "show_agent_config", "Config", show=True),
         Binding("ctrl+b", "focus_sidebar", "Focus Sidebar", show=False),
     ]
 
@@ -306,29 +310,10 @@ class REPLApp(App[None]):
 
             self.app_state.set_status("Ready - Press Ctrl+P for commands", error=False)
 
-            # Add welcome message to message area
-            if self._message_area:
-                from textual.widgets import Markdown
-
-                welcome_text = (
-                    "**Welcome to REPL!**\n\n"
-                    "**Quick Start:**\n"
-                    "- **Ctrl+P** - Open command palette (all commands & shortcuts)\n"
-                    "- **F4** - Toggle sidebar (view threads, agents, session info)\n"
-                    "- Type `/help` to see available slash commands\n\n"
-                    "**Common Shortcuts:**\n"
-                    "- **Ctrl+D** - Toggle light/dark mode\n"
-                    "- **F2** - Quick agent selection\n"
-                    "- **Ctrl+L** - Clear messages\n"
-                    "- **Ctrl+C** - Quit\n\n"
-                    "Start chatting or press **Ctrl+P** to explore!"
-                )
-                welcome_widget = Markdown(welcome_text)
-                welcome_widget.add_class("system-message")
-                await self._message_area.mount(welcome_widget)
-                self._message_area.scroll_to_bottom()
-
             logger.info(f"Connected to server, agent={agent_name}, thread={thread_id}")
+
+            # Show welcome modal
+            await self._show_welcome()
 
         except Exception as e:
             logger.exception("Startup failed")
@@ -489,6 +474,39 @@ class REPLApp(App[None]):
                     self._update_sidebar_content()
                 else:
                     logger.error(f"Failed to switch thread: {switch_result['message']}")
+
+    async def action_show_agent_config(self) -> None:
+        """Show agent configuration modal with agent selector and schema viewer."""
+        logger.info("action_show_agent_config called")
+
+        current_agent_id = self.session.current_assistant_id or ""
+        logger.debug(f"Current assistant_id from session: {current_agent_id}")
+
+        # Fetch agents list (use cache if available)
+        try:
+            agents = await self.langgraph_service.get_agents()
+            logger.debug(f"Found {len(agents)} agents for config screen")
+        except Exception as e:
+            logger.exception("Failed to load agents for config screen")
+            self.app_state.set_status(f"Failed to load agents: {e}", error=True)
+            return
+
+        if not agents:
+            logger.error("No agents available")
+            self.app_state.set_status("No agents available", error=True)
+            return
+
+        self.app_state.set_status("Ready")
+
+        # Show config screen with agent selector
+        logger.info(f"Pushing AgentConfigScreen with {len(agents)} agents, current={current_agent_id}")
+        result = await self.push_screen(
+            AgentConfigScreen(agents, current_agent_id, self.langgraph_service)
+        )
+
+        if result:
+            # Handle any returned action (future: create assistant)
+            logger.info(f"Agent config result: {result}")
 
     async def action_toggle_sidebar(self) -> None:
         """Toggle sidebar visibility."""
@@ -667,6 +685,15 @@ class REPLApp(App[None]):
                 category="Agents",
                 description="Change current agent (F2)",
                 action=self.action_select_agent,
+            )
+        )
+        commands.append(
+            Command(
+                id="agents-config",
+                label="Agent Configuration",
+                category="Agents",
+                description="View agent context schema (F6)",
+                action=self.action_show_agent_config,
             )
         )
 
@@ -870,6 +897,14 @@ class REPLApp(App[None]):
     async def _cmd_toggle_dark(self) -> None:
         """Toggle dark mode."""
         self.action_toggle_dark()
+
+    async def _show_welcome(self) -> None:
+        """Show welcome modal on startup."""
+        result = await self.push_screen(WelcomeScreen())
+
+        if result == "commands":
+            # User chose to open command palette
+            await self.action_show_command_palette()
 
     async def action_quit(self) -> None:
         """Quit the application."""

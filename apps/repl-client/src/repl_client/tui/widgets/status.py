@@ -19,9 +19,7 @@ class StatusBar(Horizontal):
     DEFAULT_CSS = """
     StatusBar {
         height: 1;
-        dock: bottom;
-        background: $surface;
-        padding: 0 1;
+        width: 100%;
     }
 
     StatusBar .status-agent {

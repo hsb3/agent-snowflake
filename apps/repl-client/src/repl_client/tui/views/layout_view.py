@@ -33,18 +33,7 @@ class LayoutView(Container):
     - Footer (docked bottom, key bindings)
 
     This is the top-level presentational component.
-    """
-
-    DEFAULT_CSS = """
-    LayoutView {
-        height: 100%;
-        width: 100%;
-    }
-
-    LayoutView #main-content {
-        height: 1fr;
-        width: 100%;
-    }
+    Styling is in styles/index.tcss
     """
 
     def __init__(

@@ -1,0 +1,225 @@
+/* =============================================================================
+ * MODALS - Modal Screen Styling
+ * =============================================================================
+ * Command palette, selection screens, and configuration modals.
+ * Depends on: theme.tcss (for variables)
+ */
+
+/* =============================================================================
+ * Command Palette
+ * ============================================================================= */
+
+CommandPalette {
+    align: center middle;
+}
+
+CommandPalette > Container {
+    width: 80;
+    height: auto;
+    max-height: 30;
+    background: $surface-secondary;
+    border: thick $interactive;
+    padding: 1;
+}
+
+CommandPalette Input {
+    width: 100%;
+    margin-bottom: 1;
+    border: solid $interactive;
+}
+
+CommandPalette Label {
+    width: 100%;
+    margin-bottom: 1;
+    text-align: center;
+    color: $text-secondary;
+    text-style: italic;
+}
+
+CommandPalette OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 20;
+    border: none;
+    background: $surface-primary;
+}
+
+CommandPalette OptionList > .option-list--option {
+    padding: 0 1;
+}
+
+CommandPalette OptionList > .option-list--option-highlighted {
+    background: $interactive;
+}
+
+CommandPalette .command-category {
+    color: $interactive;
+    text-style: bold;
+    padding: 1 0 0 0;
+}
+
+CommandPalette .command-label {
+    text-style: bold;
+}
+
+CommandPalette .command-description {
+    color: $text-secondary;
+    text-style: italic;
+}
+
+/* =============================================================================
+ * Agent Selection Screen
+ * ============================================================================= */
+
+AgentSelectionScreen {
+    align: center middle;
+}
+
+AgentSelectionScreen > Container {
+    width: 60;
+    height: auto;
+    max-height: 25;
+    background: $surface-secondary;
+    border: thick $interactive;
+    padding: 1;
+}
+
+AgentSelectionScreen Label {
+    width: 100%;
+    text-align: center;
+    color: $text-secondary;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+AgentSelectionScreen OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 15;
+    border: none;
+    background: $surface-primary;
+}
+
+/* =============================================================================
+ * Thread Selection Screen
+ * ============================================================================= */
+
+ThreadSelectionScreen {
+    align: center middle;
+}
+
+ThreadSelectionScreen > Container {
+    width: 70;
+    height: auto;
+    max-height: 30;
+    background: $surface-secondary;
+    border: thick $interactive;
+    padding: 1;
+}
+
+ThreadSelectionScreen Label {
+    width: 100%;
+    text-align: center;
+    color: $text-secondary;
+    text-style: italic;
+    margin-bottom: 1;
+}
+
+ThreadSelectionScreen OptionList {
+    width: 100%;
+    height: auto;
+    max-height: 20;
+    border: none;
+    background: $surface-primary;
+}
+
+/* =============================================================================
+ * Agent Config Screen
+ * ============================================================================= */
+
+AgentConfigScreen {
+    align: center middle;
+}
+
+AgentConfigScreen > Container {
+    width: 85%;
+    height: 85%;
+    background: $surface-secondary;
+    border: thick $interactive;
+    padding: 1;
+    layout: vertical;
+}
+
+AgentConfigScreen .config-title {
+    text-style: bold;
+    color: $text-primary;
+    padding: 1;
+    text-align: center;
+    border-bottom: solid $border-subtle;
+    margin-bottom: 1;
+}
+
+AgentConfigScreen TabbedContent {
+    height: 1fr;
+}
+
+AgentConfigScreen TabPane {
+    height: 100%;
+    padding: 0;
+}
+
+AgentConfigScreen .button-bar {
+    height: auto;
+    padding: 1;
+    align: right middle;
+    dock: bottom;
+}
+
+AgentConfigScreen Button {
+    margin-left: 1;
+}
+
+AgentConfigScreen .placeholder-message {
+    color: $text-secondary;
+    padding: 4;
+    text-align: center;
+}
+
+/* =============================================================================
+ * Welcome Screen
+ * ============================================================================= */
+
+WelcomeScreen {
+    align: center middle;
+}
+
+WelcomeScreen > Container {
+    width: 70;
+    height: auto;
+    max-height: 80%;
+    background: $surface-secondary;
+    border: thick $interactive;
+    padding: 1 2;
+}
+
+WelcomeScreen .welcome-title {
+    text-align: center;
+    text-style: bold;
+    color: $interactive;
+    padding: 1;
+}
+
+WelcomeScreen Markdown {
+    margin: 1 0;
+    padding: 0 1;
+}
+
+WelcomeScreen .button-bar {
+    height: auto;
+    align: center middle;
+    padding: 1;
+}
+
+WelcomeScreen Button {
+    margin: 0 1;
+}

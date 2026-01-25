@@ -18,7 +18,7 @@ Each app can be used independently. REPL clients work with any LangGraph Dev Ser
 
 ### Full Monorepo
 ```bash
-make install-all          # Install all apps
+make install              # Install all apps (creates separate .venv per app)
 make dev                  # Start agent dev server with Studio UI
 # In another terminal:
 cd apps/repl-client && make tui    # Start TUI client
@@ -27,7 +27,7 @@ cd apps/repl-client && make tui    # Start TUI client
 ### Individual App
 ```bash
 cd apps/agent
-make install              # Install this app only
+make install              # Install this app only (creates apps/agent/.venv)
 make setup-chinook        # Download test database
 make dev                  # Start dev server
 ```
@@ -38,6 +38,7 @@ make dev                  # Start dev server
 agent-snowflake/
 ├── apps/
 │   ├── agent/                 # SQL agent (langgraph + langchain)
+│   │   ├── .venv/             # Independent virtual environment
 │   │   ├── src/agent_snowflake/
 │   │   ├── tests/
 │   │   ├── scripts/
@@ -47,6 +48,7 @@ agent-snowflake/
 │   │   └── CLAUDE.md          # Agent-specific guidance
 │   │
 │   ├── repl-client/           # Classic REPL (httpx + textual)
+│   │   ├── .venv/             # Independent virtual environment
 │   │   ├── src/repl_client/
 │   │   ├── tests/
 │   │   ├── scripts/
@@ -56,6 +58,7 @@ agent-snowflake/
 │   │   └── CLAUDE.md          # REPL-specific guidance
 │   │
 │   └── repl-client-graph/     # StateGraph REPL (langgraph + httpx)
+│       ├── .venv/             # Independent virtual environment
 │       ├── src/repl_client_graph/
 │       ├── tests/
 │       ├── scripts/
@@ -69,8 +72,7 @@ agent-snowflake/
 ├── docs/                       # Monorepo-wide documentation
 │   └── dev_docs/ai_docs/ai_gen/  # AI work documentation
 │
-├── pyproject.toml             # Workspace coordinator
-├── langgraph.json             # LangGraph server config
+├── pyproject.toml             # Ruff/tool config (no workspace)
 ├── Makefile                   # Orchestration commands
 └── CLAUDE.md                  # This file (monorepo overview)
 ```
@@ -79,13 +81,12 @@ agent-snowflake/
 
 ### Monorepo-Level (from root)
 ```bash
-make install-all          # Install all apps
-make test-all             # Run all tests
-make format-all           # Format all code
-make lint-all             # Lint all code
-make type-check-all       # Type check all code
+make install              # Install all apps (creates separate .venv per app)
+make test                 # Run all app tests
 make dev                  # Start agent dev server
 make dev-server           # Start server without browser
+make clean                # Remove caches (preserves .venv)
+make clean-venvs          # Remove all .venv directories
 ```
 
 ### Per-App Commands
@@ -93,24 +94,33 @@ Each app has its own Makefile. Navigate to the app directory and run `make help`
 ```bash
 cd apps/agent && make help
 cd apps/repl-client && make help
-cd apps/repl-client-graph && make help
 ```
 
-## Dependencies & Workspace
+## Dependencies & Virtual Environments
 
-This repo uses **uv workspaces** for dependency management:
+Each app has its **own independent virtual environment** to avoid dependency conflicts:
 
-```toml
-# Root pyproject.toml
-[tool.uv.workspace]
-members = ["apps/*", "packages/*"]
+```
+apps/agent/.venv/        # Has langgraph-cli, langchain, etc.
+apps/repl-client/.venv/  # Has langgraph-sdk, textual, httpx
 ```
 
-- `uv sync` - Install all workspace members
-- `uv sync --package agent-snowflake` - Install only agent
-- `uv sync --package repl-client` - Install only REPL client
+This separation is important because:
+- The agent needs heavy server-side dependencies (`langgraph-cli[inmem]`)
+- REPL clients only need the lightweight SDK (`langgraph-sdk`)
+- Mixing these in one venv causes version conflicts
 
-Each app declares only the dependencies it needs. REPL clients don't require langgraph server dependencies.
+### Installing Dependencies
+```bash
+# From root - install all apps
+make install
+
+# Or install individual apps
+cd apps/agent && make install
+cd apps/repl-client && make install
+```
+
+Each app declares only the dependencies it needs in its own `pyproject.toml`.
 
 ## Environment Configuration
 
@@ -138,16 +148,15 @@ Each app declares only the dependencies it needs. REPL clients don't require lan
 ## Testing
 
 ```bash
-# All tests
-make test-all
+# All tests (from root)
+make test
 
-# Single app
+# Single app (from app directory)
 cd apps/agent && make test
 cd apps/repl-client && make test
-cd apps/repl-client-graph && make test
 
-# Specific test
-uv run pytest apps/agent/tests/test_agent.py::test_name -v
+# Specific test (from app directory)
+cd apps/agent && uv run pytest tests/test_agent.py::test_name -v
 ```
 
 Integration tests require a running server and are marked with `@pytest.mark.integration`.
@@ -162,7 +171,7 @@ Integration tests require a running server and are marked with `@pytest.mark.int
 
 ## Tooling
 
-- **Package Manager**: `uv` with workspaces
+- **Package Manager**: `uv` (independent venvs per app)
 - **Formatting/Linting**: `ruff`
 - **Type Checking**: `ty`
 - **Testing**: `pytest` with `pytest-asyncio`

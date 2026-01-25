@@ -102,9 +102,15 @@ class TestStatusBarReactivity:
 class TestStatusBarLayout:
     """Test StatusBar layout and styling."""
 
-    async def test_docked_to_bottom(self, status_bar):
-        """Test StatusBar is docked to bottom."""
-        assert status_bar.styles.dock == "bottom"
+    async def test_not_docked(self, status_bar):
+        """Test StatusBar is not docked (flows in normal layout).
+
+        Note: StatusBar should NOT have dock: bottom in DEFAULT_CSS
+        to avoid overlapping with other widgets. External CSS in
+        layout.tcss controls the overall layout positioning.
+        """
+        # Should be empty or none, not "bottom"
+        assert status_bar.styles.dock != "bottom"
 
     async def test_height_is_one(self, status_bar):
         """Test StatusBar height is 1."""

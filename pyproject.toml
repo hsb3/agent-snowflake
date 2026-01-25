@@ -4,17 +4,8 @@ version = "0.1.0"
 description = "Monorepo containing LangGraph SQL agent and REPL clients"
 requires-python = ">=3.12"
 
-[tool.uv.workspace]
-members = ["apps/*"]
-
-[dependency-groups]
-dev = [
-    "langgraph-cli[inmem]>=0.4.12",
-    "pytest>=9.0.2",
-    "pytest-asyncio>=1.3.0",
-    "ruff>=0.14.14",
-    "ty>=0.0.13",
-]
+# NOTE: No workspace configuration - each app has its own .venv
+# Run `make install` from within each app directory
 
 [tool.ruff]
 line-length = 100
@@ -24,12 +15,5 @@ target-version = "py312"
 select = ["E", "W", "F", "I", "B", "C4"]
 ignore = ["E501"]
 
-[tool.pytest.ini_options]
-pythonpath = [".", "apps/agent/src", "apps/repl-client/src", "apps/repl-client-graph/src"]
-testpaths = ["apps/agent/tests", "apps/repl-client/tests", "apps/repl-client-graph/tests"]
-python_files = ["test_*.py"]
-asyncio_mode = "auto"
-asyncio_default_fixture_loop_scope = "function"
-markers = [
-    "integration: marks tests as integration tests (require running server)",
-]
+# NOTE: Each app has its own pytest config in its pyproject.toml
+# Run tests from within each app directory: cd apps/<app> && make test

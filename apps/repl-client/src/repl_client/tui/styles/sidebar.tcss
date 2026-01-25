@@ -1,0 +1,82 @@
+/* =============================================================================
+ * SIDEBAR - Sidebar Widget Styling
+ * =============================================================================
+ * Tabbed sidebar for threads, agents, session info, and tools.
+ * Depends on: theme.tcss (for variables)
+ */
+
+Sidebar {
+    width: 0;
+    height: 1fr;
+    background: $surface-primary;
+    border-left: solid $interactive;
+    display: none;
+}
+
+Sidebar.visible {
+    width: 40%;
+    display: block;
+}
+
+Sidebar.expanded {
+    width: 60%;
+    display: block;
+}
+
+Sidebar TabbedContent {
+    height: 1fr;
+    width: 100%;
+}
+
+Sidebar TabPane {
+    padding: 1;
+}
+
+/* Thread items */
+Sidebar .thread-item {
+    padding: 0 1;
+    margin: 0 0 1 0;
+    background: $surface-primary;
+    height: auto;
+}
+
+Sidebar .thread-item:hover {
+    background: $surface-secondary;
+}
+
+Sidebar .thread-item.current {
+    background: $interactive;
+}
+
+/* Agent items */
+Sidebar .agent-item {
+    padding: 0 1;
+    margin: 0 0 1 0;
+    background: $surface-primary;
+    height: auto;
+}
+
+Sidebar .agent-item:hover {
+    background: $surface-secondary;
+}
+
+Sidebar .agent-item.current {
+    background: $interactive;
+}
+
+/* Session info */
+Sidebar .session-info {
+    padding: 1;
+    background: $surface-primary;
+}
+
+/* Tool call items */
+Sidebar .tool-call-item {
+    padding: 0 1;
+    margin: 0 0 1 0;
+    background: $surface-primary;
+}
+
+Sidebar .tool-call-item:hover {
+    background: $surface-secondary;
+}

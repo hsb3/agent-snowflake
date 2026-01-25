@@ -45,9 +45,9 @@ help: ## Show this help message
 # -----------------------------------------------------------------------------
 
 .PHONY: install
-install: ## Install dependencies with uv
+install: ## Install dependencies with uv (creates local .venv)
 	@echo "$(BLUE)Installing dependencies...$(RESET)"
-	$(UV) sync --package $(PACKAGE)
+	$(UV) sync --dev
 	@echo "$(GREEN)Dependencies installed$(RESET)"
 
 .PHONY: setup-chinook

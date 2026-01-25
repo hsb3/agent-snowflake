@@ -1,62 +1,89 @@
 # TUI Styles - Modular CSS Organization
 
-This directory contains the CSS styling for the REPL TUI, organized into modular sections for better maintainability.
+Textual CSS files for the REPL TUI, organized into semantic modules.
 
 ## File Structure
 
-### `index.tcss` (Master file - USED BY APP)
-The main CSS file loaded by `app.py`. Contains all styles organized into four logical sections:
+```
+styles/
+├── theme.tcss       # Design tokens (colors, semantic variables) - FIRST
+├── layout.tcss      # Screen structure, containers, layout rules
+├── components.tcss  # Widget styling (messages, inputs, status)
+├── sidebar.tcss     # Sidebar widget styles
+├── modals.tcss      # Modal screens (command palette, selection)
+├── states.tcss      # Focus, hover, status states
+├── light-mode.tcss  # Light theme overrides - LAST
+├── index.tcss       # BUILD OUTPUT (concatenated, loaded by app)
+└── README.md        # This file
+```
 
-1. **Theme** - Design tokens and color variables
-2. **Layout** - Screen structure and container layout rules
-3. **Components** - Widget-specific styling
-4. **States** - State-based styling (focus, hover, error states)
+## Build Process
 
-**Note:** Textual CSS does not support `@import` statements, so all styles are consolidated in this single file with clear section boundaries.
+Textual CSS doesn't support `@import`, so modular files are **concatenated** into `index.tcss`:
 
-### Individual Section Files (Reference Only)
+```bash
+make build-css  # Concatenates: theme → layout → components → sidebar → modals → states → light-mode
+```
 
-The following files serve as documentation and reference for each CSS section:
+The order matters - theme.tcss must be first to define variables before use.
 
-- `theme.tcss` - Theme section reference
-- `layout.tcss` - Layout section reference
-- `components.tcss` - Components section reference
-- `states.tcss` - States section reference
+**After editing any `.tcss` file, run `make build-css` to rebuild `index.tcss`.**
 
-These files are NOT directly imported but contain the same CSS found in their respective sections of `index.tcss`. They exist to:
-- Document the modular organization
-- Make it easier to locate specific styles
-- Support future refactoring if Textual adds import support
-- Provide clear separation of concerns
+## Design System
 
-## Usage
+Based on [Carbon Design System](https://carbondesignsystem.com/guidelines/color/usage/) (IBM).
 
-The app loads CSS via:
-```python
-# src/repl_client/tui/app.py
-CSS_PATH = "styles/index.tcss"
+### Semantic Variables (theme.tcss)
+
+**Surfaces:**
+- `$surface-primary` - Main background (gray-90 dark, gray-30 light)
+- `$surface-secondary` - Panels, cards (gray-80 dark)
+- `$surface-tertiary` - Nested content (gray-70 dark)
+
+**Text:**
+- `$text-primary` - Main text (gray-10 dark)
+- `$text-secondary` - Secondary text (gray-30 dark)
+- `$text-tertiary` - Subtle text (gray-40 dark)
+
+**Interactive:**
+- `$interactive` - Primary interactive color (blue-60)
+- `$interactive-hover` - Hover state (blue-50 dark)
+
+**Status:**
+- `$status-success` - Success (green-40)
+- `$status-error` - Error (red-60)
+- `$status-warning` - Warning (yellow-30)
+- `$status-info` - Info (blue-50)
+
+**Borders:**
+- `$border-subtle` - Subtle borders (gray-80 dark)
+- `$border-default` - Default borders (gray-70 dark)
+
+### Light Mode
+
+Light mode variables are defined with `-light` suffix and used in `light-mode.tcss` with `:light` pseudo-class:
+
+```css
+/* In theme.tcss */
+$surface-primary-light: $gray-30;
+
+/* In light-mode.tcss */
+Screen:light #message-area {
+    background: $surface-primary-light;
+}
 ```
 
 ## Modifying Styles
 
-When making CSS changes:
+1. **Variables** - Edit `theme.tcss` for colors, design tokens
+2. **Layout** - Edit `layout.tcss` for screen structure
+3. **Components** - Edit `components.tcss` for widget appearance
+4. **Modals** - Edit `modals.tcss` for modal screens
+5. **States** - Edit `states.tcss` for focus/hover/status
+6. **Light mode** - Edit `light-mode.tcss` for light theme
 
-1. **Edit `index.tcss`** - This is the file actually used by the app
-2. **Update corresponding section file** - Keep reference files in sync (optional but recommended)
-3. **Follow section organization** - Keep styles in their appropriate sections:
-   - Theme: Color variables, design tokens
-   - Layout: Screen structure, grid/dock/height/width
-   - Components: Widget-specific appearance
-   - States: Focus, hover, error, etc.
+## Textual CSS Reference
 
-## Benefits of This Organization
-
-- **Easier navigation** - Find styles by category
-- **Clearer intent** - Separate layout from appearance from interaction
-- **Better maintainability** - Change theme without affecting layout
-- **Future-ready** - If Textual adds import support, easy to split
-- **Documentation** - Section files serve as living documentation
-
-## Migration Notes
-
-This directory was created in Phase 1 of the TUI refactor (2026-01-24) by splitting the monolithic `repl.tcss` file. The old file has been deprecated but kept for reference until Phase 2 is complete.
+- [Design System](https://textual.textualize.io/guide/design/)
+- [CSS Reference](https://textual.textualize.io/guide/CSS/)
+- [Styles Reference](https://textual.textualize.io/styles/)

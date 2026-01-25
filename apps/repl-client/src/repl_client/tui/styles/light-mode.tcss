@@ -1,0 +1,306 @@
+/* =============================================================================
+ * LIGHT MODE - Light Theme Overrides
+ * =============================================================================
+ * All :light pseudo-class overrides for light mode support.
+ * Depends on: theme.tcss (for light mode variables)
+ */
+
+/* =============================================================================
+ * Layout - Light Mode
+ * ============================================================================= */
+
+Screen:light #message-area {
+    background: $surface-primary-light;
+}
+
+Screen:light ChatInput {
+    background: $surface-primary-light;
+    border: solid $interactive-light;
+}
+
+Screen:light ChatInput .input-prompt {
+    color: $interactive-light;
+}
+
+Screen:light StatusArea {
+    background: $surface-primary-light;
+    border-top: solid $interactive-light;
+}
+
+Screen:light UserStatusLine {
+    background: $surface-primary-light;
+}
+
+Screen:light UserStatusLine .status-divider {
+    color: $text-secondary-light;
+}
+
+Screen:light ClientInfoLine {
+    background: $surface-primary-light;
+}
+
+Screen:light ClientInfoLine .status-last-update {
+    color: $text-secondary-light;
+}
+
+Screen:light ClientInfoLine .status-message {
+    color: $text-primary-light;
+}
+
+Screen:light ClientInfoLine .status-divider {
+    color: $text-secondary-light;
+}
+
+Screen:light StatusBar {
+    background: $surface-primary-light;
+    border-top: solid $interactive-light;
+}
+
+Screen:light Header {
+    background: $interactive-light;
+}
+
+Screen:light Footer {
+    background: $surface-secondary-light;
+}
+
+/* =============================================================================
+ * Components - Light Mode
+ * ============================================================================= */
+
+Screen:light UserMessage {
+    background: $surface-primary-light;
+}
+
+Screen:light AssistantMessage Markdown {
+    border-left: thick $interactive-light;
+}
+
+Screen:light ToolCallMessage {
+    background: $surface-primary-light;
+}
+
+Screen:light ToolCallMessage .tool-args {
+    color: $text-secondary-light;
+}
+
+Screen:light ToolCallMessage .tool-output {
+    background: $surface-tertiary-light;
+    color: $text-secondary-light;
+}
+
+Screen:light ToolCallMessage .tool-output-preview {
+    color: $text-secondary-light;
+}
+
+Screen:light .system-message {
+    background: $surface-tertiary-light;
+    border-left: thick $interactive-light;
+    color: $text-primary-light;
+}
+
+Screen:light StatusBar .status-message {
+    color: $text-primary-light;
+}
+
+/* Schema Viewer */
+Screen:light SchemaViewer {
+    background: $surface-primary-light;
+}
+
+Screen:light SchemaViewer .schema-header {
+    color: $text-primary-light;
+    background: $surface-secondary-light;
+}
+
+Screen:light SchemaViewer .schema-empty {
+    color: $text-tertiary-light;
+}
+
+Screen:light SchemaViewer .schema-graph-id {
+    color: $interactive-light;
+}
+
+Screen:light SchemaFieldWidget {
+    background: $surface-secondary-light;
+    border: solid $border-subtle-light;
+}
+
+Screen:light SchemaFieldWidget .field-name {
+    color: $text-primary-light;
+}
+
+Screen:light SchemaFieldWidget .field-type {
+    color: $interactive-light;
+}
+
+Screen:light SchemaFieldWidget .field-description {
+    color: $text-secondary-light;
+}
+
+/* Agent Detail Widgets */
+Screen:light AgentDetailItem {
+    background: $surface-secondary-light;
+    border: solid $border-subtle-light;
+}
+
+Screen:light AgentDetailItem.focused {
+    background: $surface-tertiary-light;
+    border: solid $interactive-light;
+}
+
+Screen:light AgentDetailItem .agent-name {
+    color: $text-primary-light;
+}
+
+Screen:light AgentDetailItem .agent-id {
+    color: $text-secondary-light;
+}
+
+Screen:light AgentDetailItem .agent-meta {
+    color: $text-tertiary-light;
+}
+
+Screen:light AgentDetailList {
+    background: $surface-primary-light;
+}
+
+/* =============================================================================
+ * States - Light Mode
+ * ============================================================================= */
+
+Screen:light ToolCallMessage:hover {
+    background: $surface-secondary-light;
+}
+
+/* =============================================================================
+ * Modals - Light Mode
+ * ============================================================================= */
+
+Screen:light CommandPalette > Container {
+    background: $surface-secondary-light;
+    border: thick $interactive-light;
+}
+
+Screen:light CommandPalette Input {
+    border: solid $interactive-light;
+}
+
+Screen:light CommandPalette Label {
+    color: $text-secondary-light;
+}
+
+Screen:light CommandPalette OptionList {
+    background: $surface-primary-light;
+}
+
+Screen:light CommandPalette OptionList > .option-list--option-highlighted {
+    background: $interactive-light;
+}
+
+Screen:light CommandPalette .command-category {
+    color: $interactive-light;
+}
+
+Screen:light CommandPalette .command-description {
+    color: $text-secondary-light;
+}
+
+Screen:light AgentSelectionScreen > Container {
+    background: $surface-secondary-light;
+    border: thick $interactive-light;
+}
+
+Screen:light AgentSelectionScreen Label {
+    color: $text-secondary-light;
+}
+
+Screen:light AgentSelectionScreen OptionList {
+    background: $surface-primary-light;
+}
+
+Screen:light ThreadSelectionScreen > Container {
+    background: $surface-secondary-light;
+    border: thick $interactive-light;
+}
+
+Screen:light ThreadSelectionScreen Label {
+    color: $text-secondary-light;
+}
+
+Screen:light ThreadSelectionScreen OptionList {
+    background: $surface-primary-light;
+}
+
+Screen:light AgentConfigScreen > Container {
+    background: $surface-secondary-light;
+    border: thick $interactive-light;
+}
+
+Screen:light AgentConfigScreen .config-title {
+    color: $text-primary-light;
+    border-bottom: solid $border-subtle-light;
+}
+
+Screen:light AgentConfigScreen .placeholder-message {
+    color: $text-secondary-light;
+}
+
+/* =============================================================================
+ * Sidebar - Light Mode
+ * ============================================================================= */
+
+Screen:light Sidebar {
+    background: $surface-primary-light;
+    border-left: solid $interactive-light;
+}
+
+Screen:light Sidebar TabbedContent:focus-within {
+    border: tall $interactive-light;
+}
+
+Screen:light Sidebar .thread-item {
+    background: $surface-primary-light;
+}
+
+Screen:light Sidebar .thread-item:hover {
+    background: $surface-secondary-light;
+}
+
+Screen:light Sidebar .thread-item.current {
+    background: $interactive-hover-light;
+}
+
+Screen:light Sidebar .thread-item.focused {
+    background: $surface-tertiary-light;
+    border-left: thick $interactive-light;
+}
+
+Screen:light Sidebar .agent-item {
+    background: $surface-primary-light;
+}
+
+Screen:light Sidebar .agent-item:hover {
+    background: $surface-secondary-light;
+}
+
+Screen:light Sidebar .agent-item.current {
+    background: $interactive-hover-light;
+}
+
+Screen:light Sidebar .agent-item.focused {
+    background: $surface-tertiary-light;
+    border-left: thick $interactive-light;
+}
+
+Screen:light Sidebar .session-info {
+    background: $surface-primary-light;
+}
+
+Screen:light Sidebar .tool-call-item {
+    background: $surface-primary-light;
+}
+
+Screen:light Sidebar .tool-call-item:hover {
+    background: $surface-secondary-light;
+}

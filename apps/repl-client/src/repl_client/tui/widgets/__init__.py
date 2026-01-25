@@ -1,5 +1,6 @@
 """TUI widgets for REPL client."""
 
+from .agent_detail import AgentDetailItem, AgentDetailList, AgentSelector
 from .command_palette import Command, CommandPalette
 from .history import HistoryManager
 from .input import ChatInput, ChatTextArea
@@ -10,6 +11,9 @@ from .status import StatusBar
 from .status_area import ClientInfoLine, StatusArea, UserStatusLine
 
 __all__ = [
+    "AgentDetailItem",
+    "AgentDetailList",
+    "AgentSelector",
     "AssistantMessage",
     "ChatInput",
     "ChatTextArea",

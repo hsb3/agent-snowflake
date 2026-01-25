@@ -1,42 +1,89 @@
-/* States section - State-dependent styling
- *
- * NOTE: This file is part of the modular CSS organization but is not directly
- * imported (Textual CSS doesn't support @import). Instead, this content is
- * included in index.tcss under the "STATES" section.
- *
- * This file serves as documentation and reference for state-related styles.
+/* =============================================================================
+ * STATES - Interactive State Styling
+ * =============================================================================
+ * Focus, hover, active, and status states.
+ * Depends on: theme.tcss (for variables)
  */
 
-/* State-dependent styling - INTERACTION STATES */
+/* =============================================================================
+ * Focus States
+ * ============================================================================= */
 
-/* Focus states */
 ChatInput ChatTextArea:focus {
     border: none;
 }
 
-/* Tool call status states */
+Sidebar TabbedContent:focus-within {
+    border: tall $interactive;
+}
+
+Sidebar .thread-item.focused {
+    background: $surface-secondary;
+    border-left: thick $interactive;
+}
+
+Sidebar .agent-item.focused {
+    background: $surface-secondary;
+    border-left: thick $interactive;
+}
+
+AgentDetailItem.focused {
+    background: $surface-tertiary;
+    border: solid $interactive;
+}
+
+AgentDetailItem.current {
+    border-left: thick $status-success;
+}
+
+/* =============================================================================
+ * Hover States
+ * ============================================================================= */
+
+ToolCallMessage:hover {
+    background: $surface-secondary;
+}
+
+/* =============================================================================
+ * Status States (Tool Calls)
+ * ============================================================================= */
+
 ToolCallMessage .tool-status.pending {
-    color: $warning;
+    color: $status-warning;
 }
 
 ToolCallMessage .tool-status.success {
-    color: $success;
+    color: $status-success;
 }
 
 ToolCallMessage .tool-status.error {
-    color: $error;
+    color: $status-error;
 }
 
 ToolCallMessage .tool-status.rejected {
-    color: $warning;
+    color: $status-warning;
 }
 
-/* Hover states */
-ToolCallMessage:hover {
-    background: $surface-lighten-1;
+/* =============================================================================
+ * Connection States
+ * ============================================================================= */
+
+ClientInfoLine .status-connection.connected {
+    color: $status-success;
 }
 
-/* Status bar error state */
+ClientInfoLine .status-connection.disconnected {
+    color: $status-error;
+}
+
+ClientInfoLine .status-message.error {
+    color: $status-error;
+}
+
+ClientInfoLine .status-message.warning {
+    color: $status-warning;
+}
+
 StatusBar .status-message.error {
-    color: $error;
+    color: $status-error;
 }

@@ -33,16 +33,8 @@ class MessageAreaView(ScrollableContainer):
     - Mount tool call messages
     - Show/hide loading indicators
     - Clear all messages
-    """
 
-    DEFAULT_CSS = """
-    MessageAreaView {
-        height: 1fr;
-        width: 1fr;
-        background: $surface;
-        padding: 0 1;
-        overflow-y: auto;
-    }
+    Styling is in styles/index.tcss
     """
 
     async def add_user_message(self, text: str) -> UserMessage:

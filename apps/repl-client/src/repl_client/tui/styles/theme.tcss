@@ -1,35 +1,86 @@
-/* Theme section - Design tokens and theme variables
- *
- * NOTE: This file is part of the modular CSS organization but is not directly
- * imported (Textual CSS doesn't support @import). Instead, this content is
- * included in index.tcss under the "THEME" section.
- *
- * This file serves as documentation and reference for theme-related styles.
+/* =============================================================================
+ * THEME - Carbon Design System Color Tokens
+ * =============================================================================
+ * Must be loaded FIRST - defines all variables used by other CSS files.
+ * Colors based on Carbon Design System (IBM)
+ * Source: https://carbondesignsystem.com/guidelines/color/usage/
  */
 
-/* Theme variables and design tokens - DESIGN SYSTEM */
+/* =============================================================================
+ * Semantic Tokens - Dark Mode (Default)
+ * ============================================================================= */
 
-/* NOTE: Textual provides built-in design tokens via $variables.
-   This file documents which tokens are used throughout the app.
-   See: https://textual.textualize.io/guide/design/#design-tokens */
+/* Surfaces (Gray scale) */
+$surface-sunken:    #161616;  /* gray-100 */
+$surface-primary:   #262626;  /* gray-90 */
+$surface-secondary: #393939;  /* gray-80 */
+$surface-tertiary:  #525252;  /* gray-70 */
+$surface-overlay:   #393939;  /* gray-80 */
 
-/* Textual built-in tokens used:
-   - $surface: Background color
-   - $surface-lighten-1: Lighter background for hover states
-   - $surface-darken-1: Darker background for nested content
-   - $panel: Panel background
-   - $primary: Primary accent color (blue/cyan)
-   - $text: Normal text color
-   - $text-muted: Secondary/muted text
-   - $success: Success state color (green)
-   - $warning: Warning state color (yellow)
-   - $error: Error state color (red)
-*/
+/* Text */
+$text-primary:   #f4f4f4;  /* gray-10 */
+$text-secondary: #c6c6c6;  /* gray-30 */
+$text-tertiary:  #a8a8a8;  /* gray-40 */
+$text-disabled:  #525252;  /* gray-70 */
 
-/* Custom extensions could be added here if needed:
-   - Custom color variables
-   - Spacing scale overrides
-   - Typography tokens
-   - Border definitions
-   - Shadow definitions
-*/
+/* Interactive (Blue scale) */
+$interactive:        #0f62fe;  /* blue-60 */
+$interactive-hover:  #4589ff;  /* blue-50 */
+$interactive-active: #78a9ff;  /* blue-40 */
+
+/* Borders */
+$border-subtle:   #393939;  /* gray-80 */
+$border-default:  #525252;  /* gray-70 */
+$border-strong:   #8d8d8d;  /* gray-50 */
+$border-focus:    #ffffff;  /* white */
+$border-selected: #4589ff;  /* blue-50 */
+
+/* Status */
+$status-success: #42be65;  /* green-40 */
+$status-error:   #da1e28;  /* red-60 */
+$status-warning: #f1c21b;  /* yellow-30 */
+$status-info:    #4589ff;  /* blue-50 */
+
+/* =============================================================================
+ * Semantic Tokens - Light Mode
+ * ============================================================================= */
+
+$surface-sunken-light:    #f4f4f4;  /* gray-10 */
+$surface-primary-light:   #c6c6c6;  /* gray-30 */
+$surface-secondary-light: #e0e0e0;  /* gray-20 */
+$surface-tertiary-light:  #f4f4f4;  /* gray-10 */
+$surface-overlay-light:   #c6c6c6;  /* gray-30 */
+
+$text-primary-light:   #000000;  /* black */
+$text-secondary-light: #161616;  /* gray-100 */
+$text-tertiary-light:  #393939;  /* gray-80 */
+$text-disabled-light:  #6f6f6f;  /* gray-60 */
+
+$interactive-light:        #0f62fe;  /* blue-60 */
+$interactive-hover-light:  #0043ce;  /* blue-70 */
+$interactive-active-light: #002d9c;  /* blue-80 */
+
+$border-subtle-light:   #a8a8a8;  /* gray-40 */
+$border-default-light:  #8d8d8d;  /* gray-50 */
+$border-strong-light:   #525252;  /* gray-70 */
+$border-focus-light:    #0f62fe;  /* blue-60 */
+$border-selected-light: #0f62fe;  /* blue-60 */
+
+/* =============================================================================
+ * Textual Built-in Overrides
+ * ============================================================================= */
+
+$surface:           #262626;  /* surface-primary */
+$text:              #f4f4f4;  /* text-primary */
+$text-muted:        #c6c6c6;  /* text-secondary */
+$primary:           #0f62fe;  /* interactive */
+$secondary:         #393939;  /* surface-secondary */
+$accent:            #0f62fe;  /* interactive */
+$success:           #42be65;  /* status-success */
+$error:             #da1e28;  /* status-error */
+$warning:           #f1c21b;  /* status-warning */
+$surface-lighten-1: #393939;  /* surface-secondary */
+$surface-lighten-2: #525252;  /* surface-tertiary */
+$surface-darken-1:  #161616;  /* surface-sunken */
+$primary-lighten-1: #4589ff;  /* interactive-hover */
+$primary-darken-1:  #78a9ff;  /* interactive-active */

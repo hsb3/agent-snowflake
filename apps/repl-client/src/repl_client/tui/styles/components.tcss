@@ -1,24 +1,24 @@
-/* Components section - Individual widget styling
- *
- * NOTE: This file is part of the modular CSS organization but is not directly
- * imported (Textual CSS doesn't support @import). Instead, this content is
- * included in index.tcss under the "COMPONENTS" section.
- *
- * This file serves as documentation and reference for component-related styles.
+/* =============================================================================
+ * COMPONENTS - Widget Styling
+ * =============================================================================
+ * Individual widget appearance and styling.
+ * Depends on: theme.tcss (for variables)
  */
 
-/* Individual widget styling - COMPONENT LIBRARY */
+/* =============================================================================
+ * Messages
+ * ============================================================================= */
 
 /* User messages - green border */
 UserMessage {
     height: auto;
     padding: 0 1;
     margin: 1 0;
-    background: $surface;
-    border-left: thick green;
+    background: $surface-primary;
+    border-left: thick $status-success;
 }
 
-/* Assistant messages - cyan border */
+/* Assistant messages - blue border */
 AssistantMessage {
     height: auto;
     padding: 0 1;
@@ -28,7 +28,7 @@ AssistantMessage {
 AssistantMessage Markdown {
     padding: 0;
     margin: 0;
-    border-left: thick cyan;
+    border-left: thick $interactive;
 }
 
 /* Tool call messages - yellow border */
@@ -36,17 +36,17 @@ ToolCallMessage {
     height: auto;
     padding: 0 1;
     margin: 1 0;
-    background: $surface;
-    border-left: thick yellow;
+    background: $surface-primary;
+    border-left: thick $status-warning;
 }
 
 ToolCallMessage .tool-header {
-    color: yellow;
+    color: $status-warning;
     text-style: bold;
 }
 
 ToolCallMessage .tool-args {
-    color: $text-muted;
+    color: $text-secondary;
     margin-left: 2;
 }
 
@@ -58,21 +58,31 @@ ToolCallMessage .tool-output {
     margin-left: 2;
     margin-top: 1;
     padding: 1;
-    background: $surface-darken-1;
-    color: $text-muted;
+    background: $surface-tertiary;
+    color: $text-secondary;
     max-height: 20;
     overflow-y: auto;
 }
 
 ToolCallMessage .tool-output-preview {
     margin-left: 2;
-    color: $text-muted;
+    color: $text-secondary;
 }
 
 ToolCallMessage .tool-output-hint {
     margin-left: 2;
-    color: cyan;
+    color: $status-info;
     text-style: italic;
+}
+
+/* System messages */
+.system-message {
+    height: auto;
+    padding: 1;
+    margin: 1 0;
+    background: $surface-tertiary;
+    border-left: thick $interactive;
+    color: $text-primary;
 }
 
 /* Loading widget */
@@ -83,33 +93,122 @@ LoadingWidget {
 }
 
 LoadingWidget .loading-spinner {
-    color: cyan;
+    color: $status-info;
     text-style: bold;
 }
 
-/* Chat input prompt styling */
-ChatInput .input-prompt {
-    color: $primary;
-    text-style: bold;
-}
+/* =============================================================================
+ * Status Bar
+ * ============================================================================= */
 
-/* Status bar items */
 StatusBar .status-item {
     padding: 0 1;
 }
 
 StatusBar .status-agent {
-    color: cyan;
+    color: $status-info;
 }
 
 StatusBar .status-thread {
-    color: yellow;
+    color: $status-warning;
 }
 
 StatusBar .status-tokens {
-    color: green;
+    color: $status-success;
 }
 
 StatusBar .status-message {
-    color: $text;
+    color: $text-primary;
+}
+
+/* =============================================================================
+ * Schema Viewer
+ * ============================================================================= */
+
+SchemaViewer {
+    padding: 1;
+    height: 100%;
+    background: $surface-primary;
+}
+
+SchemaViewer .schema-header {
+    text-style: bold;
+    color: $text-primary;
+    margin-bottom: 1;
+    padding: 1;
+    background: $surface-secondary;
+}
+
+SchemaViewer .schema-empty {
+    color: $text-tertiary;
+    padding: 2;
+    text-align: center;
+}
+
+SchemaViewer .schema-graph-id {
+    color: $interactive;
+    margin-bottom: 1;
+}
+
+SchemaFieldWidget {
+    padding: 1 2;
+    margin: 0 0 1 0;
+    background: $surface-secondary;
+    border: solid $border-subtle;
+}
+
+SchemaFieldWidget .field-name {
+    text-style: bold;
+    color: $text-primary;
+}
+
+SchemaFieldWidget .field-type {
+    color: $interactive;
+    margin-left: 1;
+}
+
+SchemaFieldWidget .field-default {
+    color: $status-success;
+    margin-left: 1;
+}
+
+SchemaFieldWidget .field-description {
+    color: $text-secondary;
+    margin-top: 1;
+}
+
+/* =============================================================================
+ * Agent Detail Widgets
+ * ============================================================================= */
+
+AgentDetailItem {
+    padding: 1;
+    margin: 0 0 1 0;
+    background: $surface-secondary;
+    border: solid $border-subtle;
+}
+
+AgentDetailItem .agent-name {
+    text-style: bold;
+    color: $text-primary;
+}
+
+AgentDetailItem .agent-id {
+    color: $text-secondary;
+    text-style: italic;
+}
+
+AgentDetailItem .agent-meta {
+    color: $text-tertiary;
+}
+
+AgentDetailList {
+    height: 100%;
+    padding: 1;
+    background: $surface-primary;
+}
+
+AgentSelector {
+    height: 100%;
+    width: 100%;
 }

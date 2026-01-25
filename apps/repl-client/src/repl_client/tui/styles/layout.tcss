@@ -1,30 +1,39 @@
-/* Layout section - Screen and container layout
- *
- * NOTE: This file is part of the modular CSS organization but is not directly
- * imported (Textual CSS doesn't support @import). Instead, this content is
- * included in index.tcss under the "LAYOUT" section.
- *
- * This file serves as documentation and reference for layout-related styles.
+/* =============================================================================
+ * LAYOUT - Screen and Container Structure
+ * =============================================================================
+ * Defines the structural layout of the application.
+ * Depends on: theme.tcss (for variables)
  */
 
-/* Screen and container layout - THE MASTER BLUEPRINT */
-
-/* Global app styling */
+/* Global app styling - Dark Mode (default) */
 Screen {
-    background: $surface;
+    background: $surface-primary;
+}
+
+/* Global app styling - Light Mode */
+Screen:light {
+    background: $surface-primary-light;
+}
+
+/* Main layout container - ensures proper vertical stacking */
+LayoutView {
+    layout: vertical;
+    height: 100%;
+    width: 100%;
 }
 
 /* Main content horizontal container */
 #main-content {
+    layout: horizontal;
     height: 1fr;
     width: 100%;
 }
 
 /* Messages container */
-#messages {
+#message-area {
     height: 1fr;
     width: 1fr;
-    background: $surface;
+    background: $surface-primary;
     padding: 0 1;
     overflow-y: auto;
 }
@@ -35,8 +44,8 @@ ChatInput {
     min-height: 3;
     max-height: 12;
     padding: 0;
-    background: $surface;
-    border: solid $primary;
+    background: $surface-primary;
+    border: solid $interactive;
 }
 
 ChatInput .input-row {
@@ -48,6 +57,8 @@ ChatInput .input-prompt {
     width: 3;
     height: 1;
     padding: 0 1;
+    color: $interactive;
+    text-style: bold;
 }
 
 ChatInput ChatTextArea {
@@ -62,24 +73,95 @@ ChatInput ChatTextArea {
 
 /* Status area - two lines between input and footer */
 StatusArea {
-    height: 2;
-    background: $surface;
-    border-top: solid $primary;
+    layout: vertical;
+    height: 3;
+    width: 100%;
+    background: $surface-primary;
+    border-top: solid $interactive;
+}
+
+UserStatusLine {
+    height: 1;
+    width: 100%;
+    background: $surface-primary;
+    padding: 0 1;
+}
+
+UserStatusLine .status-agent {
+    width: auto;
+    padding: 0 1;
+    color: $status-info;
+}
+
+UserStatusLine .status-thread {
+    width: auto;
+    padding: 0 1;
+    color: $status-warning;
+}
+
+UserStatusLine .status-tokens {
+    width: auto;
+    padding: 0 1;
+    color: $status-success;
+}
+
+UserStatusLine .status-divider {
+    color: $text-secondary;
+    padding: 0 1;
+}
+
+UserStatusLine .status-spacer {
+    width: 1fr;
+}
+
+ClientInfoLine {
+    height: 1;
+    width: 100%;
+    background: $surface-primary;
+    padding: 0 1;
+}
+
+ClientInfoLine .status-connection {
+    width: auto;
+    padding: 0 1;
+}
+
+ClientInfoLine .status-last-update {
+    width: auto;
+    padding: 0 1;
+    color: $text-secondary;
+}
+
+ClientInfoLine .status-message {
+    width: auto;
+    padding: 0 1;
+    color: $text-primary;
+}
+
+ClientInfoLine .status-divider {
+    color: $text-secondary;
+    padding: 0 1;
+}
+
+ClientInfoLine .status-spacer {
+    width: 1fr;
 }
 
 /* Status bar - legacy, kept for compatibility */
 StatusBar {
     height: 1;
-    background: $surface;
-    border-top: solid $primary;
+    background: $surface-primary;
+    border-top: solid $interactive;
 }
 
 /* Header */
 Header {
-    background: $primary;
+    background: $interactive;
 }
 
-/* Footer */
+/* Footer - keybindings display */
 Footer {
-    background: $panel;
+    dock: bottom;
+    height: 1;
+    background: $surface-secondary;
 }

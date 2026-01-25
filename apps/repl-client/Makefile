@@ -48,8 +48,8 @@ help: ## Show this help message
 # =============================================================================
 
 .PHONY: install
-install: ## Install dependencies with uv
-	$(UV) sync --package $(PACKAGE)
+install: ## Install dependencies with uv (creates local .venv)
+	$(UV) sync --dev
 
 # =============================================================================
 ## RUN
@@ -112,6 +112,12 @@ check: lint type-check test ## Run lint, type-check, and tests
 # =============================================================================
 ## MAINTENANCE
 # =============================================================================
+
+.PHONY: build-css
+build-css: ## Build concatenated CSS from modular files
+	@cd $(SRC_DIR)/repl_client/tui/styles && \
+	cat theme.tcss layout.tcss components.tcss sidebar.tcss modals.tcss states.tcss light-mode.tcss > index.tcss
+	@echo "$(GREEN)Built index.tcss from modular CSS files$(RESET)"
 
 .PHONY: clean
 clean: ## Remove caches and generated files

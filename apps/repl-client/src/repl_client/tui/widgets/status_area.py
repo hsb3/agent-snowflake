@@ -252,10 +252,6 @@ class StatusArea(Container):
     StatusArea {
         height: 2;
         width: 100%;
-        background: $surface;
-        border-top: solid $primary;
-        dock: bottom;
-        layer: overlay;
     }
     """
 
