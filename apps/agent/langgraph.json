@@ -1,11 +1,11 @@
 {
   "$schema": "https://langgra.ph/schema.json",
   "python_version": "3.12",
-  "dependencies": ["./apps/agent"],
+  "dependencies": ["."],
   "graphs": {
     "agent": "agent_snowflake:graph",
     "agent_enhanced": "agent_snowflake:graph_enhanced",
     "agent_minimal": "agent_snowflake:graph_minimal"
   },
-  "env": ".env"
+  "env": "../../.env"
 }

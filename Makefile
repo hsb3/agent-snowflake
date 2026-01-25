@@ -100,14 +100,14 @@ dev:
 	PORT=$${PORT:-$(DEFAULT_PORT)}; \
 	echo "$(GREEN)Starting LangGraph dev server on port $$PORT...$(RESET)"; \
 	echo "$(CYAN)Studio UI will be available at http://localhost:$$PORT$(RESET)"; \
-	$(UV) run langgraph dev --allow-blocking --port $$PORT
+	$(UV) run langgraph dev --config $(APP_AGENT)/langgraph.json --allow-blocking --port $$PORT
 
 ## dev-server: Start dev server without browser (for REPL clients)
 dev-server:
 	@PORT=$$(grep LANGGRAPH_DEV_SERVER_PORT .env 2>/dev/null | cut -d= -f2 | tr -d ' '); \
 	PORT=$${PORT:-$(DEFAULT_PORT)}; \
 	echo "$(GREEN)Starting LangGraph dev server on port $$PORT (no browser)...$(RESET)"; \
-	$(UV) run langgraph dev --allow-blocking --port $$PORT --no-browser
+	$(UV) run langgraph dev --config $(APP_AGENT)/langgraph.json --allow-blocking --port $$PORT --no-browser
 
 # ============================================================================
 # TESTING
