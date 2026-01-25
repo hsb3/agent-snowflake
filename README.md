@@ -2,6 +2,8 @@
 
 SQL agent with database guardrails and terminal clients for LangGraph servers.
 
+**ROUGH DRAFT**
+
 ## Key Features
 
 - **SQL Agent** - LangGraph-powered agent with query validation and guardrails
@@ -17,7 +19,7 @@ SQL agent with database guardrails and terminal clients for LangGraph servers.
 make install
 
 # Terminal 1: Start the agent server
-make dev-server
+cd apps/agent && make dev-server
 
 # Terminal 2: Launch the TUI client
 cd apps/repl-client && make tui

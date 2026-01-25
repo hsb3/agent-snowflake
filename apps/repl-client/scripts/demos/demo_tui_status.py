@@ -1,6 +1,6 @@
 """Demo app for StatusBar and LoadingWidget.
 
-Run with: uv run python scripts/repl_client/demos/demo_tui_status.py
+Run with: uv run python scripts/demos/demo_tui_status.py
 """
 
 import asyncio
@@ -10,6 +10,8 @@ from textual.containers import Container, Vertical
 from textual.widgets import Header, Static
 
 from repl_client.tui.widgets import LoadingWidget, StatusBar
+
+from demo_fixtures import DEMO_LOADING_OPERATIONS, DEMO_STATUS_STATES
 
 
 class StatusDemo(App):
@@ -71,56 +73,24 @@ class StatusDemo(App):
         """Cycle through different status states."""
         status_bar = self.query_one(StatusBar)
 
-        # Cycle through different states
-        states = [
-            {"agent": "agent_basic", "thread": "", "tokens": 0, "connected": True},
-            {
-                "agent": "agent_enhanced",
-                "thread": "thread_abc123",
-                "tokens": 456,
-                "connected": True,
-            },
-            {
-                "agent": "agent_enhanced",
-                "thread": "thread_abc123",
-                "tokens": 1234,
-                "connected": True,
-            },
-            {
-                "agent": "agent_enhanced",
-                "thread": "thread_abc123",
-                "tokens": 5678,
-                "connected": False,
-            },
-            {"agent": "", "thread": "", "tokens": 0, "connected": True},
-        ]
-
         current_state = getattr(self, "_status_state_index", 0)
-        state = states[current_state]
+        state = DEMO_STATUS_STATES[current_state]
 
         status_bar.agent = state["agent"]
         status_bar.thread = state["thread"]
         status_bar.tokens = state["tokens"]
         status_bar.connected = state["connected"]
 
-        self._status_state_index = (current_state + 1) % len(states)
+        self._status_state_index = (current_state + 1) % len(DEMO_STATUS_STATES)
 
     async def _demo_loading_states(self) -> None:
         """Cycle through loading widget states."""
         loading = self.query_one(LoadingWidget)
 
-        # Cycle through different operations
-        operations = [
-            "Processing",
-            "Analyzing",
-            "Generating",
-            "Streaming response",
-        ]
-
         current_op = getattr(self, "_loading_op_index", 0)
-        loading.set_status(operations[current_op])
+        loading.set_status(DEMO_LOADING_OPERATIONS[current_op])
 
-        self._loading_op_index = (current_op + 1) % len(operations)
+        self._loading_op_index = (current_op + 1) % len(DEMO_LOADING_OPERATIONS)
 
         # Occasionally pause/resume
         if current_op == 2:

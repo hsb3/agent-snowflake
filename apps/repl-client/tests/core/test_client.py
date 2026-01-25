@@ -1,7 +1,5 @@
-"""Tests for LangGraph HTTP client."""
+"""Tests for LangGraph client using langgraph-sdk."""
 
-
-import httpx
 import pytest
 
 from repl_client.core.client import LangGraphClient
@@ -18,9 +16,15 @@ def client():
 
 def check_server():
     """Check if server is running, skip test if not."""
+    import socket
+
     try:
-        response = httpx.get(f"{BASE_URL}/ok", timeout=2)
-        if response.status_code != 200:
+        # Simple TCP connection check - faster than HTTP
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        result = sock.connect_ex(("localhost", 2024))
+        sock.close()
+        if result != 0:
             pytest.skip("LangGraph server not running")
     except Exception:
         pytest.skip("LangGraph server not running")
@@ -286,8 +290,9 @@ class TestStreamingOperations:
     async def test_stream_message_error_handling(self, client):
         """Test error handling for invalid stream requests."""
         check_server()
-        # Try to stream with invalid thread_id
-        with pytest.raises((httpx.HTTPStatusError, ValueError)):
+        # Try to stream with invalid thread_id - SDK raises Exception on invalid requests
+        # Using broad Exception catch since SDK may raise various error types
+        with pytest.raises(Exception):  # noqa: B017
             async for _ in client.stream_message(
                 thread_id="invalid-thread-id", message="test", assistant_id="invalid-assistant-id"
             ):
@@ -360,7 +365,9 @@ class TestResumeAfterInterrupt:
         try:
             events = []
             async for event_type, data in client.resume_after_interrupt(
-                thread_id=thread_id, assistant_id=assistant_id, approved=True
+                thread_id=thread_id,
+                assistant_id=assistant_id,
+                command={"resume": {"approve": True}},
             ):
                 events.append((event_type, data))
                 if len(events) >= 3:
@@ -390,7 +397,9 @@ class TestResumeAfterInterrupt:
         try:
             event_types = set()
             async for event_type, data in client.resume_after_interrupt(
-                thread_id=thread_id, assistant_id=assistant_id, approved=False
+                thread_id=thread_id,
+                assistant_id=assistant_id,
+                command={"resume": {"approve": False}},
             ):
                 event_types.add(event_type)
 

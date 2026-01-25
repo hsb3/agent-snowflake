@@ -6,7 +6,6 @@ Shows sidebar with populated content.
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 
 from textual.app import App, ComposeResult
@@ -15,6 +14,8 @@ from textual.containers import Horizontal, ScrollableContainer
 from textual.widgets import Footer, Header
 
 from repl_client.tui.widgets import ChatInput, Sidebar, StatusArea, UserMessage
+
+from demo_fixtures import populate_sidebar, setup_status_area
 
 
 class SidebarDemo(App[None]):
@@ -37,7 +38,7 @@ class SidebarDemo(App[None]):
 
     BINDINGS = [
         Binding("f4", "toggle_sidebar", "Sidebar", show=True),
-        Binding("f5", "expand_sidebar", "Expand", show=True),
+        Binding("f5", "expand_sidebar", "Expand", show=True), # does not work
         Binding("ctrl+c", "quit", "Quit", show=True),
     ]
 
@@ -58,75 +59,18 @@ class SidebarDemo(App[None]):
         status_area = self.query_one(StatusArea)
         messages = self.query_one("#messages", ScrollableContainer)
 
-        # Populate status area
-        status_area.set_agent("demo_agent")
-        status_area.set_thread("abc12345")
-        status_area.set_tokens(2345)
-        status_area.set_connected(True)
-        status_area.set_last_update("2s ago")
-        status_area.set_status("Ready")
-
-        # Populate sidebar with demo data
-        demo_threads = [
-            {
-                "thread_id": "thread-abc123456789",
-                "created_at": "2026-01-24T10:00:00",
-            },
-            {
-                "thread_id": "thread-def987654321",
-                "created_at": "2026-01-23T15:30:00",
-            },
-            {
-                "thread_id": "thread-ghi111222333",
-                "created_at": "2026-01-22T09:15:00",
-            },
-        ]
-
-        demo_agents = [
-            {
-                "assistant_id": "agent-enhanced-123",
-                "graph_id": "agent_enhanced",
-            },
-            {
-                "assistant_id": "agent-basic-456",
-                "graph_id": "agent_basic",
-            },
-            {
-                "assistant_id": "agent-research-789",
-                "graph_id": "agent_research",
-            },
-        ]
-
-        demo_tools = [
-            {
-                "name": "sql_db_query",
-                "args": {"query": "SELECT * FROM users LIMIT 10"},
-                "result": "[10 rows returned]",
-                "status": "success",
-            },
-            {
-                "name": "search_web",
-                "args": {"query": "LangGraph documentation"},
-                "result": "Found 5 results",
-                "status": "success",
-            },
-            {
-                "name": "code_interpreter",
-                "args": {"code": "print('hello')"},
-                "result": "",
-                "status": "pending",
-            },
-        ]
-
-        sidebar.populate_threads(demo_threads, "thread-abc123456789")
-        sidebar.populate_agents(demo_agents, "agent-enhanced-123")
-        sidebar.populate_session_info(
-            thread_id="thread-abc123456789",
-            agent_id="agent-enhanced-123",
-            tokens={"total": 2345, "input": 1200, "output": 1145},
-            model="claude-sonnet-4-5-20250929",
+        # Populate status area using helper
+        setup_status_area(
+            status_area,
+            agent="demo_agent",
+            thread="abc12345",
+            tokens=2345,
+            connected=True,
+            last_update="2s ago",
         )
-        sidebar.populate_tools(demo_tools)
+
+        # Populate sidebar using helper
+        populate_sidebar(sidebar)
 
         # Add some demo messages
         await messages.mount(UserMessage("Hello! This is a demo message."))

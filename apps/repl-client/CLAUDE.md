@@ -9,7 +9,31 @@ Classic REPL client for LangGraph Dev Server using traditional imperative contro
 - **Classic REPL** (`python -m repl_client`) - Simple terminal interface with Rich formatting
 - **TUI** (`python -m repl_client.tui`) - Full Textual-based UI with sidebar, tabs, modals, status area
 
-This is a generic client that works with any LangGraph dev server (not coupled to specific agents).
+**Design Goal**: Generic client for any LangGraph server, not coupled to specific agents.
+
+## Critical: Use langgraph-sdk
+
+**DO NOT use custom httpx clients for LangGraph API calls.** Use the official `langgraph-sdk` package.
+
+```python
+from langgraph_sdk import get_client  # async
+from langgraph_sdk import get_sync_client  # sync
+from langgraph_sdk.schema import Command
+
+client = get_client(url="http://localhost:2024")
+```
+
+**Why**: The SDK provides features that would be complex to implement manually:
+- `client.threads.get_history()` — retrieve conversation history
+- `client.threads.get_state()` / `update_state()` — inspect/modify state
+- Time travel via `checkpoint_id` — resume from any checkpoint
+- `client.runs.wait()` — non-streaming execution
+- Typed schemas (`Command`, response models)
+- `subgraphs=True` for nested graph interrupt detection
+
+**Status**: `core/client.py` uses langgraph-sdk. The `streaming/` layer processes SDK stream chunks.
+
+**SDK docs**: https://docs.langchain.com/langsmith/langgraph-python-sdk
 
 ## Prerequisites
 
@@ -55,42 +79,51 @@ Layer 1: HTTP Client (core/client.py)     - LangGraph REST API wrapper
 Layer 0: Logging (core/logging.py)        - Client-side logging
 ```
 
+### Layer Details
+
+| Layer | File | Purpose |
+|-------|------|---------|
+| 0 | `core/logging.py` | Client-side logging only (`.repl/client.log`). Does NOT duplicate server logs. |
+| 1 | `core/client.py` | LangGraph API client using langgraph-sdk. Dual stream mode `["messages", "updates"]` for HITL. New methods: `get_thread_history()`, `get_thread_state()`. |
+| 2 | `core/parsers.py` | Parse SSE events into typed structures. Text delta extraction (server sends cumulative text). Content block parsing (text, tool_use, tool_result). Tool call buffering for partial JSON. |
+| 3 | `core/session.py` | Ephemeral state (cleared on exit). Tracks: thread_id, assistant_id, run_id, tokens, namespace_state. Server owns persistent state. |
+| 4 | `streaming/handler.py` | Generator pattern (yields `ParsedChunk`, caller renders). Detects: text deltas, tool calls, interrupts, usage. Method-local buffers (auto-cleanup). |
+| 5 | `streaming/hitl.py` | Human-in-the-loop approval prompts. Tool preview formatting with registry. Resume command construction. |
+| 6 | `ui/` | `renderer.py` - Base Rich primitives. `content_blocks.py` - Content blocks + `ToolRenderRegistry`. |
+| 7 | `commands/` | `registry.py` - Registry pattern for extensibility. `handlers.py` - Built-in commands. |
+| 8 | `__main__.py` | REPLLoop class orchestrates all layers. Async main loop. Startup → Input loop → Shutdown flow. |
+
 ### Entry Points
 
 - `src/repl_client/__main__.py` - Classic REPL entry point (`python -m repl_client`)
 - `src/repl_client/tui/__main__.py` - TUI entry point (`python -m repl_client.tui`)
 
-### Core Components (`core/`)
+### Streaming Data Types
 
-| File | Purpose |
-|------|---------|
-| `client.py` | Async HTTP client for LangGraph API using httpx. Handles SSE streaming with dual mode `["messages", "updates"]` for HITL support. |
-| `session.py` | Ephemeral session state (thread_id, assistant_id, token counts). Server owns persistent state. |
-| `parsers.py` | Parse SSE events into typed structures. Handles cumulative text (extracts deltas), tool call buffering. |
-| `config.py` | Configuration from environment via pydantic-settings. |
-| `logging.py` | Client-side logging to `.repl/client.log`. |
+```python
+# streaming/types.py
+@dataclass
+class ParsedChunk:
+    chunk_type: ChunkType  # TEXT_DELTA, TOOL_CALL, TOOL_RESULT, INTERRUPT, USAGE, etc.
+    content: ContentBlock | ToolCall | Usage | None
 
-### Command System (`commands/`)
+@dataclass
+class ContentBlock:
+    type: str  # "text", "tool_use", "tool_result"
+    text: str | None
+    tool_use_id: str | None
 
-| File | Purpose |
-|------|---------|
-| `registry.py` | Registry pattern for command extensibility. |
-| `handlers.py` | Built-in commands: `/help`, `/exit`, `/agents`, `/threads`, `/new`, `/info`, `/clear`, `/session`. |
+@dataclass
+class ToolCall:
+    id: str
+    name: str
+    input: dict
 
-### Streaming (`streaming/`)
-
-| File | Purpose |
-|------|---------|
-| `handler.py` | Generator pattern for stream processing. Yields `ParsedChunk`, caller renders. Detects text deltas, tool calls, interrupts, usage. |
-| `hitl.py` | Human-in-the-loop approval prompts. Tool preview formatting, resume command construction. |
-| `types.py` | Data classes: `ParsedChunk`, `ContentBlock`, `ToolCall`, `Usage`, `ChunkType` enum. |
-
-### UI Rendering (`ui/`)
-
-| File | Purpose |
-|------|---------|
-| `renderer.py` | Base Rich primitives for terminal output. |
-| `content_blocks.py` | Content blocks + `ToolRenderRegistry` for tool previews. |
+@dataclass
+class Usage:
+    input_tokens: int
+    output_tokens: int
+```
 
 ### TUI Implementation (`tui/`)
 
@@ -133,7 +166,9 @@ tui/
 └── hitl.py                  # TUI-specific HITL handler
 ```
 
-## Environment Configuration
+## Configuration
+
+### Environment Variables
 
 Copy `.env.example` to `.env`:
 
@@ -145,55 +180,16 @@ LANGGRAPH_DEV_SERVER_URL=http://localhost:2024
 LANGGRAPH_AGENT_NAME=agent
 ```
 
-## Module Structure
+### Config Class (`core/config.py`)
 
+```python
+@dataclass
+class Config:
+    server_url: str              # http://localhost:2024
+    default_agent: str           # Optional default agent ID
+    stream_mode: list[str]       # ["messages", "updates"]
+    debug: bool                  # Enable debug logging
 ```
-apps/repl-client/
-├── CLAUDE.md                # This file
-├── Makefile                 # Development commands
-├── pyproject.toml           # Package configuration
-├── .env.example             # Environment template
-├── src/
-│   └── repl_client/
-│       ├── __init__.py
-│       ├── __main__.py      # Classic REPL entry
-│       ├── core/            # Foundation (HTTP, parsing, state)
-│       ├── streaming/       # Stream handling, HITL
-│       ├── ui/              # Rich-based rendering
-│       ├── commands/        # Command system
-│       └── tui/             # Textual TUI
-├── tests/
-│   └── repl_client/
-│       ├── core/
-│       ├── streaming/
-│       ├── ui/
-│       ├── commands/
-│       └── tui/
-├── scripts/
-│   ├── demos/               # Visual TUI demos
-│   └── tests/               # Manual test scripts
-└── docs/
-    └── spec/                # Specifications
-```
-
-## Testing Strategy
-
-```bash
-# Run all tests
-uv run pytest tests/ -v
-
-# Test by layer
-uv run pytest tests/repl_client/core/ -v           # Core layers
-uv run pytest tests/repl_client/streaming/ -v      # Streaming
-uv run pytest tests/repl_client/commands/ -v       # Commands
-uv run pytest tests/repl_client/ui/ -v             # UI rendering
-uv run pytest tests/repl_client/tui/ -v            # TUI widgets
-
-# Integration tests (require running server)
-uv run pytest -m integration -v
-```
-
-Tests are organized by layer, mirroring the source structure. Use `@pytest.mark.integration` for tests requiring a live server.
 
 ## Key Design Decisions
 
@@ -203,6 +199,8 @@ Tests are organized by layer, mirroring the source structure. Use `@pytest.mark.
 - Client extracts delta: `new_text[len(prev_text):]`
 - Uses dual stream mode `["messages", "updates"]` for HITL support
 - `__interrupt__` signals only appear in "updates" stream
+- `messages` → Text chunks, tool calls, tool results
+- `updates` → State changes, interrupt signals
 
 ### State Management
 
@@ -210,12 +208,32 @@ Tests are organized by layer, mirroring the source structure. Use `@pytest.mark.
 - **SessionState** tracks current context for display only
 - **No local history cache** - fetch from server if needed
 
+### Agent Switching
+
+- User types friendly name: `agent_enhanced`
+- Client resolves to UUID via cache
+- Server receives UUID for API calls
+- Default: keeps current thread (use `--new` flag for fresh thread)
+
 ### HITL Flow
 
 1. Detect `__interrupt__` in updates stream
 2. Show tool preview with approval prompt
 3. Resume with `command: {resume: {approve: bool}}`
 4. Continue processing resumed stream (recursive)
+
+## Commands (Slash Commands)
+
+| Command | Description |
+|---------|-------------|
+| `/help [command]` | Show help for all or specific command |
+| `/exit` | Quit REPL |
+| `/agents [name] [--new]` | List or switch agents |
+| `/threads [id]` | List or resume threads |
+| `/new` | Create new thread |
+| `/info` | Show session summary |
+| `/clear` | Clear screen |
+| `/session` | Full state dump |
 
 ## TUI Key Bindings
 
@@ -245,6 +263,76 @@ POST /threads/search                # List threads
 POST /threads/{id}/runs/stream      # Stream messages (SSE)
 ```
 
+**Stream modes**: `["messages", "updates"]`
+
+## Module Structure
+
+```
+apps/repl-client/
+├── CLAUDE.md                # This file
+├── Makefile                 # Development commands
+├── pyproject.toml           # Package configuration
+├── .env.example             # Environment template
+├── src/
+│   └── repl_client/
+│       ├── __init__.py
+│       ├── __main__.py      # Classic REPL entry
+│       ├── core/            # Foundation (HTTP, parsing, state)
+│       ├── streaming/       # Stream handling, HITL
+│       ├── ui/              # Rich-based rendering
+│       ├── commands/        # Command system
+│       └── tui/             # Textual TUI
+├── tests/
+│   └── repl_client/
+│       ├── core/
+│       ├── streaming/
+│       ├── ui/
+│       ├── commands/
+│       ├── tui/
+│       ├── test_main.py
+│       └── test_hitl_e2e.py
+├── scripts/
+│   ├── demos/               # Visual TUI demos
+│   └── tests/               # Manual test scripts
+└── docs/
+    └── spec/                # Specifications
+```
+
+## Testing
+
+```bash
+# Run all tests
+uv run pytest tests/ -v
+
+# Test by layer
+uv run pytest tests/repl_client/core/ -v           # Core layers
+uv run pytest tests/repl_client/streaming/ -v      # Streaming
+uv run pytest tests/repl_client/commands/ -v       # Commands
+uv run pytest tests/repl_client/ui/ -v             # UI rendering
+uv run pytest tests/repl_client/tui/ -v            # TUI widgets
+
+# Integration tests (require running server)
+uv run pytest -m integration -v
+```
+
+Tests are organized by layer, mirroring the source structure. Use `@pytest.mark.integration` for tests requiring a live server.
+
+## Development Workflow
+
+```bash
+# Terminal 1: Server
+cd ../agent && make dev-server
+
+# Terminal 2: Development
+uv run python -m repl_client.tui
+
+# Make changes, test
+uv run pytest tests/repl_client/tui/ -v
+
+# Format and type check
+make format lint type-check
+```
+
 ## Common Tasks
 
 ### Add New Command
@@ -252,11 +340,13 @@ POST /threads/{id}/runs/stream      # Stream messages (SSE)
 1. Add handler in `commands/handlers.py`
 2. Register in `register_all()` method
 3. Add tests in `tests/repl_client/commands/`
+4. Help text auto-generated from registry
 
 ### Add Tool Preview Formatter
 
 1. Register in `ui/content_blocks.py` via `ToolRenderRegistry`
 2. Implement formatter function: `(dict) -> str`
+3. Add to builtin formatters list
 
 ### Add TUI Widget
 
@@ -265,11 +355,17 @@ POST /threads/{id}/runs/stream      # Stream messages (SSE)
 3. Export from `tui/widgets/__init__.py`
 4. Add CSS in `tui/styles/components.tcss`
 
+### Debug Streaming Issues
+
+1. Check `.repl/client.log` for parse errors
+2. Verify server logs in `.repl/server.log` (when using combined make commands)
+3. Use `scripts/demos/demo_tui_*.py` for visual verification
+
 ## Dependencies
 
 ```toml
 # Runtime
-httpx>=0.27.0           # HTTP/SSE client
+langgraph-sdk           # LangGraph API client (preferred over raw httpx)
 pydantic-settings>=2.12 # Configuration
 python-dotenv>=1.2.1    # Environment loading
 rich>=13.0.0            # Terminal formatting
@@ -282,17 +378,26 @@ ruff>=0.14.14           # Linting/formatting
 ty>=0.0.13              # Type checking
 ```
 
-## Debugging
+## Known Issues & Limitations
 
-- Check `.repl/client.log` for client-side issues
-- Use `scripts/demos/demo_tui_*.py` for visual verification
-- Server logs at `.repl/server.log` (when using combined make commands)
+**Current**:
+- HITL approval prompt may not flush properly before `input()` (fixed with `renderer.flush()`)
+- Middleware interrupts (ModelCallLimitMiddleware) need custom handling beyond tool approval
+- Some async test fixtures need updates for streaming tests
+
+**Future Enhancements**:
+- Thread history display (use `client.get_thread_history()`)
+- Time travel / checkpoint resumption (use checkpoint_id with SDK)
+- Interactive HITL menus with arrow keys
+- Artifact palette expanded mode in TUI
+- Tool output caching in sidebar
 
 ## Notes for AI Agents
 
 When modifying repl_client:
 
-- Follow layer separation (don't mix HTTP client with UI rendering)
+- **Use langgraph-sdk for all LangGraph API calls** — do not write custom httpx code
+- Follow layer separation (don't mix API client with UI rendering)
 - Use generator pattern for streaming (yield `ParsedChunk`, caller renders)
 - All server interactions must be async
 - Tests should use `@pytest.mark.integration` if they need live server
@@ -300,7 +405,7 @@ When modifying repl_client:
 
 Common pitfalls:
 
-- Forgetting to wrap message data in array (LangGraph API returns `[{message}]`)
+- Writing custom HTTP/SSE code instead of using langgraph-sdk
 - Mixing sync/async (all server calls are async)
 - Not flushing output before `input()` calls
-- Assuming text is delta when it's cumulative
+- Assuming text is delta when it's cumulative (server sends cumulative text)

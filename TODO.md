@@ -1,0 +1,279 @@
+# Private Project TODO Notes
+
+## Kanban
+
+### **backlog**
+
+- [ ] prebuilt middlweare: https://docs.langchain.com/oss/python/langchain/middleware/built-in
+- [ ] textual/repl inspo: https://github.com/batrachianai/toad
+  - [ ] https://github.com/Textualize/frogmouth
+
+### **in progress**
+
+## **completed**
+
+---
+
+## Developer Notes
+
+### brain dumpt
+- snowflake connection (env/asst).. maybe rt later
+- schema explore; query write/exec
+  - default all schema/tables; otherwise constrainer
+    - DB_AGENT_ALLOWED_SCHEMAS=[*]
+    - DB_AGENT_ALLOWED_TABLES=[*]
+- for dev, CORS_ORIGINS=[*]
+  - ?? WARNING/ERROR if env indicates not dev and no cors restrictions
+- build on langchain v1 chassis; avoid deepagents bloat
+  - nice to have, maybe later:
+    - backend protocol (could connect to sprites)
+      - filesystem .. 
+
+- easiest is to drive agent via langgraphi api; after compiling server
+  - if one shot or don't want to deal with server stuff; can control with lightweight cli | repl using inmem versions of checkpointer + store
+
+- poc for jerry.. terminal over web ui likely
+    - [ ] check on universal 
+
+
+agent structure:
+    --- configurable items ----
+    config: base, env settings + defaults
+    context:  variable parameters for variants/mutants
+    ---
+    models: types/structured-tools
+    state: input|internal|output
+    utils: as needed
+    tools/:  sql, eval, think, 
+    prompts/: load from file (.py)
+    graph: agent generator function
+    
+    langgraph.json: config file for langgraph server build
+    pyproject.toml: 
+    .env/.env.example: 
+
+----
+
+- [ ] scaffold basic langchain (v1) agent
+- [ ] add tools for snowflake access; some local instance for quick test
+  - [ ] guardrails on sql tools
+
+always in the background:
+- should i be adding something to config and/or context
+- how can i break this thing?
+
+----
+
+will have:
+- agent
+- repl
+
+---
+uv init --no-readme --name agent-snowflake
+uv add (deps)
+
+add deps:
+langchain langgraph
+langchain-anthropic langchain-openai 
+? langchain-google-genai
+snowflake-connector-python
+python.env
+
+### LangGraph Rules
+
+
+- forthcoming
+
+
+### makefile commands
+
+[help] -- default
+
+install deps (incl. dev). uv sync --all-groups
+start snowflake emulator
+stop snowflake emulator
+dev: start langraph server
+dev-n start langgraph server with --no-browser
+
+lint
+typecheck
+test-unit (unit only)
+test
+qa (all above)
+
+clean
+
+
+### snowflake emulator
+
+pip install "snowflake-snowpark-python[localtest]"
+https://docs.snowflake.com/en/developer-guide/snowpark/python/testing-locally
+>>> license required . .. meh
+
+---
+
+```py
+
+# roll your own tools ...
+
+pip install "snowflake-sqlalchemy"
+
+from sqlalchemy import create_engine, text
+from snowflake.sqlalchemy import URL
+
+engine = create_engine(URL(
+    account="ACCT_LOCATOR_OR_IDENTIFIER",
+    user="AGENT_USER",
+    password="***",
+    warehouse="DEV_WH",
+    database="AGENT_DEV",
+    schema="SANDBOX",
+    role="AGENT_ROLE",
+))
+
+with engine.connect() as conn:
+    rows = conn.execute(text("select current_version(), current_warehouse(), current_role()")).all()
+    print(rows)
+```
+
+### stock quesations for 
+
+
+```
+Answer below questions, one at a time:
+
+“For each billing country, what is total invoice revenue, number of invoices, and average invoice total? Rank countries by total revenue (desc) and return the top 10.”
+
+
+“List the top 10 artists by total sales revenue. For each artist, include total revenue, number of distinct tracks sold, and number of distinct customers.”
+
+
+“For each customer, compute: first purchase date, last purchase date, total spend, and number of distinct purchase months. Then return the 20 customers with the most distinct purchase months (tie-break by total spend).”
+
+```
+⸻
+
+### repl (client) requirements
+
+- client that connects to running langgraph server
+  - local dev server preserves/persists state in a local checkpointer
+  - if we want store we'll have to set up inmem or local (sqlite store); low priority
+- ui is console/terminal (rich + prompttoolkit)
+- ui features
+  - list/select agents
+  - list/start/select (resume) threads
+  - handle context blocks (see: /Users/henry/Developer/_SANDBOX/zArchive/langchain_v1/docs/repl/langgraph_cli.py)
+  - handle HITL components
+  - handle rendering of fenced items? like python, js, etc
+  - markdown syntax highlighting (including table rendering)
+- create new agent/asssitant?
+  - display/set configurable items?
+    - ideally would list limited options for some items like provider/model
+
+
+
+**patterns**
+- one way dependencies ---> no spaghetti code
+- 6 layers -
+
+
+**open questions**
+- how and where to handle REPL config? toml, json, ... ?  where ? 
+ 
+**decisions**
+---
+
+? config
+? register tool signatures
+
+1. http client + logger
+2. tooling: parsers
+3. app state
+4. handle stream
+5. ui render stream
+6. commands
+7. loop loop
+
+
+how would we controlled all this with pydantic graph?
+how would we controlled all this with langgraph?
+
+Minimal UML set that actually works (recommended)
+	1.	Component diagram: boundaries + interfaces
+	2.	Sequence diagram: one turn (with loop/alt)
+	3.	State machine: REPL session control + cancellation
+	4.	Class diagram: message/event/state schemas
+
+
+---
+This project consists of 2 major components:
+- langgraph agents that interact with databases
+- a repl for interacting with langgraph dev server; connecting to REST API via http
+
+Agents are functional - current focus is on building REPL.
+
+[REPL Requirements JSON format](./repl_spec.json).  MOVED
+[REPL Build Component tick list](./repl_components.jsonc). MOVED
+
+other supporting docs in docs/dev_docs/spec-repl-v1
+
+---
+ create a CLAUDE.md file in src/repl_client_graph.  shouuld just focus on graph-based repl.  note that spec       
+  for repl-based graph belong here: docs/dev_docs/spec-repl-graph; work status updates belong in              docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client_graph app 
+---
+ create a CLAUDE.md file in src/repl_client.  shouuld just focus on client_repl.  note that spec for repl belong here: docs/dev_docs/spec-repl; work status updates belong in  docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client app 
+
+**Work Doc Frontmatter Template:**
+```yaml
+---
+doc_id:CC-YYYY-NNN
+title: Brief description
+date: YYYY-MM-DD
+type: planning|solution|investigation|status|summary
+project: repl_client_graph|repl_client|agent_snowflake
+focus: ...
+status: draft|complete
+tags: [stategraph, repl, ...]
+---
+```
+
+---
+
+we need to clean up all .md docs in repo related to repl_client (not repl_client_graph) as they do not adhere to work documentation standards.  go through: docs/dev_docs/ai_docs/ai_gen and identify those docs are related to repl_client and align them with work documentation standards --- this is a skill that you have.  you can deploy multiple subagents to do this work.  also deploy subagents to review scripts in scripts/ that are related to repl_client and relocate them to scripts/repl_client.  update any links that would be broken by the moves.
+
+**Work Doc Frontmatter Template:**
+```yaml
+---
+doc_id:CC-YYYY-NNN
+title: Brief description
+date: YYYY-MM-DD
+type: planning|solution|investigation|status|summary
+project: repl_client_graph|repl_client|agent_snowflake
+focus: ...
+status: draft|complete
+tags: [stategraph, repl, ...]
+---
+```
+
+
+----
+
+1. FIND ALL DOCS IN: docs/dev_docs  /ai_docs/ai_gen where frontmatter does not adhere to minimum standard frontmatter:
+  ```yaml
+  ---
+  doc_id:CC-YYYY-NNN
+  title: Brief description
+  date: YYYY-MM-DD
+  type: planning|solution|investigation|status|summary
+  project: repl_client_graph|repl_client|agent_snowflake
+  focus: ...
+  status: draft|complete
+  tags: [stategraph, repl, ...]
+  ---
+  ```
+2. Fix frontmatter for all non-compliant .md files
+3. rename all .md docs according to doc_id
+
+---
+
+### TUI FEEDBACK

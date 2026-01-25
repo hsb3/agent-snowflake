@@ -17,29 +17,29 @@
       "stream_mode_rationale": {
         "phase_1_messages_only": "Simpler parsing, no HITL yet, just streaming chat",
         "phase_2_dual_mode": "REQUIRED for HITL - __interrupt__ only appears in 'updates' stream",
-        "research_source": "https://docs.langchain.com/oss/python/langgraph/interrupts"
+        "research_source": "https://docs.langchain.com/oss/python/langgraph/interrupts",
       },
       "stream_mode_options": {
         "values": "Full state after each step - NOT NEEDED (too verbose)",
         "updates": "State deltas + __interrupt__ signals - REQUIRED for HITL (Phase 2)",
         "messages": "LLM tokens/metadata - REQUIRED for chat (Phase 1+)",
         "custom": "User-defined data - NOT NEEDED",
-        "debug": "Detailed traces - MAYBE for troubleshooting (Phase 3)"
-      }
+        "debug": "Detailed traces - MAYBE for troubleshooting (Phase 3)",
+      },
     },
     "endpoints": {
       "assistants": {
         "list": "POST /assistants/search",
-        "get": "GET /assistants/{assistant_id}"
+        "get": "GET /assistants/{assistant_id}",
       },
       "threads": {
         "create": "POST /threads",
         "get": "GET /threads/{thread_id}",
-        "search": "POST /threads/search"
+        "search": "POST /threads/search",
       },
       "runs": {
-        "stream": "POST /threads/{thread_id}/runs/stream"
-      }
+        "stream": "POST /threads/{thread_id}/runs/stream",
+      },
     },
     "request_formats": {
       "stream_message_mvp": {
@@ -48,23 +48,23 @@
         "body": {
           "assistant_id": "<assistant_id>",
           "input": {
-            "messages": [
-              {"role": "user", "content": "<user_message>"}
-            ]
+            "messages": [{ "role": "user", "content": "<user_message>" }],
           },
-          "stream_mode": ["messages"]
-        }
+          "stream_mode": ["messages"],
+        },
       },
       "stream_with_hitl": {
         "description": "Phase 2 - Enable HITL interrupts",
         "endpoint": "POST /threads/{thread_id}/runs/stream",
         "body": {
           "assistant_id": "<assistant_id>",
-          "input": {"messages": [{"role": "user", "content": "<user_message>"}]},
+          "input": {
+            "messages": [{ "role": "user", "content": "<user_message>" }],
+          },
           "stream_mode": ["messages"],
           "interrupt_after": ["*"],
-          "comment": "Server-side HITL config determines which tools trigger interrupts"
-        }
+          "comment": "Server-side HITL config determines which tools trigger interrupts",
+        },
       },
       "resume_after_hitl": {
         "description": "Resume after user approves/rejects tool",
@@ -72,10 +72,10 @@
         "body": {
           "assistant_id": "<assistant_id>",
           "command": {
-            "resume": {"approve": true}
+            "resume": { "approve": true },
           },
-          "stream_mode": ["messages"]
-        }
+          "stream_mode": ["messages"],
+        },
       },
       "available_fields": {
         "note": "See docs/openapi.json RunCreateStateful schema for all ~20 fields",
@@ -85,9 +85,9 @@
           "checkpoint: dict - Resume from specific checkpoint",
           "stream_subgraphs: bool - Include subgraph events",
           "on_disconnect: str - 'cancel' or 'continue' (default)",
-          "multitask_strategy: str - 'reject', 'rollback', 'interrupt', 'enqueue'"
-        ]
-      }
+          "multitask_strategy: str - 'reject', 'rollback', 'interrupt', 'enqueue'",
+        ],
+      },
     },
     "interface": {
       "class": "LangGraphClient",
@@ -95,72 +95,64 @@
         {
           "name": "__init__",
           "params": ["base_url: str", "timeout: int = 30"],
-          "description": "Initialize client with server URL"
+          "description": "Initialize client with server URL",
         },
         {
           "name": "connect",
           "returns": "bool",
-          "description": "Test connection (GET /ok)"
+          "description": "Test connection (GET /ok)",
         },
         {
           "name": "list_agents",
           "params": ["limit: int = 10"],
           "returns": "list[dict]",
-          "description": "POST /assistants/search"
+          "description": "POST /assistants/search",
         },
         {
           "name": "get_agent",
           "params": ["assistant_id: str"],
           "returns": "dict",
-          "description": "GET /assistants/{id}"
+          "description": "GET /assistants/{id}",
         },
         {
           "name": "create_thread",
           "params": ["metadata: dict = {}"],
           "returns": "str",
-          "description": "POST /threads, returns thread_id"
+          "description": "POST /threads, returns thread_id",
         },
         {
           "name": "get_thread",
           "params": ["thread_id: str"],
           "returns": "dict",
-          "description": "GET /threads/{id}"
+          "description": "GET /threads/{id}",
         },
         {
           "name": "list_threads",
           "params": ["limit: int = 10"],
           "returns": "list[dict]",
-          "description": "POST /threads/search"
+          "description": "POST /threads/search",
         },
         {
           "name": "stream_message",
-          "params": [
-            "thread_id: str",
-            "message: str",
-            "assistant_id: str"
-          ],
+          "params": ["thread_id: str", "message: str", "assistant_id: str"],
           "returns": "Iterator[tuple[str, dict]]",
-          "description": "POST /threads/{thread_id}/runs/stream. Yields (event_type, data) tuples from SSE."
+          "description": "POST /threads/{thread_id}/runs/stream. Yields (event_type, data) tuples from SSE.",
         },
         {
           "name": "resume_after_interrupt",
-          "params": [
-            "thread_id: str",
-            "assistant_id: str",
-            "approved: bool"
-          ],
+          "params": ["thread_id: str", "assistant_id: str", "approved: bool"],
           "returns": "Iterator[tuple[str, dict]]",
-          "description": "POST /threads/{thread_id}/runs/stream with command.resume. Continues after HITL."
-        }
+          "description": "POST /threads/{thread_id}/runs/stream with command.resume. Continues after HITL.",
+        },
       ],
       "notes": [
         "Uses httpx.AsyncClient for SSE streaming",
         "All POST endpoints use JSON bodies",
         "SSE format: 'event: <type>\\ndata: <json>\\n\\n'",
         "Thread-based runs maintain state/checkpoints",
-        "Complete schema in docs/openapi.json"
-      ]
-    }
+        "Complete schema in docs/openapi.json",
+      ],
+    },
   },
 
   "layer_2_parsers": {
@@ -172,15 +164,20 @@
       "namespace_tracking": "Include for future-proofing (handle parallel subagents)",
       "tool_buffer_strategy": "Use deepagents pattern - buffer by index/id, accumulate partial JSON",
       "text_delta_extraction": "Required - messages mode gives cumulative text, we extract delta",
-      "interrupt_detection": "Phase 2 - add 'updates' stream mode parser for __interrupt__ signals"
+      "interrupt_detection": "Phase 2 - add 'updates' stream mode parser for __interrupt__ signals",
     },
     "known_facts": {
-      "sse_events": ["metadata", "messages/metadata", "messages/partial", "messages/complete"],
+      "sse_events": [
+        "metadata",
+        "messages/metadata",
+        "messages/partial",
+        "messages/complete",
+      ],
       "text_format": "CUMULATIVE (each chunk has full text, not delta) - requires delta extraction",
       "content_block_types": ["text", "tool_use", "tool_result"],
       "tool_call_indicator": "stop_reason: 'tool_use' + populated tool_calls array",
       "usage_location": "usage_metadata in final chunk only",
-      "interrupt_signal": "__interrupt__ key only in 'updates' stream mode (Phase 2)"
+      "interrupt_signal": "__interrupt__ key only in 'updates' stream mode (Phase 2)",
     },
     "interface": {
       "functions": [
@@ -188,38 +185,38 @@
           "name": "parse_sse_line",
           "params": ["line: str"],
           "returns": "tuple[str, str] | None",
-          "description": "Parse SSE line, returns (event_type, json_data) or None"
+          "description": "Parse SSE line, returns (event_type, json_data) or None",
         },
         {
           "name": "extract_text_delta",
           "params": ["prev_text: str", "curr_text: str"],
           "returns": "str",
-          "description": "Get new text from cumulative update (curr - prev)"
+          "description": "Get new text from cumulative update (curr - prev)",
         },
         {
           "name": "parse_message_chunk",
           "params": ["event_type: str", "data: dict"],
           "returns": "ParsedChunk",
-          "description": "Parse messages/partial or messages/complete event"
+          "description": "Parse messages/partial or messages/complete event",
         },
         {
           "name": "extract_content_blocks",
           "params": ["content: list[dict]"],
           "returns": "list[ContentBlock]",
-          "description": "Parse content array into typed blocks"
+          "description": "Parse content array into typed blocks",
         },
         {
           "name": "detect_tool_call",
           "params": ["message: dict"],
           "returns": "ToolCall | None",
-          "description": "Detect if message contains complete tool call"
+          "description": "Detect if message contains complete tool call",
         },
         {
           "name": "is_stream_complete",
           "params": ["chunk: dict"],
           "returns": "bool",
-          "description": "Check if this is final chunk (has usage_metadata or stop_reason)"
-        }
+          "description": "Check if this is final chunk (has usage_metadata or stop_reason)",
+        },
       ],
       "classes": [
         {
@@ -233,8 +230,8 @@
             "tool_calls: list[ToolCall] | None",
             "usage: Usage | None",
             "stop_reason: str | None",
-            "metadata: dict"
-          ]
+            "metadata: dict",
+          ],
         },
         {
           "name": "ContentBlock",
@@ -246,18 +243,13 @@
             "tool_id: str | None",
             "tool_name: str | None",
             "tool_input: dict | None",
-            "partial_json: str | None"
-          ]
+            "partial_json: str | None",
+          ],
         },
         {
           "name": "ToolCall",
           "type": "dataclass",
-          "fields": [
-            "id: str",
-            "name: str",
-            "args: dict",
-            "type: str"
-          ]
+          "fields": ["id: str", "name: str", "args: dict", "type: str"],
         },
         {
           "name": "Usage",
@@ -265,31 +257,31 @@
           "fields": [
             "input_tokens: int",
             "output_tokens: int",
-            "total_tokens: int"
-          ]
-        }
-      ]
+            "total_tokens: int",
+          ],
+        },
+      ],
     },
     "parsing_patterns_from_deepagents": {
       "tool_call_buffering": {
         "pattern": "Buffer by index/id, accumulate partial_json strings",
         "code": "buffer['args_parts'].append(chunk); buffer['args'] = ''.join(parts)",
-        "completion_test": "Try json.loads() - if succeeds, tool call is complete"
+        "completion_test": "Try json.loads() - if succeeds, tool call is complete",
       },
       "namespace_tracking": {
         "pattern": "Track per namespace tuple to handle parallel subagents",
         "code": "ns_key = tuple(namespace) if namespace else ()",
-        "state": "pending_text_by_namespace: dict[tuple, str]"
+        "state": "pending_text_by_namespace: dict[tuple, str]",
       },
       "text_accumulation": {
         "pattern": "Since text is cumulative, just append new chunks",
-        "note": "BUT our HTTP stream is cumulative, so we need delta extraction they don't"
+        "note": "BUT our HTTP stream is cumulative, so we need delta extraction they don't",
       },
       "interrupt_detection": {
         "pattern": "Check for __interrupt__ key in 'updates' stream",
         "code": "if '__interrupt__' in chunk: interrupts = chunk['__interrupt__']",
-        "validation": "Use TypeAdapter for interrupt payload validation"
-      }
+        "validation": "Use TypeAdapter for interrupt payload validation",
+      },
     },
     "design_notes": [
       "SSE parsing happens in client.py (yields event_type, data tuples)",
@@ -299,7 +291,7 @@
       "Tool-specific rendering: Need registry for custom UI (e.g., AskUserQuestion)",
       "Fallback for unknown tools: Log warning + display generic format",
       "May need tool discovery from server or explicit config",
-      "Namespace tracking for future parallel agent support"
+      "Namespace tracking for future parallel agent support",
     ],
     "tool_rendering_registry": {
       "description": "Map tool names to custom UI handlers",
@@ -308,15 +300,15 @@
         {
           "tool_name": "AskUserQuestion",
           "ui_element": "Interactive prompt with options",
-          "handler": "To be defined in ui/tool_renderers.py"
-        }
+          "handler": "To be defined in ui/tool_renderers.py",
+        },
       ],
       "fallback_behavior": {
         "action": "Display generic tool call panel",
         "logging": "Warn that custom handler not registered",
-        "format": "Tool: <name>, Args: <json>, Result: <output>"
-      }
-    }
+        "format": "Tool: <name>, Args: <json>, Result: <output>",
+      },
+    },
   },
 
   "layer_0_logging": {
@@ -332,29 +324,32 @@
         "Command execution",
         "Parse errors/warnings",
         "Tool rendering fallbacks",
-        "User interactions (input/output)"
+        "User interactions (input/output)",
       ],
       "do_not_log": [
         "Server-side agent execution (already logged by langgraph)",
         "Model API calls (server's responsibility)",
-        "Tool execution details (server logs these)"
-      ]
+        "Tool execution details (server logs these)",
+      ],
     },
     "interface": {
       "functions": [
         {
           "name": "setup_client_logger",
-          "params": ["log_file: str = '.repl/client.log'", "level: str = 'INFO'"],
+          "params": [
+            "log_file: str = '.repl/client.log'",
+            "level: str = 'INFO'",
+          ],
           "returns": "logging.Logger",
-          "description": "Configure client-side logger"
+          "description": "Configure client-side logger",
         },
         {
           "name": "get_logger",
           "params": ["name: str"],
           "returns": "logging.Logger",
-          "description": "Get logger for specific module"
-        }
-      ]
+          "description": "Get logger for specific module",
+        },
+      ],
     },
     "log_format": {
       "pattern": "%(asctime)s [%(levelname)s] %(name)s - %(message)s",
@@ -364,9 +359,9 @@
         "DEBUG": "Parsing details, chunk inspection",
         "INFO": "Connection events, thread/agent switches",
         "WARNING": "Unknown tools, fallback rendering, parse errors",
-        "ERROR": "Connection failures, critical errors"
-      }
-    }
+        "ERROR": "Connection failures, critical errors",
+      },
+    },
   },
 
   "layer_3_session_state": {
@@ -378,55 +373,55 @@
       "local_history_cache": "No - server owns history, client just displays. May cache last N for /clear command.",
       "token_tracking": "Track per-session for display only (not persistent)",
       "user_preferences": "Phase 3 - store in .repl/config.json if needed",
-      "namespace_tracking": "Include for parallel agent support (future)"
+      "namespace_tracking": "Include for parallel agent support (future)",
     },
     "interface": {
       "class": "SessionState",
       "methods": [
         {
           "name": "__init__",
-          "description": "Initialize empty state"
+          "description": "Initialize empty state",
         },
         {
           "name": "set_thread",
           "params": ["thread_id: str"],
-          "description": "Set active thread, clear namespace tracking"
+          "description": "Set active thread, clear namespace tracking",
         },
         {
           "name": "set_agent",
           "params": ["assistant_id: str"],
-          "description": "Set active agent"
+          "description": "Set active agent",
         },
         {
           "name": "set_run",
           "params": ["run_id: str"],
-          "description": "Track current run ID (for HITL resume)"
+          "description": "Track current run ID (for HITL resume)",
         },
         {
           "name": "get_namespace_key",
           "params": ["namespace: list | None"],
           "returns": "tuple",
-          "description": "Convert namespace to hashable key"
+          "description": "Convert namespace to hashable key",
         },
         {
           "name": "track_tokens",
           "params": ["input_tokens: int", "output_tokens: int"],
-          "description": "Accumulate token usage for display"
+          "description": "Accumulate token usage for display",
         },
         {
           "name": "get_token_summary",
           "returns": "dict",
-          "description": "Get token usage stats"
+          "description": "Get token usage stats",
         },
         {
           "name": "get_display_summary",
           "returns": "str",
-          "description": "Get summary for prompt (thread/agent/tokens)"
+          "description": "Get summary for prompt (thread/agent/tokens)",
         },
         {
           "name": "reset",
-          "description": "Reset all state (new session)"
-        }
+          "description": "Reset all state (new session)",
+        },
       ],
       "state_fields": [
         "current_thread_id: str | None",
@@ -434,15 +429,15 @@
         "current_run_id: str | None",
         "namespace_state: dict[tuple, dict]  # Track per-namespace data",
         "session_tokens: dict  # {input, output, total}",
-        "session_start_time: float"
-      ]
+        "session_start_time: float",
+      ],
     },
     "implementation_notes": [
       "State is ephemeral - cleared on REPL exit",
       "Server owns persistent state (threads, checkpoints)",
       "Token tracking is display-only (not authoritative)",
       "Namespace state prepared for Phase 3 parallel agents",
-      "SEPARATION: SessionState = data tracking, UI layer = display decisions"
+      "SEPARATION: SessionState = data tracking, UI layer = display decisions",
     ],
     "display_strategy": {
       "note": "Display concerns handled in UI layer (Layer 6), not here",
@@ -451,9 +446,9 @@
       "examples": {
         "prompt": "> ",
         "command_info": "/info shows thread ID, agent, token count, uptime",
-        "command_session": "/session shows full session state dump"
-      }
-    }
+        "command_session": "/session shows full session state dump",
+      },
+    },
   },
 
   "layer_5_hitl_handler": {
@@ -465,51 +460,54 @@
     "decisions": {
       "approval_ui": "Start with y/n prompt, upgrade to arrow-key menu in Phase 3",
       "tool_preview": "Registry-based - custom formatters per tool type, generic fallback",
-      "rejection_flow": "Send resume with approve=false, let server handle"
+      "rejection_flow": "Send resume with approve=false, let server handle",
     },
     "interface": {
       "class": "HITLHandler",
       "methods": [
         {
           "name": "__init__",
-          "params": ["renderer: Renderer", "tool_registry: ToolRenderRegistry | None = None"],
-          "description": "Initialize with renderer and optional tool-specific formatters"
+          "params": [
+            "renderer: Renderer",
+            "tool_registry: ToolRenderRegistry | None = None",
+          ],
+          "description": "Initialize with renderer and optional tool-specific formatters",
         },
         {
           "name": "handle_interrupt",
           "params": ["interrupt: Interrupt", "session: SessionState"],
           "returns": "dict",
-          "description": "Show approval prompt, return command payload for resume"
+          "description": "Show approval prompt, return command payload for resume",
         },
         {
           "name": "_show_approval_prompt",
           "params": ["tool_name: str", "tool_args: dict"],
           "returns": "bool",
-          "description": "Display tool info and get y/n approval"
+          "description": "Display tool info and get y/n approval",
         },
         {
           "name": "_format_tool_preview",
           "params": ["tool_name: str", "tool_args: dict"],
           "returns": "str",
-          "description": "Format tool for preview - use registry or fallback"
+          "description": "Format tool for preview - use registry or fallback",
         },
         {
           "name": "_build_resume_command",
           "params": ["approved: bool", "interrupt: Interrupt"],
           "returns": "dict",
-          "description": "Build command payload: {resume: {approve: bool}}"
-        }
+          "description": "Build command payload: {resume: {approve: bool}}",
+        },
       ],
       "state_fields": [
         "renderer: Renderer",
-        "tool_registry: ToolRenderRegistry | None"
-      ]
+        "tool_registry: ToolRenderRegistry | None",
+      ],
     },
     "tool_preview_examples": {
       "sql_db_query": "Show formatted SQL with syntax highlighting",
       "AskUserQuestion": "Show question + options (custom UI in Phase 3)",
-      "generic_fallback": "Tool: <name>\\nArgs: <json>"
-    }
+      "generic_fallback": "Tool: <name>\\nArgs: <json>",
+    },
   },
 
   "layer_4_stream_handler": {
@@ -522,7 +520,7 @@
       "pattern": "Generator that yields parsed data for caller to handle",
       "previous_text_tracking": "Method-local (fresh each stream)",
       "tool_buffer_state": "Method-local dict (auto-cleanup)",
-      "error_handling": "Yield error chunks, let caller decide how to display"
+      "error_handling": "Yield error chunks, let caller decide how to display",
     },
     "interface": {
       "class": "StreamHandler",
@@ -530,40 +528,44 @@
         {
           "name": "__init__",
           "params": ["session: SessionState"],
-          "description": "Initialize with session (no renderer - loose coupling)"
+          "description": "Initialize with session (no renderer - loose coupling)",
         },
         {
           "name": "process_stream",
           "params": [
             "chunks: Iterator[tuple[str, dict]]",
-            "namespace: list | None = None"
+            "namespace: list | None = None",
           ],
           "returns": "Iterator[ParsedChunk]",
-          "description": "Parse SSE chunks, yield structured data. Generator pattern - caller renders."
+          "description": "Parse SSE chunks, yield structured data. Generator pattern - caller renders.",
         },
         {
           "name": "_extract_text_delta",
-          "params": ["message_id: str", "current_text: str", "prev_text_map: dict"],
+          "params": [
+            "message_id: str",
+            "current_text: str",
+            "prev_text_map: dict",
+          ],
           "returns": "str",
-          "description": "Extract new text from cumulative update"
+          "description": "Extract new text from cumulative update",
         },
         {
           "name": "_buffer_tool_call",
           "params": ["block: dict", "buffer: dict"],
           "returns": "dict | None",
-          "description": "Buffer tool call chunks, return complete tool when ready"
+          "description": "Buffer tool call chunks, return complete tool when ready",
         },
         {
           "name": "_parse_interrupt",
           "params": ["updates_data: dict"],
           "returns": "Interrupt | None",
-          "description": "Extract __interrupt__ from updates stream (Phase 2)"
-        }
+          "description": "Extract __interrupt__ from updates stream (Phase 2)",
+        },
       ],
       "state_fields": [
         "session: SessionState",
-        "note": "All buffers (tool_call_buffer, prev_text_map) are method-local in process_stream()"
-      ]
+        "note: All buffers (tool_call_buffer, prev_text_map) are method-local in process_stream()",
+      ],
     },
     "output_types": {
       "ParsedChunk": {
@@ -578,8 +580,8 @@
           "tool_result: ToolResult | None",
           "interrupt: Interrupt | None",
           "usage: Usage | None",
-          "metadata: dict"
-        ]
+          "metadata: dict",
+        ],
       },
       "ChunkType": {
         "type": "enum",
@@ -591,9 +593,9 @@
           "INTERRUPT",
           "USAGE",
           "METADATA",
-          "ERROR"
-        ]
-      }
+          "ERROR",
+        ],
+      },
     },
     "flow_example": {
       "description": "How REPL loop uses StreamHandler",
@@ -606,9 +608,9 @@
         "        renderer.render_tool_call(parsed.tool_call)",
         "    elif parsed.chunk_type == ChunkType.INTERRUPT:",
         "        approved = hitl_handler.show_approval(parsed.interrupt)",
-        "        # Resume flow with approval"
-      ]
-    }
+        "        # Resume flow with approval",
+      ],
+    },
   },
 
   "layer_6_ui_layout": {
@@ -621,13 +623,13 @@
           "User messages",
           "Agent responses (markdown, code blocks)",
           "Tool call results (collapsed/expandable)",
-          "Errors (inline)"
+          "Errors (inline)",
         ],
         "does_not_show": [
           "Session stats (unless requested)",
           "Debug info",
-          "Connection status (after initial)"
-        ]
+          "Connection status (after initial)",
+        ],
       },
       "prompt_line": {
         "purpose": "Input area - minimal context",
@@ -635,27 +637,27 @@
           "minimal": "> ",
           "with_agent": "[agent] > ",
           "with_thread": "[agent:thread_id] > ",
-          "recommendation": "Start minimal, add context via command (/info)"
-        }
+          "recommendation": "Start minimal, add context via command (/info)",
+        },
       },
       "status_line": {
         "purpose": "Optional bottom bar (Phase 3)",
         "shows_when_active": [
           "Streaming indicator (typing...)",
           "Token count (live update)",
-          "Connection status"
+          "Connection status",
         ],
-        "hidden_when": "Idle"
+        "hidden_when": "Idle",
       },
       "info_on_demand": {
         "commands": {
           "/info": "Thread ID, Agent, Tokens, Uptime",
           "/session": "Full state dump (debug)",
-          "/tokens": "Detailed token breakdown"
-        }
-      }
+          "/tokens": "Detailed token breakdown",
+        },
+      },
     },
-    "design_principle": "Conversation-first. Stats available, not intrusive."
+    "design_principle": "Conversation-first. Stats available, not intrusive.",
   },
 
   "layer_7_commands": {
@@ -667,7 +669,7 @@
       "pattern": "Registry (like agent0) - register handlers, route by name",
       "registration": "Eager - all commands registered at startup",
       "discovery": "No dynamic discovery - explicit registration in handlers.py",
-      "help_text": "Store with command, generate /help dynamically"
+      "help_text": "Store with command, generate /help dynamically",
     },
     "interface": {
       "CommandRegistry": {
@@ -675,134 +677,143 @@
         "methods": [
           {
             "name": "register",
-            "params": ["name: str", "handler: Callable", "description: str", "syntax: str = ''"],
-            "description": "Register command handler"
+            "params": [
+              "name: str",
+              "handler: Callable",
+              "description: str",
+              "syntax: str = ''",
+            ],
+            "description": "Register command handler",
           },
           {
             "name": "execute",
             "params": ["name: str", "args: list[str]", "context: dict"],
             "returns": "Any",
-            "description": "Execute registered command"
+            "description": "Execute registered command",
           },
           {
             "name": "get_help_text",
             "returns": "str",
-            "description": "Generate help text for all commands"
+            "description": "Generate help text for all commands",
           },
           {
             "name": "list_commands",
             "returns": "list[Command]",
-            "description": "Get all registered commands"
-          }
-        ]
+            "description": "Get all registered commands",
+          },
+        ],
       },
       "CommandHandlers": {
         "file": "commands/handlers.py",
         "methods": [
           {
             "name": "__init__",
-            "params": ["client: LangGraphClient", "session: SessionState", "renderer: Renderer"],
-            "description": "Initialize with dependencies"
+            "params": [
+              "client: LangGraphClient",
+              "session: SessionState",
+              "renderer: Renderer",
+            ],
+            "description": "Initialize with dependencies",
           },
           {
             "name": "register_all",
             "params": ["registry: CommandRegistry"],
-            "description": "Register all command handlers"
+            "description": "Register all command handlers",
           },
           {
             "name": "handle_help",
             "params": ["args: list[str]"],
-            "description": "Phase 1: Show help text"
+            "description": "Phase 1: Show help text",
           },
           {
             "name": "handle_exit",
             "params": ["args: list[str]"],
             "returns": "bool",
-            "description": "Phase 1: Return False to signal exit"
+            "description": "Phase 1: Return False to signal exit",
           },
           {
             "name": "handle_agents",
             "params": ["args: list[str]"],
-            "description": "Phase 2: List or switch agents"
+            "description": "Phase 2: List or switch agents",
           },
           {
             "name": "handle_threads",
             "params": ["args: list[str]"],
-            "description": "Phase 2: List or resume threads"
+            "description": "Phase 2: List or resume threads",
           },
           {
             "name": "handle_new",
             "params": ["args: list[str]"],
-            "description": "Phase 2: Create new thread"
+            "description": "Phase 2: Create new thread",
           },
           {
             "name": "handle_info",
             "params": ["args: list[str]"],
-            "description": "Phase 2: Show session summary"
+            "description": "Phase 2: Show session summary",
           },
           {
             "name": "handle_clear",
             "params": ["args: list[str]"],
-            "description": "Phase 3: Clear screen"
+            "description": "Phase 3: Clear screen",
           },
           {
             "name": "handle_session",
             "params": ["args: list[str]"],
-            "description": "Phase 3: Show full session dump"
-          }
-        ]
-      }
+            "description": "Phase 3: Show full session dump",
+          },
+        ],
+      },
     },
     "command_list": [
       {
         "name": "/help",
         "phase": 1,
         "handler": "handle_help",
-        "returns": "None (prints help)"
+        "returns": "None (prints help)",
       },
       {
         "name": "/exit",
         "phase": 1,
         "handler": "handle_exit",
-        "returns": "False (signals exit)"
+        "returns": "False (signals exit)",
       },
       {
         "name": "/agents",
         "phase": 2,
         "handler": "handle_agents",
-        "returns": "None (switches agent or shows list)"
+        "returns": "None (switches agent or shows list)",
       },
       {
         "name": "/threads",
         "phase": 2,
         "handler": "handle_threads",
-        "returns": "None (switches thread or shows list)"
+        "returns": "None (switches thread or shows list)",
       },
       {
         "name": "/new",
         "phase": 2,
         "handler": "handle_new",
-        "returns": "None (creates thread)"
+        "returns": "None (creates thread)",
       },
       {
         "name": "/info",
         "phase": 2,
         "handler": "handle_info",
-        "returns": "None (displays summary)"
+        "returns": "None (displays summary)",
       },
       {
         "name": "/clear",
         "phase": 3,
         "handler": "handle_clear",
-        "returns": "None (clears screen)"
+        "returns": "None (clears screen)",
       },
       {
         "name": "/session",
         "phase": 3,
         "handler": "handle_session",
-        "returns": "None (shows state dump)"
-      }
-    ]
+        "returns": "None (shows state dump)",
+      },
+    ],
   },
 
   "layer_8_main_loop": {
@@ -817,7 +828,7 @@
       "streaming/hitl.py",
       "ui/renderer.py",
       "commands/registry.py",
-      "commands/handlers.py"
+      "commands/handlers.py",
     ],
     "description": "Main REPL orchestrator - input loop, routing, coordination",
     "interface": {
@@ -826,42 +837,42 @@
         {
           "name": "__init__",
           "params": ["config: Config"],
-          "description": "Initialize all components"
+          "description": "Initialize all components",
         },
         {
           "name": "run",
           "returns": "int",
-          "description": "Main loop - returns exit code"
+          "description": "Main loop - returns exit code",
         },
         {
           "name": "_startup",
-          "description": "Connect to server, show welcome, create initial thread"
+          "description": "Connect to server, show welcome, create initial thread",
         },
         {
           "name": "_get_input",
           "returns": "str",
-          "description": "Get user input (plain input Phase 1, prompt-toolkit Phase 3)"
+          "description": "Get user input (plain input Phase 1, prompt-toolkit Phase 3)",
         },
         {
           "name": "_handle_input",
           "params": ["user_input: str"],
           "returns": "bool",
-          "description": "Route to command or message. Returns False to exit."
+          "description": "Route to command or message. Returns False to exit.",
         },
         {
           "name": "_send_message",
           "params": ["message: str"],
-          "description": "Stream message to agent and render response"
+          "description": "Stream message to agent and render response",
         },
         {
           "name": "_handle_stream",
           "params": ["chunks: Iterator"],
-          "description": "Process stream chunks, handle interrupts, coordinate rendering"
+          "description": "Process stream chunks, handle interrupts, coordinate rendering",
         },
         {
           "name": "_shutdown",
-          "description": "Cleanup, show session summary, disconnect"
-        }
+          "description": "Cleanup, show session summary, disconnect",
+        },
       ],
       "state_fields": [
         "config: Config",
@@ -871,8 +882,8 @@
         "hitl_handler: HITLHandler",
         "renderer: Renderer",
         "command_registry: CommandRegistry",
-        "command_handlers: CommandHandlers"
-      ]
+        "command_handlers: CommandHandlers",
+      ],
     },
     "flow": {
       "startup": [
@@ -882,14 +893,14 @@
         "List agents, set default",
         "Create initial thread",
         "Register commands",
-        "Show welcome banner"
+        "Show welcome banner",
       ],
       "main_loop": [
         "Get input from user",
         "If starts with '/': Route to command registry",
         "Else: Send as message via _send_message()",
         "If command returns False: Exit loop",
-        "Repeat"
+        "Repeat",
       ],
       "send_message": [
         "Call client.stream_message()",
@@ -899,13 +910,13 @@
         "  - Check for interrupt",
         "  - Render via renderer",
         "If interrupted: Call hitl_handler.handle_interrupt()",
-        "Track tokens in session"
+        "Track tokens in session",
       ],
       "shutdown": [
         "Show session summary (time, tokens, messages)",
         "Disconnect client",
-        "Return exit code"
-      ]
+        "Return exit code",
+      ],
     },
     "entry_point": {
       "function": "main()",
@@ -913,10 +924,10 @@
         "config = Config.from_env()",
         "repl = REPLLoop(config)",
         "exit_code = repl.run()",
-        "sys.exit(exit_code)"
+        "sys.exit(exit_code)",
       ],
-      "invocation": "python -m agent_snowflake.repl"
-    }
+      "invocation": "python -m agent_snowflake.repl",
+    },
   },
 
   "layer_6_renderer": {
@@ -928,7 +939,7 @@
       "library": "Rich (best terminal rendering in Python)",
       "file_split": "renderer.py (base), message.py (messages), content_blocks.py (blocks)",
       "styling": "Consistent colors - user=green, ai=cyan, tool=yellow, error=red",
-      "code_highlighting": "Rich Syntax with Pygments"
+      "code_highlighting": "Rich Syntax with Pygments",
     },
     "interface": {
       "Renderer": {
@@ -937,48 +948,48 @@
         "methods": [
           {
             "name": "__init__",
-            "description": "Initialize Rich Console"
+            "description": "Initialize Rich Console",
           },
           {
             "name": "render_text",
             "params": ["text: str", "style: str = 'cyan'"],
-            "description": "Print text with color"
+            "description": "Print text with color",
           },
           {
             "name": "render_markdown",
             "params": ["text: str"],
-            "description": "Render markdown using Rich Markdown"
+            "description": "Render markdown using Rich Markdown",
           },
           {
             "name": "render_code",
             "params": ["code: str", "language: str"],
-            "description": "Syntax highlighted code block"
+            "description": "Syntax highlighted code block",
           },
           {
             "name": "render_panel",
             "params": ["content: str", "title: str", "style: str = 'blue'"],
-            "description": "Render Rich Panel with border"
+            "description": "Render Rich Panel with border",
           },
           {
             "name": "render_table",
             "params": ["headers: list[str]", "rows: list[list]"],
-            "description": "Render Rich Table"
+            "description": "Render Rich Table",
           },
           {
             "name": "render_error",
             "params": ["message: str"],
-            "description": "Red error message"
+            "description": "Red error message",
           },
           {
             "name": "render_success",
             "params": ["message: str"],
-            "description": "Green success message"
+            "description": "Green success message",
           },
           {
             "name": "clear",
-            "description": "Clear terminal screen"
-          }
-        ]
+            "description": "Clear terminal screen",
+          },
+        ],
       },
       "MessageRenderer": {
         "file": "ui/message.py",
@@ -987,19 +998,19 @@
           {
             "name": "render_user_message",
             "params": ["content: str"],
-            "description": "Render user message (green)"
+            "description": "Render user message (green)",
           },
           {
             "name": "render_ai_text",
             "params": ["text: str"],
-            "description": "Render AI text (cyan, supports markdown)"
+            "description": "Render AI text (cyan, supports markdown)",
           },
           {
             "name": "render_tool_result",
             "params": ["tool_name: str", "result: str", "status: str"],
-            "description": "Render tool result in panel"
-          }
-        ]
+            "description": "Render tool result in panel",
+          },
+        ],
       },
       "ContentBlockRenderer": {
         "file": "ui/content_blocks.py",
@@ -1008,20 +1019,20 @@
           {
             "name": "render_content_block",
             "params": ["block: ContentBlock"],
-            "description": "Route to type-specific renderer"
+            "description": "Route to type-specific renderer",
           },
           {
             "name": "render_tool_call",
             "params": ["tool_call: ToolCall"],
-            "description": "Show tool call preview (collapsed by default)"
+            "description": "Show tool call preview (collapsed by default)",
           },
           {
             "name": "render_tool_preview",
             "params": ["tool_name: str", "args: dict"],
             "returns": "str",
-            "description": "Format tool for HITL preview - registry lookup"
-          }
-        ]
+            "description": "Format tool for HITL preview - registry lookup",
+          },
+        ],
       },
       "ToolRenderRegistry": {
         "file": "ui/content_blocks.py",
@@ -1030,22 +1041,22 @@
           {
             "name": "register",
             "params": ["tool_name: str", "formatter: Callable[[dict], str]"],
-            "description": "Register custom formatter for tool"
+            "description": "Register custom formatter for tool",
           },
           {
             "name": "format",
             "params": ["tool_name: str", "args: dict"],
             "returns": "str",
-            "description": "Format tool args, use custom or fallback"
-          }
+            "description": "Format tool args, use custom or fallback",
+          },
         ],
         "builtin_formatters": [
           "sql_db_query - Show formatted SQL",
           "sql_db_schema - Show table names",
-          "AskUserQuestion - Show question + options (Phase 3)"
-        ]
-      }
-    }
+          "AskUserQuestion - Show question + options (Phase 3)",
+        ],
+      },
+    },
   },
 
   "build_order_summary": {
@@ -1063,34 +1074,34 @@
         "ui/content_blocks.py",
         "commands/registry.py",
         "commands/handlers.py (partial - /help, /exit only)",
-        "__main__.py"
+        "__main__.py",
       ],
-      "goal": "Basic streaming chat with markdown/code blocks"
+      "goal": "Basic streaming chat with markdown/code blocks",
     },
     "phase_2_features": {
       "layers": [5, 7],
       "files": [
         "streaming/hitl.py",
-        "commands/handlers.py (add /agents, /threads, /new, /info)"
+        "commands/handlers.py (add /agents, /threads, /new, /info)",
       ],
       "updates": [
         "core/client.py - Add dual stream mode ['messages', 'updates']",
         "streaming/handler.py - Add interrupt detection",
-        "ui/content_blocks.py - Add tool registry and custom formatters"
+        "ui/content_blocks.py - Add tool registry and custom formatters",
       ],
-      "goal": "HITL support, thread/agent management"
+      "goal": "HITL support, thread/agent management",
     },
     "phase_3_polish": {
       "layers": [],
       "files": [
         "ui/input.py (prompt-toolkit)",
-        "commands/handlers.py (add /clear, /session)"
+        "commands/handlers.py (add /clear, /session)",
       ],
       "updates": [
         "__main__.py - Replace _get_input() with InputHandler",
-        "ui/renderer.py - Add status line/bottom bar support"
+        "ui/renderer.py - Add status line/bottom bar support",
       ],
-      "goal": "Enhanced input, completion, status bar"
-    }
-  }
+      "goal": "Enhanced input, completion, status bar",
+    },
+  },
 }

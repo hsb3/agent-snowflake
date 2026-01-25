@@ -83,10 +83,18 @@ agent-snowflake/
 ```bash
 make install              # Install all apps (creates separate .venv per app)
 make test                 # Run all app tests
-make dev                  # Start agent dev server
-make dev-server           # Start server without browser
+make format               # Format all code
+make lint                 # Lint all code
+make type-check           # Type check all code
+make check                # Run format + lint + type-check
 make clean                # Remove caches (preserves .venv)
 make clean-venvs          # Remove all .venv directories
+```
+
+### Starting the Dev Server
+```bash
+cd apps/agent && make dev         # With Studio UI
+cd apps/agent && make dev-server  # Without browser
 ```
 
 ### Per-App Commands

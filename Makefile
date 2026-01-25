@@ -1,144 +1,86 @@
-# ============================================================================
 # Agent Snowflake Monorepo
-# ============================================================================
-# Orchestration Makefile for multi-app repository
+# Orchestration commands for multi-app repository
 #
-# Apps (each has its own .venv):
-#   - agent           : LangGraph SQL agent with guardrails
-#   - repl-client     : Classic REPL client for LangGraph servers
-#   - repl-client-graph : StateGraph-based REPL implementation
-#
-# Usage: make <target>
-# ============================================================================
+# For app-specific commands, use:
+#   cd apps/agent && make help
+#   cd apps/repl-client && make help
 
 .DEFAULT_GOAL := help
 
-# ============================================================================
-# CONFIGURATION
-# ============================================================================
+APPS := apps/agent apps/repl-client
 
-# App directories
-APPS_DIR := apps
-APP_AGENT := $(APPS_DIR)/agent
-APP_REPL := $(APPS_DIR)/repl-client
-APP_REPL_GRAPH := $(APPS_DIR)/repl-client-graph
-
-# Default port for LangGraph dev server
-DEFAULT_PORT := 2024
-
-# ============================================================================
-# COLORS
-# ============================================================================
-
-RESET := \033[0m
-BOLD := \033[1m
+# Colors
 GREEN := \033[32m
 YELLOW := \033[33m
-BLUE := \033[34m
 CYAN := \033[36m
+RESET := \033[0m
 
-# ============================================================================
-# PHONY TARGETS
-# ============================================================================
-
-.PHONY: help install install-agent install-repl test clean dev dev-server
-
-# ============================================================================
-# HELP
-# ============================================================================
+.PHONY: help install test format lint type-check check clean clean-venvs
 
 help:
 	@echo ""
-	@printf "$(BOLD)Agent Snowflake Monorepo$(RESET)\n"
+	@echo "Monorepo orchestration commands:"
 	@echo ""
-	@printf "$(YELLOW)Note:$(RESET) Each app has its own virtual environment.\n"
+	@echo "  $(CYAN)install$(RESET)      Install all apps (creates .venv per app)"
+	@echo "  $(CYAN)test$(RESET)         Run tests for all apps"
+	@echo "  $(CYAN)format$(RESET)       Format code in all apps"
+	@echo "  $(CYAN)lint$(RESET)         Lint code in all apps"
+	@echo "  $(CYAN)type-check$(RESET)   Type check all apps"
+	@echo "  $(CYAN)check$(RESET)        Run format + lint + type-check"
+	@echo "  $(CYAN)clean$(RESET)        Remove caches (preserves .venv)"
+	@echo "  $(CYAN)clean-venvs$(RESET)  Remove all .venv directories"
 	@echo ""
-	@printf "$(BOLD)Setup$(RESET):\n"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "install" "Install all apps (creates separate .venv per app)"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "install-agent" "Install agent app only"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "install-repl" "Install repl-client app only"
-	@echo ""
-	@printf "$(BOLD)Development$(RESET):\n"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "dev" "Start LangGraph dev server with Studio UI"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "dev-server" "Start dev server without browser"
-	@echo ""
-	@printf "$(BOLD)Testing$(RESET):\n"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "test" "Run tests for all apps"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "test-agent" "Run agent tests only"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "test-repl" "Run repl-client tests only"
-	@echo ""
-	@printf "$(BOLD)Maintenance$(RESET):\n"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "clean" "Remove caches (preserves .venv)"
-	@printf "  $(CYAN)%-20s$(RESET) %s\n" "clean-venvs" "Remove all .venv directories"
-	@echo ""
-	@printf "$(BOLD)Per-App Commands$(RESET):\n"
-	@echo "  cd $(APP_AGENT) && make help"
-	@echo "  cd $(APP_REPL) && make help"
+	@echo "App-specific commands:"
+	@echo "  cd apps/agent && make help"
+	@echo "  cd apps/repl-client && make help"
 	@echo ""
 
-# ============================================================================
-# SETUP
-# ============================================================================
-
-install: install-agent install-repl
+install:
+	@for app in $(APPS); do \
+		echo "$(GREEN)Installing $$app...$(RESET)"; \
+		(cd $$app && make install); \
+	done
 	@echo "$(GREEN)All apps installed.$(RESET)"
 
-install-agent:
-	@echo "$(BLUE)Installing agent dependencies...$(RESET)"
-	cd $(APP_AGENT) && make install
-	@echo "$(GREEN)Agent installed.$(RESET)"
-
-install-repl:
-	@echo "$(BLUE)Installing repl-client dependencies...$(RESET)"
-	cd $(APP_REPL) && make install
-	@echo "$(GREEN)REPL client installed.$(RESET)"
-
-# ============================================================================
-# DEVELOPMENT
-# ============================================================================
-
-dev:
-	@PORT=$$(grep LANGGRAPH_DEV_SERVER_PORT .env 2>/dev/null | cut -d= -f2 | tr -d ' '); \
-	PORT=$${PORT:-$(DEFAULT_PORT)}; \
-	echo "$(GREEN)Starting LangGraph dev server on port $$PORT...$(RESET)"; \
-	echo "$(CYAN)Studio UI will be available at http://localhost:$$PORT$(RESET)"; \
-	cd $(APP_AGENT) && uv run langgraph dev --allow-blocking --port $$PORT
-
-dev-server:
-	@PORT=$$(grep LANGGRAPH_DEV_SERVER_PORT .env 2>/dev/null | cut -d= -f2 | tr -d ' '); \
-	PORT=$${PORT:-$(DEFAULT_PORT)}; \
-	echo "$(GREEN)Starting LangGraph dev server on port $$PORT (no browser)...$(RESET)"; \
-	cd $(APP_AGENT) && uv run langgraph dev --allow-blocking --port $$PORT --no-browser
-
-# ============================================================================
-# TESTING
-# ============================================================================
-
-test: test-agent test-repl
+test:
+	@for app in $(APPS); do \
+		echo "$(YELLOW)Testing $$app...$(RESET)"; \
+		(cd $$app && make test); \
+	done
 	@echo "$(GREEN)All tests complete.$(RESET)"
 
-test-agent:
-	@echo "$(YELLOW)Testing agent...$(RESET)"
-	cd $(APP_AGENT) && make test
+format:
+	@for app in $(APPS); do \
+		echo "$(YELLOW)Formatting $$app...$(RESET)"; \
+		(cd $$app && make format); \
+	done
+	@echo "$(GREEN)Formatting complete.$(RESET)"
 
-test-repl:
-	@echo "$(YELLOW)Testing repl-client...$(RESET)"
-	cd $(APP_REPL) && make test
+lint:
+	@for app in $(APPS); do \
+		echo "$(YELLOW)Linting $$app...$(RESET)"; \
+		(cd $$app && make lint); \
+	done
+	@echo "$(GREEN)Linting complete.$(RESET)"
 
-# ============================================================================
-# MAINTENANCE
-# ============================================================================
+type-check:
+	@for app in $(APPS); do \
+		echo "$(YELLOW)Type checking $$app...$(RESET)"; \
+		(cd $$app && make type-check); \
+	done
+	@echo "$(GREEN)Type check complete.$(RESET)"
+
+check: format lint type-check
+	@echo "$(GREEN)All checks passed.$(RESET)"
 
 clean:
-	@echo "$(YELLOW)Cleaning up caches...$(RESET)"
+	@echo "$(YELLOW)Cleaning caches...$(RESET)"
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
-	@echo "$(GREEN)Cleanup complete (preserved .venv directories)$(RESET)"
+	@echo "$(GREEN)Clean complete.$(RESET)"
 
 clean-venvs:
 	@echo "$(YELLOW)Removing all .venv directories...$(RESET)"
-	rm -rf .venv $(APP_AGENT)/.venv $(APP_REPL)/.venv $(APP_REPL_GRAPH)/.venv
-	@echo "$(GREEN)All virtual environments removed.$(RESET)"
+	rm -rf apps/agent/.venv apps/repl-client/.venv apps/repl-client-graph/.venv
+	@echo "$(GREEN)All venvs removed.$(RESET)"

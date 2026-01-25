@@ -1,26 +1,29 @@
-"""LangGraph HTTP client for REPL.
+"""LangGraph client for REPL.
 
-Provides async client for interacting with LangGraph Cloud API.
-Handles SSE streaming for message responses using dual stream mode.
+Provides async client for interacting with LangGraph API using the official SDK.
+Handles streaming for message responses using dual stream mode.
 
-Phase 2 Enhancement:
-- Uses dual stream mode: ["messages", "updates"]
-- "messages" stream: LLM tokens, tool calls, message metadata
-- "updates" stream: State updates, __interrupt__ signals for HITL
+Uses langgraph-sdk for all API calls. See: https://docs.langchain.com/langsmith/langgraph-python-sdk
 """
 
-import json
-from typing import AsyncIterator
+from typing import TYPE_CHECKING, Any, AsyncIterator, cast
 
-import httpx
+from langgraph_sdk import get_client
+from langgraph_sdk.schema import Command
 
 from repl_client.core.logging import get_logger
 
+if TYPE_CHECKING:
+    from langgraph_sdk.client import LangGraphClient as SDKClient
+
 logger = get_logger("client")
+
+# Type alias for SDK responses (TypedDicts that are dict-compatible)
+DictResponse = dict[str, Any]
 
 
 class LangGraphClient:
-    """Async HTTP client for LangGraph Cloud API.
+    """Async client for LangGraph API using the official SDK.
 
     Handles connection, agent management, thread management, and streaming messages.
     """
@@ -34,6 +37,7 @@ class LangGraphClient:
         """
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self._client: "SDKClient" = get_client(url=self.base_url)
         logger.info(f"Initialized LangGraphClient with base_url={self.base_url}, timeout={timeout}")
 
     async def connect(self) -> bool:
@@ -43,19 +47,15 @@ class LangGraphClient:
             True if connection successful, False otherwise
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(f"{self.base_url}/ok")
-                success = response.status_code == 200
-                if success:
-                    logger.info("Successfully connected to LangGraph server")
-                else:
-                    logger.error(f"Connection failed with status {response.status_code}")
-                return success
+            # Use assistants.search as a health check
+            await self._client.assistants.search(limit=1)
+            logger.info("Successfully connected to LangGraph server")
+            return True
         except Exception as e:
             logger.error(f"Connection failed: {e}")
             return False
 
-    async def list_agents(self, limit: int = 10) -> list[dict]:
+    async def list_agents(self, limit: int = 10) -> list[DictResponse]:
         """List available assistants/agents.
 
         Args:
@@ -65,22 +65,15 @@ class LangGraphClient:
             List of agent dictionaries with assistant_id
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.base_url}/assistants/search", json={"limit": limit}
-                )
-                response.raise_for_status()
-                data = response.json()
-
-                # Response format: list of assistants
-                agents = data if isinstance(data, list) else data.get("assistants", [])
-                logger.info(f"Listed {len(agents)} agents")
-                return agents
+            agents = await self._client.assistants.search(limit=limit)
+            logger.info(f"Listed {len(agents)} agents")
+            # SDK returns TypedDicts which are dict subclasses
+            return cast(list[DictResponse], agents)
         except Exception as e:
             logger.error(f"Failed to list agents: {e}")
             raise
 
-    async def get_agent(self, assistant_id: str) -> dict:
+    async def get_agent(self, assistant_id: str) -> DictResponse:
         """Get details for specific agent.
 
         Args:
@@ -90,17 +83,34 @@ class LangGraphClient:
             Agent details dictionary
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(f"{self.base_url}/assistants/{assistant_id}")
-                response.raise_for_status()
-                agent = response.json()
-                logger.info(f"Retrieved agent {assistant_id}")
-                return agent
+            agent = await self._client.assistants.get(assistant_id)
+            logger.info(f"Retrieved agent {assistant_id}")
+            return cast(DictResponse, agent)
         except Exception as e:
             logger.error(f"Failed to get agent {assistant_id}: {e}")
             raise
 
-    async def create_thread(self, metadata: dict | None = None) -> str:
+    async def get_agent_schemas(self, assistant_id: str) -> DictResponse:
+        """Get schema information for specific agent.
+
+        Fetches the schemas endpoint which includes input_schema, output_schema,
+        state_schema, config_schema, and context_schema.
+
+        Args:
+            assistant_id: Agent/assistant ID
+
+        Returns:
+            Schema dictionary with graph_id and various schema definitions
+        """
+        try:
+            schemas = await self._client.assistants.get_schemas(assistant_id)
+            logger.info(f"Retrieved schemas for agent {assistant_id}")
+            return cast(DictResponse, schemas)
+        except Exception as e:
+            logger.error(f"Failed to get schemas for agent {assistant_id}: {e}")
+            raise
+
+    async def create_thread(self, metadata: DictResponse | None = None) -> str:
         """Create new thread.
 
         Args:
@@ -110,22 +120,15 @@ class LangGraphClient:
             Thread ID string
         """
         try:
-            body = {}
-            if metadata:
-                body["metadata"] = metadata
-
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(f"{self.base_url}/threads", json=body)
-                response.raise_for_status()
-                data = response.json()
-                thread_id = data["thread_id"]
-                logger.info(f"Created thread {thread_id}")
-                return thread_id
+            thread = await self._client.threads.create(metadata=metadata)
+            thread_id = thread["thread_id"]
+            logger.info(f"Created thread {thread_id}")
+            return thread_id
         except Exception as e:
             logger.error(f"Failed to create thread: {e}")
             raise
 
-    async def get_thread(self, thread_id: str) -> dict:
+    async def get_thread(self, thread_id: str) -> DictResponse:
         """Get thread details.
 
         Args:
@@ -135,17 +138,14 @@ class LangGraphClient:
             Thread details dictionary
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(f"{self.base_url}/threads/{thread_id}")
-                response.raise_for_status()
-                thread = response.json()
-                logger.debug(f"Retrieved thread {thread_id}")
-                return thread
+            thread = await self._client.threads.get(thread_id)
+            logger.debug(f"Retrieved thread {thread_id}")
+            return cast(DictResponse, thread)
         except Exception as e:
             logger.error(f"Failed to get thread {thread_id}: {e}")
             raise
 
-    async def list_threads(self, limit: int = 10) -> list[dict]:
+    async def list_threads(self, limit: int = 10) -> list[DictResponse]:
         """List threads.
 
         Args:
@@ -155,28 +155,55 @@ class LangGraphClient:
             List of thread dictionaries
         """
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    f"{self.base_url}/threads/search", json={"limit": limit}
-                )
-                response.raise_for_status()
-                data = response.json()
-
-                # Response format: list of threads
-                threads = data if isinstance(data, list) else data.get("threads", [])
-                logger.info(f"Listed {len(threads)} threads")
-                return threads
+            threads = await self._client.threads.search(limit=limit)
+            logger.info(f"Listed {len(threads)} threads")
+            return cast(list[DictResponse], threads)
         except Exception as e:
             logger.error(f"Failed to list threads: {e}")
             raise
 
+    async def get_thread_history(self, thread_id: str, limit: int = 100) -> list[DictResponse]:
+        """Get thread history (checkpoints).
+
+        Args:
+            thread_id: Thread ID
+            limit: Maximum number of history entries to return
+
+        Returns:
+            List of history entries (checkpoints)
+        """
+        try:
+            history = await self._client.threads.get_history(thread_id, limit=limit)
+            logger.info(f"Retrieved {len(history)} history entries for thread {thread_id}")
+            return cast(list[DictResponse], history)
+        except Exception as e:
+            logger.error(f"Failed to get history for thread {thread_id}: {e}")
+            raise
+
+    async def get_thread_state(self, thread_id: str) -> DictResponse:
+        """Get current state of a thread.
+
+        Args:
+            thread_id: Thread ID
+
+        Returns:
+            Thread state dictionary
+        """
+        try:
+            state = await self._client.threads.get_state(thread_id)
+            logger.debug(f"Retrieved state for thread {thread_id}")
+            return cast(DictResponse, state)
+        except Exception as e:
+            logger.error(f"Failed to get state for thread {thread_id}: {e}")
+            raise
+
     async def stream_message(
         self, thread_id: str, message: str, assistant_id: str
-    ) -> AsyncIterator[tuple[str, dict]]:
+    ) -> AsyncIterator[tuple[str, DictResponse]]:
         """Stream message to agent and yield SSE events.
 
         Uses dual stream mode to get both message updates and state updates.
-        This is required for Phase 2 HITL support - __interrupt__ signals only
+        This is required for HITL support - __interrupt__ signals only
         appear in the 'updates' stream.
 
         Args:
@@ -193,24 +220,17 @@ class LangGraphClient:
             - updates: State updates including __interrupt__ signals
             - metadata: Run metadata
         """
-        body = {
-            "assistant_id": assistant_id,
-            "input": {"messages": [{"role": "user", "content": message}]},
-            "stream_mode": ["messages", "updates"],
-        }
-
         logger.info(f"Streaming message to thread {thread_id} with agent {assistant_id}")
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                async with client.stream(
-                    "POST", f"{self.base_url}/threads/{thread_id}/runs/stream", json=body
-                ) as response:
-                    response.raise_for_status()
-
-                    # Parse SSE stream
-                    async for chunk in self._parse_sse_stream(response):
-                        yield chunk
+            stream = self._client.runs.stream(
+                thread_id,
+                assistant_id,
+                input={"messages": [{"role": "user", "content": message}]},
+                stream_mode=["messages", "updates"],
+            )
+            async for chunk in stream:
+                yield (chunk.event, chunk.data)
 
             logger.info(f"Completed streaming message to thread {thread_id}")
 
@@ -219,8 +239,8 @@ class LangGraphClient:
             raise
 
     async def resume_after_interrupt(
-        self, thread_id: str, assistant_id: str, command: dict
-    ) -> AsyncIterator[tuple[str, dict]]:
+        self, thread_id: str, assistant_id: str, command: DictResponse
+    ) -> AsyncIterator[tuple[str, DictResponse]]:
         """Resume execution after HITL interrupt.
 
         Uses dual stream mode to detect any subsequent interrupts.
@@ -228,80 +248,30 @@ class LangGraphClient:
         Args:
             thread_id: Thread ID
             assistant_id: Assistant/agent ID
-            command: Command dict from HITLHandler (e.g., {"resume": {"approve": True}})
+            command: Command dict (e.g., {"resume": {"approve": True}})
 
         Yields:
             Tuples of (event_type, data) from SSE stream.
             Same event types as stream_message.
         """
-        body = {
-            "assistant_id": assistant_id,
-            "command": command,
-            "stream_mode": ["messages", "updates"],
-        }
-
-        approved = command.get("resume", {}).get("approve", False)
+        # Extract resume value from command dict and convert to SDK Command
+        resume_value = command.get("resume", {})
+        approved = resume_value.get("approve", False) if isinstance(resume_value, dict) else False
         logger.info(f"Resuming thread {thread_id} with approval={approved}")
 
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                async with client.stream(
-                    "POST", f"{self.base_url}/threads/{thread_id}/runs/stream", json=body
-                ) as response:
-                    response.raise_for_status()
-
-                    # Parse SSE stream
-                    async for chunk in self._parse_sse_stream(response):
-                        yield chunk
+            sdk_command = Command(resume=resume_value)
+            stream = self._client.runs.stream(
+                thread_id,
+                assistant_id,
+                command=sdk_command,
+                stream_mode=["messages", "updates"],
+            )
+            async for chunk in stream:
+                yield (chunk.event, chunk.data)
 
             logger.info(f"Completed resuming thread {thread_id}")
 
         except Exception as e:
             logger.error(f"Failed to resume after interrupt: {e}")
             raise
-
-    async def _parse_sse_stream(self, response: httpx.Response) -> AsyncIterator[tuple[str, dict]]:
-        """Parse Server-Sent Events stream.
-
-        SSE format:
-            event: <event_type>
-            data: <json_data>
-
-            (blank line separates events)
-
-        Args:
-            response: httpx streaming response
-
-        Yields:
-            Tuples of (event_type, data_dict)
-        """
-        event_type = None
-        data_lines = []
-
-        async for line in response.aiter_lines():
-            line = line.strip()
-
-            # Empty line signals end of event
-            if not line:
-                if event_type and data_lines:
-                    # Join data lines and parse JSON
-                    data_str = "\n".join(data_lines)
-                    try:
-                        data = json.loads(data_str)
-                        logger.debug(f"Parsed SSE event: {event_type}")
-                        yield (event_type, data)
-                    except json.JSONDecodeError as e:
-                        logger.warning(f"Failed to parse SSE data: {e}")
-
-                # Reset for next event
-                event_type = None
-                data_lines = []
-                continue
-
-            # Parse event line
-            if line.startswith("event:"):
-                event_type = line[6:].strip()
-
-            # Parse data line
-            elif line.startswith("data:"):
-                data_lines.append(line[5:].strip())

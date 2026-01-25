@@ -94,9 +94,8 @@ def prompt_install_graphviz() -> bool:
     print("\nGraphviz is required for PNG generation.")
     print("\nInstallation instructions:")
     print("  macOS:   brew install graphviz")
-    print("  Ubuntu:  sudo apt-get install graphviz")
-    print("  Fedora:  sudo dnf install graphviz")
-    print("  Windows: choco install graphviz")
+    print("  linux:  sudo apt-get install graphviz")
+    print("  windows: choco install graphviz")
     print("\nAlternatively, use --no-png to skip PNG generation.")
     print("=" * 80)
 

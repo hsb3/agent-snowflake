@@ -11,7 +11,7 @@ Instructions:
 5. Watch status bar for changes
 """
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer
+from textual.widgets import Footer, Header
 
 from repl_client.tui.widgets.sidebar import Sidebar
 

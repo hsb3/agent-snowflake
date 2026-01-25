@@ -1,0 +1,398 @@
+{
+  "package": "langgraph-sdk",
+  "description": "Official Python SDK for LangGraph API",
+  "usage": {
+    "async": "from langgraph_sdk import get_client; client = get_client(url='http://localhost:2024')",
+    "sync": "from langgraph_sdk import get_sync_client; client = get_sync_client(url='http://localhost:2024')"
+  },
+  "client": {
+    "type": "LangGraphClient",
+    "namespaces": {
+      "assistants": {
+        "description": "Manage assistants (agents)",
+        "methods": {
+          "search": {
+            "signature": "(*, metadata=None, graph_id=None, name=None, limit=10, offset=0, ...) -> list[Assistant]",
+            "description": "Search for assistants",
+            "use_case": "List all available agents"
+          },
+          "get": {
+            "signature": "(assistant_id: str) -> Assistant",
+            "description": "Get an assistant by ID",
+            "use_case": "Get agent details"
+          },
+          "get_schemas": {
+            "signature": "(assistant_id: str) -> GraphSchema",
+            "description": "Get the schemas of an assistant",
+            "use_case": "Get config_schema, context_schema, state_schema"
+          },
+          "create": {
+            "signature": "(graph_id, config=None, *, context=None, metadata=None, ...) -> Assistant",
+            "description": "Create a new assistant",
+            "use_case": "Create custom agent configuration"
+          },
+          "update": {
+            "signature": "(assistant_id, *, graph_id=None, config=None, context=None, ...) -> Assistant",
+            "description": "Update an assistant",
+            "use_case": "Modify agent configuration"
+          },
+          "delete": {
+            "signature": "(assistant_id: str) -> None",
+            "description": "Delete an assistant",
+            "use_case": "Remove agent"
+          },
+          "count": {
+            "signature": "(*, metadata=None, graph_id=None, name=None) -> int",
+            "description": "Count assistants matching filters",
+            "use_case": "Get agent count"
+          }
+        }
+      },
+      "threads": {
+        "description": "Manage conversation threads",
+        "methods": {
+          "create": {
+            "signature": "(*, metadata=None, thread_id=None, if_exists=None, ...) -> Thread",
+            "description": "Create a new thread",
+            "use_case": "Start new conversation"
+          },
+          "get": {
+            "signature": "(thread_id: str) -> Thread",
+            "description": "Get a thread by ID",
+            "use_case": "Check thread exists, get status"
+          },
+          "search": {
+            "signature": "(*, metadata=None, status=None, limit=10, offset=0, ...) -> list[Thread]",
+            "description": "Search for threads",
+            "use_case": "List all threads"
+          },
+          "delete": {
+            "signature": "(thread_id: str) -> None",
+            "description": "Delete a thread",
+            "use_case": "Remove conversation"
+          },
+          "update": {
+            "signature": "(thread_id, *, metadata, ttl=None) -> Thread",
+            "description": "Update a thread",
+            "use_case": "Rename thread (via metadata)"
+          },
+          "get_state": {
+            "signature": "(thread_id, checkpoint=None, checkpoint_id=None, *, subgraphs=False) -> ThreadState",
+            "description": "Get the state of a thread",
+            "use_case": "Inspect current state, check for interrupts"
+          },
+          "update_state": {
+            "signature": "(thread_id, values, *, as_node=None, checkpoint=None, ...) -> ThreadUpdateStateResponse",
+            "description": "Update the state of a thread",
+            "use_case": "Inject state, resume from checkpoint"
+          },
+          "get_history": {
+            "signature": "(thread_id, *, limit=10, before=None, metadata=None, ...) -> list[ThreadState]",
+            "description": "Get the state history of a thread",
+            "use_case": "Load conversation history, time travel"
+          },
+          "join_stream": {
+            "signature": "(thread_id, *, last_event_id=None, stream_mode='run_modes') -> AsyncIterator[StreamPart]",
+            "description": "Get a stream of events for a thread",
+            "use_case": "Reconnect to running thread, resume streaming"
+          },
+          "copy": {
+            "signature": "(thread_id: str) -> None",
+            "description": "Copy a thread",
+            "use_case": "Duplicate conversation"
+          },
+          "count": {
+            "signature": "(*, metadata=None, values=None, status=None) -> int",
+            "description": "Count threads matching filters",
+            "use_case": "Get thread count"
+          }
+        }
+      },
+      "runs": {
+        "description": "Manage runs (agent executions)",
+        "methods": {
+          "stream": {
+            "signature": "(thread_id, assistant_id, *, input=None, command=None, stream_mode='values', ...) -> AsyncIterator[StreamPart]",
+            "description": "Create a run and stream the results",
+            "use_case": "Send message, stream response"
+          },
+          "create": {
+            "signature": "(thread_id, assistant_id, *, input=None, command=None, ...) -> Run",
+            "description": "Create a background run",
+            "use_case": "Start run without streaming"
+          },
+          "wait": {
+            "signature": "(thread_id, assistant_id, *, input=None, command=None, ...) -> list[dict] | dict",
+            "description": "Create a run, wait until it finishes and return the final state",
+            "use_case": "Synchronous execution"
+          },
+          "get": {
+            "signature": "(thread_id, run_id) -> Run",
+            "description": "Get a run by ID",
+            "use_case": "Check run status"
+          },
+          "list": {
+            "signature": "(thread_id, *, limit=10, offset=0, status=None, ...) -> list[Run]",
+            "description": "List runs for a thread",
+            "use_case": "Get run history"
+          },
+          "cancel": {
+            "signature": "(thread_id, run_id, *, wait=False, action='interrupt') -> None",
+            "description": "Cancel a run",
+            "use_case": "Stop running agent, handle escape during HITL"
+          },
+          "join": {
+            "signature": "(thread_id, run_id) -> dict",
+            "description": "Block until a run is done. Returns the final state of the thread",
+            "use_case": "Wait for background run"
+          },
+          "join_stream": {
+            "signature": "(thread_id, run_id, *, cancel_on_disconnect=False, stream_mode=None, last_event_id=None) -> AsyncIterator[StreamPart]",
+            "description": "Stream output from a run in real-time, until the run is done",
+            "use_case": "Reconnect to running agent, resume streaming after disconnect"
+          },
+          "delete": {
+            "signature": "(thread_id, run_id) -> None",
+            "description": "Delete a run",
+            "use_case": "Clean up run history"
+          }
+        }
+      },
+      "store": {
+        "description": "Key-value store for persistent data",
+        "methods": {
+          "get_item": {
+            "signature": "(namespace, key, *, refresh_ttl=None) -> Item",
+            "description": "Retrieve a single item",
+            "use_case": "Get stored data"
+          },
+          "put_item": {
+            "signature": "(namespace, key, value, index=None, ttl=None) -> None",
+            "description": "Store or update an item",
+            "use_case": "Save user preferences, cache"
+          },
+          "delete_item": {
+            "signature": "(namespace, key) -> None",
+            "description": "Delete an item",
+            "use_case": "Remove stored data"
+          },
+          "search_items": {
+            "signature": "(namespace_prefix, filter=None, limit=10, offset=0, query=None, ...) -> SearchItemsResponse",
+            "description": "Search for items within a namespace prefix",
+            "use_case": "Query stored data"
+          },
+          "list_namespaces": {
+            "signature": "(prefix=None, suffix=None, max_depth=None, limit=100, offset=0) -> ListNamespaceResponse",
+            "description": "List namespaces with optional match conditions",
+            "use_case": "Explore store structure"
+          }
+        }
+      },
+      "crons": {
+        "description": "Scheduled/recurring runs",
+        "methods": {
+          "create": {
+            "signature": "(assistant_id, *, schedule, input=None, ...) -> Run",
+            "description": "Create a cron run",
+            "use_case": "Schedule recurring agent execution"
+          },
+          "create_for_thread": {
+            "signature": "(thread_id, assistant_id, *, schedule, input=None, ...) -> Run",
+            "description": "Create a cron job for a thread",
+            "use_case": "Schedule recurring run on existing thread"
+          },
+          "search": {
+            "signature": "(*, assistant_id=None, thread_id=None, limit=10, offset=0, ...) -> list[Cron]",
+            "description": "Get a list of cron jobs",
+            "use_case": "List scheduled jobs"
+          },
+          "delete": {
+            "signature": "(cron_id: str) -> None",
+            "description": "Delete a cron job",
+            "use_case": "Cancel scheduled job"
+          }
+        }
+      },
+      "http": {
+        "description": "Low-level HTTP client",
+        "methods": {
+          "get": "Send GET request",
+          "post": "Send POST request",
+          "put": "Send PUT request",
+          "patch": "Send PATCH request",
+          "delete": "Send DELETE request",
+          "stream": "Stream results using SSE"
+        }
+      }
+    }
+  },
+  "schema_types": {
+    "Assistant": {
+      "fields": [
+        "assistant_id",
+        "graph_id",
+        "config",
+        "context",
+        "created_at",
+        "metadata",
+        "version",
+        "name",
+        "description",
+        "updated_at"
+      ]
+    },
+    "Thread": {
+      "fields": [
+        "thread_id",
+        "created_at",
+        "updated_at",
+        "metadata",
+        "status",
+        "values",
+        "interrupts"
+      ]
+    },
+    "ThreadState": {
+      "fields": [
+        "values",
+        "next",
+        "checkpoint",
+        "metadata",
+        "created_at",
+        "parent_checkpoint",
+        "tasks",
+        "interrupts"
+      ]
+    },
+    "ThreadStatus": {
+      "type": "Literal",
+      "values": [
+        "idle",
+        "busy",
+        "interrupted",
+        "error"
+      ]
+    },
+    "Run": {
+      "fields": [
+        "run_id",
+        "thread_id",
+        "assistant_id",
+        "created_at",
+        "updated_at",
+        "status",
+        "metadata",
+        "multitask_strategy"
+      ]
+    },
+    "RunStatus": {
+      "type": "Literal",
+      "values": [
+        "pending",
+        "running",
+        "error",
+        "success",
+        "timeout",
+        "interrupted"
+      ]
+    },
+    "GraphSchema": {
+      "fields": [
+        "graph_id",
+        "input_schema",
+        "output_schema",
+        "state_schema",
+        "config_schema",
+        "context_schema"
+      ]
+    },
+    "Checkpoint": {
+      "fields": [
+        "thread_id",
+        "checkpoint_ns",
+        "checkpoint_id",
+        "checkpoint_map"
+      ]
+    },
+    "Command": {
+      "fields": [
+        "goto",
+        "update",
+        "resume"
+      ],
+      "description": "Used to control agent execution (HITL resume, state updates)"
+    },
+    "Interrupt": {
+      "fields": [
+        "value",
+        "id"
+      ]
+    },
+    "StreamPart": {
+      "fields": [
+        "event",
+        "data",
+        "id"
+      ]
+    },
+    "StreamMode": {
+      "type": "Literal",
+      "values": [
+        "values",
+        "messages",
+        "updates",
+        "events",
+        "tasks",
+        "checkpoints",
+        "debug",
+        "custom",
+        "messages-tuple"
+      ]
+    }
+  },
+  "error_recovery_relevant": {
+    "check_thread_status": {
+      "method": "threads.get(thread_id)",
+      "returns": "Thread with status field",
+      "status_values": [
+        "idle",
+        "busy",
+        "interrupted",
+        "error"
+      ]
+    },
+    "check_run_status": {
+      "method": "runs.get(thread_id, run_id)",
+      "returns": "Run with status field",
+      "status_values": [
+        "pending",
+        "running",
+        "error",
+        "success",
+        "timeout",
+        "interrupted"
+      ]
+    },
+    "reconnect_to_stream": {
+      "method": "runs.join_stream(thread_id, run_id, last_event_id=...)",
+      "description": "Reconnect to running stream after disconnect",
+      "note": "Use last_event_id to resume from where you left off"
+    },
+    "cancel_stuck_run": {
+      "method": "runs.cancel(thread_id, run_id, action='interrupt')",
+      "description": "Cancel a running/stuck agent"
+    },
+    "resume_after_interrupt": {
+      "method": "runs.stream(thread_id, assistant_id, command=Command(resume=...))",
+      "description": "Resume after HITL interrupt"
+    },
+    "get_thread_state_for_recovery": {
+      "method": "threads.get_state(thread_id)",
+      "description": "Check current state, see pending tasks and interrupts"
+    },
+    "time_travel": {
+      "method": "threads.get_history(thread_id, limit=...)",
+      "description": "Get checkpoint history, can resume from any checkpoint"
+    }
+  }
+}

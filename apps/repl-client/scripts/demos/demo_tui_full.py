@@ -11,7 +11,7 @@ Prerequisites:
     - Environment configured (.env with LANGGRAPH_DEV_SERVER_PORT)
 
 Run:
-    uv run python scripts/repl_client/demos/demo_tui_full.py
+    uv run python scripts/demos/demo_tui_full.py
 """
 
 from repl_client.core.config import Config
@@ -22,7 +22,7 @@ from repl_client.tui.app import REPLApp
 def main():
     """Run the full TUI demo."""
     # Setup logging
-    setup_client_logger(log_level="DEBUG")
+    setup_client_logger(level="DEBUG")
 
     # Load config
     config = Config.from_env()

@@ -40,6 +40,7 @@ class LangGraphService:
         self.client = client
         self._agent_cache: list[dict] | None = None
         self._threads_cache: list[dict] | None = None
+        self._schema_cache: dict[str, dict] = {}  # assistant_id -> schemas
 
     async def get_agents(self, limit: int = 10, force_refresh: bool = False) -> list[dict]:
         """Get agents with caching.
@@ -167,6 +168,34 @@ class LangGraphService:
             logger.error(f"Failed to create thread: {e}")
             raise
 
+    async def get_agent_schemas(
+        self, assistant_id: str, force_refresh: bool = False
+    ) -> dict:
+        """Get schema information for specific agent with caching.
+
+        Args:
+            assistant_id: Agent/assistant ID
+            force_refresh: Force API call even if cached
+
+        Returns:
+            Schema dictionary with graph_id, context_schema, etc.
+
+        Raises:
+            Exception: If API call fails (propagated from client)
+        """
+        if assistant_id in self._schema_cache and not force_refresh:
+            logger.debug(f"Returning cached schemas for agent {assistant_id}")
+            return self._schema_cache[assistant_id]
+
+        try:
+            schemas = await self.client.get_agent_schemas(assistant_id)
+            self._schema_cache[assistant_id] = schemas
+            logger.info(f"Fetched and cached schemas for agent {assistant_id}")
+            return schemas
+        except Exception as e:
+            logger.error(f"Failed to fetch schemas for agent {assistant_id}: {e}")
+            raise
+
     def invalidate_agent_cache(self) -> None:
         """Invalidate agent cache to force refresh on next get."""
         logger.debug("Invalidating agent cache")
@@ -177,8 +206,22 @@ class LangGraphService:
         logger.debug("Invalidating thread cache")
         self._threads_cache = None
 
+    def invalidate_schema_cache(self, assistant_id: str | None = None) -> None:
+        """Invalidate schema cache.
+
+        Args:
+            assistant_id: Specific agent to invalidate, or None for all
+        """
+        if assistant_id:
+            logger.debug(f"Invalidating schema cache for agent {assistant_id}")
+            self._schema_cache.pop(assistant_id, None)
+        else:
+            logger.debug("Invalidating all schema caches")
+            self._schema_cache.clear()
+
     def invalidate_all_caches(self) -> None:
         """Invalidate all caches."""
         logger.debug("Invalidating all caches")
         self._agent_cache = None
         self._threads_cache = None
+        self._schema_cache.clear()

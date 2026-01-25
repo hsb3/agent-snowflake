@@ -7,5 +7,5 @@
     "agent_enhanced": "agent_snowflake:graph_enhanced",
     "agent_minimal": "agent_snowflake:graph_minimal"
   },
-  "env": "../../.env"
+  "env": ".env"
 }

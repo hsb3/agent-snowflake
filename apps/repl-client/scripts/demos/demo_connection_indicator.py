@@ -15,10 +15,12 @@ from textual.widgets import Static
 
 from repl_client.tui.widgets import StatusArea
 
+from demo_fixtures import DEMO_URLS, setup_status_area
 
+# TODO: define: get_semantic_tokens();
 class ConnectionIndicatorDemo(App[None]):
     """Demo app showing connection indicator."""
-
+    # TODO: use actual app css
     CSS = """
     Screen {
         background: $surface;
@@ -39,6 +41,7 @@ class ConnectionIndicatorDemo(App[None]):
     }
     """
 
+    # TODO: adopt similar bindings in REPL/TUI
     BINDINGS = [
         Binding("c", "toggle_connection", "Toggle Connection", show=True),
         Binding("u", "change_url", "Change URL", show=True),
@@ -49,12 +52,7 @@ class ConnectionIndicatorDemo(App[None]):
         super().__init__()
         self.connected = True
         self.url_index = 0
-        self.urls = [
-            "http://localhost:2024",
-            "http://localhost:3000",
-            "https://api.example.com:8080",
-            "http://192.168.1.100:5000",
-        ]
+        self.urls = DEMO_URLS
 
     def compose(self) -> ComposeResult:
         """Compose the demo layout."""
@@ -71,11 +69,12 @@ class ConnectionIndicatorDemo(App[None]):
     def on_mount(self) -> None:
         """Initialize status area on mount."""
         status_area = self.query_one(StatusArea)
-        status_area.set_connected(self.connected, self.urls[self.url_index])
-        status_area.set_agent("demo_agent")
-        status_area.set_thread("demo-1234")
-        status_area.set_tokens(1500)
-        status_area.set_status("Demo ready - Press 'c' to toggle connection")
+        setup_status_area(
+            status_area,
+            connected=self.connected,
+            url=self.urls[self.url_index],
+            status="Demo ready - Press 'c' to toggle connection",
+        )
 
     def action_toggle_connection(self) -> None:
         """Toggle connection state."""
