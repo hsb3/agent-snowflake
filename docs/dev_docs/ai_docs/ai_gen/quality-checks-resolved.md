@@ -179,8 +179,8 @@ This workflow would have caught the `get_container()` bug we encountered earlier
 
 ## Documentation
 
-- **Issue Tracking**: `docs/dev_docs/spec-repl/QUALITY_CHECKS_ISSUES.md` (original issues)
-- **Resolution**: `docs/dev_docs/spec-repl/QUALITY_CHECKS_RESOLVED.md` (this file)
+- **Issue Tracking**: `docs/dev_docs/ai_docs/ai_gen/quality-checks-issues.md` (original issues)
+- **Resolution**: `docs/dev_docs/ai_docs/ai_gen/quality-checks-resolved.md` (this file)
 - **Agent Switching**: `docs/dev_docs/ai_docs/ai_gen/CC-2026-025-agent-switching-ui-feedback-verification.md`
 
 ---

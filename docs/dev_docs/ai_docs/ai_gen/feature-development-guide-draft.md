@@ -366,7 +366,7 @@ tui/
 ## Getting Help
 
 **Understand the codebase**:
-- Read `TUI_REFACTOR_PLAN.md` for architecture rationale
+- Read `tui-refactor-plan.md` for architecture rationale
 - Read `app.py` to see orchestration pattern
 - Read a Controller to see business logic pattern
 - Read a View to see presentation pattern

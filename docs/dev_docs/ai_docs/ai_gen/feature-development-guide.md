@@ -253,4 +253,4 @@ tui/
 
 ---
 
-**See TUI_REFACTOR_PLAN.md for architectural rationale and detailed layer descriptions.**
+**See tui-refactor-plan.md for architectural rationale and detailed layer descriptions.**

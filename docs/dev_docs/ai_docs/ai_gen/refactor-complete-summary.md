@@ -179,16 +179,16 @@ make check-repl       # Run all: lint + type + test
 ## Documentation Created
 
 ### Architecture & Design
-1. `TUI_REFACTOR_PLAN.md` - Original refactor specification
-2. `FEATURE_DEVELOPMENT_GUIDE.md` - How to add/modify features
-3. `TUI_COMPONENTS_INVENTORY.md` - Component usage analysis
-4. `TUI_UX_IMPROVEMENTS.md` - Navigation and discoverability improvements
+1. `tui-refactor-plan.md` - Original refactor specification
+2. `feature-development-guide.md` - How to add/modify features
+3. `tui-components-inventory.md` - Component usage analysis
+4. `tui-ux-improvements.md` - Navigation and discoverability improvements
 
 ### Bug Fixes & Issues
-5. `NAVIGATION_FIX.md` - Initial sidebar/footer visibility fix
-6. `QUALITY_CHECKS_ISSUES.md` - Identified quality issues
-7. `QUALITY_CHECKS_RESOLVED.md` - Resolution of all quality issues
-8. `REFACTOR_COMPLETE_SUMMARY.md` - This document
+5. `navigation-fix.md` - Initial sidebar/footer visibility fix
+6. `quality-checks-issues.md` - Identified quality issues
+7. `quality-checks-resolved.md` - Resolution of all quality issues
+8. `refactor-complete-summary.md` - This document
 
 ---
 
