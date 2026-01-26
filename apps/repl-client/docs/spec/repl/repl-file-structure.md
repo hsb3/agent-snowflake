@@ -1,175 +1,51 @@
 # REPL File Structure Analysis
 
-## Existing REPL Architectures (From Agent Analysis)
 
-### 1. deepagents-cli (Most Complete - 2,400+ lines)
+## Kanban
 
-```
-deepagents_cli/
-├── __init__.py
-├── main.py                 # Entry point, CLI args, async REPL loop (~200 lines)
-├── execution.py            # 617 lines - Core streaming, HITL approval system
-├── agent.py                # 271 lines - Agent creation, middleware composition
-├── input.py                # 271 lines - Prompt toolkit, completers, key bindings
-├── ui.py                   # 610 lines - Rich formatting (diffs, todos, tokens)
-├── file_ops.py             # 360 lines - File operation tracking & metrics
-├── config.py               # 119 lines - Constants, model creation, session state
-├── agent_memory.py         # 227 lines - Memory middleware
-└── commands.py             # Command definitions
-```
+**backlog**
 
-**Key Insight**: Large files for complex features (execution, ui). Heavy separation by concern.
+- [ ] inventory existing repl's created .. look for "chat session" + "app"
+- [ ] create command menu first
+- [ ] create settings menu next
+- [ ] mock up screens
+- [ ] console color/grid ux
+- [ ] console controllers arch?
+
 
 ---
 
-### 2. langchain_repl_v1 (~1,500 lines)
+## Features
 
-```
-langchain_repl_v1/
-├── __init__.py
-├── session.py              # Main orchestrator - event loop, input handling
-├── commands.py             # Slash command handlers with extensible pattern
-├── renderer.py             # Message formatting and output display
-├── filters.py              # Message visibility rules and filtering logic
-├── config.py               # Unified, hierarchical configuration management
-├── streaming.py            # Real-time token display using astream_events
-├── mcp_integration.py      # MCP protocol integration
-├── mcp_session_manager.py  # Stateful MCP server management
-└── content_blocks.py       # Multimodal content handler (12+ types)
-```
-
-**Key Insight**: Separation of streaming, filtering, and content blocks. MCP as separate module.
-
----
-
-### 3. codeassist (~1,200 lines)
-
-```
-src/codeassist/
-├── __init__.py
-├── __main__.py             # Entry point
-├── cli/
-│   └── main.py             # Typer CLI app, main loop
-├── ui/
-│   ├── display.py          # Rich-based console rendering
-│   └── input_handler.py    # prompt_toolkit input with completers
-├── core/
-│   ├── services/
-│   │   ├── tool_manager.py         # Dynamic tool discovery
-│   │   ├── conversation_manager.py # History + token tracking
-│   │   └── command_processor.py    # Command registry (unused)
-│   └── tools/
-│       └── base.py         # BaseTool interface
-├── api/
-│   └── message_processor.py # Langchain client wrapper
-└── config/
-    └── settings.py          # Pydantic settings with YAML loading
-```
-
-**Key Insight**: Layered architecture (ui, core, api, config). Tool system as separate subsystem.
-
----
-
-### 4. agent0 (~1,000 lines)
-
-```
-src/app/
-├── __init__.py
-├── app.py                  # Main loop, agent switching
-├── config.py               # Environment/Settings singleton
-├── discovery.py            # Agent discovery from src.agents
-├── commands/
-│   ├── registry.py         # CommandRegistry pattern
-│   └── handlers.py         # Command implementations, multiline input
-├── ui/
-│   ├── chat_interface.py   # Chat loop orchestration
-│   ├── autocomplete.py     # Tab completion with prompt_toolkit
-│   ├── message_formatting.py # Type-specific message renderers
-│   ├── splash.py           # ASCII art splash screens
-│   ├── banners.py          # Banner styles
-│   └── interactive_commands.py # Session-specific command registration
-└── chatsession/            # (external) - core API
-```
-
-**Key Insight**: Commands as subsystem. UI components highly modular. Agent switching architecture.
-
----
-
-## Proposed Structure (Current - Too Slim?)
-
-```
-src/agent_snowflake/repl/
-├── __init__.py
-├── __main__.py          # Entry point, REPLLoop
-├── client.py            # RemoteClient wrapper
-├── streaming.py         # StreamHandler
-├── renderer.py          # Renderer (Rich)
-├── commands.py          # CommandHandler
-└── config.py            # Config loading
-```
-
-**Total**: ~7 files, estimated ~700-1000 lines
-
----
-
-## Gap Analysis
-
-### What We're Missing from Real REPLs:
-
-| Feature | deepagents-cli | langchain_repl_v1 | codeassist | agent0 | Our Plan |
-|---------|----------------|-------------------|------------|--------|----------|
-| **Streaming Logic** | execution.py (617L) | streaming.py | message_processor.py | - | streaming.py (?) |
-| **HITL System** | execution.py | ✗ | ✗ | ✗ | streaming.py (?) |
-| **Input Handling** | input.py (271L) | session.py | input_handler.py | autocomplete.py | __main__.py (?) |
-| **Message Formatting** | ui.py (610L) | renderer.py | display.py | message_formatting.py | renderer.py (?) |
-| **Command System** | commands.py | commands.py | command_processor.py | registry.py + handlers.py | commands.py (?) |
-| **Config Management** | config.py | config.py | settings.py | config.py | config.py |
-| **Content Blocks** | ui.py | content_blocks.py | display.py | message_formatting.py | renderer.py (?) |
-| **Session State** | config.py | session.py | conversation_manager.py | ✗ | ??? |
-| **Error Handling** | execution.py | session.py | main.py | app.py | ??? |
-| **File Operations** | file_ops.py (360L) | ✗ | ✗ | ✗ | ✗ (N/A) |
-| **Memory System** | agent_memory.py (227L) | ✗ | ✗ | ✗ | ✗ (server-side) |
-
----
-
-## Complexity Drivers (Why Their Files Are Large)
-
-### execution.py (deepagents-cli) - 617 lines
 - Dual-mode streaming (`messages` + `updates`)
 - HITL approval menu with arrow key navigation
 - Tool call buffering (partial JSON assembly)
 - Spinner management during tool execution
 - Interrupt/resume state machine
 - Graceful shutdown handling
-
-### ui.py (deepagents-cli) - 610 lines
-- Tool-specific formatters (12+ tools)
+- Tool-specific formatters
 - Diff rendering with line numbers and colors
 - Token tracking (baseline + conversation)
-- Todo list rendering
+- Agent Todo list rendering
 - Smart line wrapping for terminal width
 - Table rendering
-
-### input.py (deepagents-cli) - 271 lines
 - Context-aware completers (@file, /command)
 - Key bindings (Enter, Alt+Enter, Ctrl+E, Ctrl+T)
 - Bottom toolbar
 - File mention parsing and content injection
 - External editor integration
-
-### agent.py (deepagents-cli) - 271 lines
-- Backend routing (composite filesystem)
-- Long-term memory setup
+- Backend routing (composite filesystem) -- deepagents BackendProtocol
+- Long-term memory setup --- currently local file system but better I think to have that just as fall back
 - Middleware stack composition
 - HITL formatters per tool
 - Checkpoint configuration
 
 ---
 
-## Recommended Revised Structure
+##  Structure
 
 ```
-src/agent_snowflake/repl/
+src/repl_client
 ├── __init__.py
 ├── __main__.py              # Entry point, basic REPL loop (150-200 lines)
 │
@@ -196,142 +72,6 @@ src/agent_snowflake/repl/
     ├── registry.py          # CommandRegistry pattern (80-100 lines)
     └── handlers.py          # Command implementations (150-200 lines)
 ```
-
-**Total**: 14 files, estimated ~1,600-2,200 lines (more realistic)
-
----
-
-## Phase-by-Phase File Evolution
-
-### Phase 1 (Core REPL - Days 1-2)
-```
-repl/
-├── __init__.py
-├── __main__.py          # Basic loop, input, routing
-├── core/
-│   ├── client.py        # Connect, send message, stream
-│   ├── session.py       # Track current thread/agent
-│   └── config.py        # Load .env
-├── ui/
-│   ├── renderer.py      # Markdown + code blocks
-│   └── message.py       # Format AI/user messages
-└── commands/
-    ├── registry.py      # Command dispatcher
-    └── handlers.py      # /help, /exit
-```
-**~6 files, ~800 lines**
-
-### Phase 2 (Features - Days 3-4)
-```
-Add:
-├── streaming/
-│   ├── handler.py       # Parse streaming chunks
-│   └── hitl.py          # HITL approval prompts
-├── ui/
-│   └── content_blocks.py # Handle tool calls, text blocks
-└── commands/
-    └── handlers.py      # Add /agents, /threads, /new
-```
-**~9 files, ~1,300 lines**
-
-### Phase 3 (Polish - Day 5)
-```
-Add:
-├── ui/
-│   └── input.py         # prompt-toolkit integration
-└── commands/
-    └── handlers.py      # Add /clear, /tokens
-```
-**~10 files, ~1,600 lines**
-
----
-
-## Key Decisions to Make
-
-### 1. Streaming Architecture
-**Question**: Single `streaming.py` or split `handler.py` + `hitl.py`?
-- **Single file**: Simpler, but could reach 400+ lines
-- **Split files**: Cleaner separation, easier to test HITL independently
-- **Recommendation**: Split from start
-
-### 2. Renderer Organization
-**Question**: Single `renderer.py` or split by concern?
-- **Single file**: Risk of 500+ line file like deepagents-cli
-- **Split files**: `renderer.py` (base), `message.py` (messages), `content_blocks.py` (blocks)
-- **Recommendation**: Split from start
-
-### 3. Session State
-**Question**: Where does session state live?
-- **Option 1**: In `__main__.py` as local variables (simple but limiting)
-- **Option 2**: `core/session.py` class (cleaner, testable)
-- **Recommendation**: Dedicated session.py
-
-### 4. Command System
-**Question**: Inline in `__main__.py` or registry pattern?
-- **Option 1**: Inline (agent0 originally did this, then regretted it)
-- **Option 2**: Registry pattern (all 4 examples use this)
-- **Recommendation**: Registry from start (commands/ subdirectory)
-
----
-
-## File Size Targets (Realistic)
-
-| File | Lines | Rationale |
-|------|-------|-----------|
-| `__main__.py` | 150-200 | Basic loop, minimal logic |
-| `core/client.py` | 100-150 | Thin wrapper around langgraph-sdk |
-| `core/session.py` | 80-100 | Track thread/agent, simple state |
-| `core/config.py` | 50-80 | Load .env, defaults |
-| `streaming/handler.py` | 200-300 | Parse chunks, buffer tool calls |
-| `streaming/hitl.py` | 100-150 | Approval prompts, resume logic |
-| `ui/renderer.py` | 150-200 | Base rendering, Rich setup |
-| `ui/message.py` | 150-200 | Format AI/user/tool messages |
-| `ui/content_blocks.py` | 100-150 | Text, code, tool call blocks |
-| `ui/input.py` | 150-200 | prompt-toolkit (Phase 3) |
-| `commands/registry.py` | 80-100 | Command dispatch pattern |
-| `commands/handlers.py` | 150-200 | Implement 7 commands |
-
-**Total**: ~1,600-2,200 lines across 12-14 files
-
----
-
-## Red Flags in Our Original Plan
-
-1. **streaming.py doing too much**: Parsing chunks + HITL + buffering = 400+ lines
-2. **renderer.py doing too much**: Messages + content blocks + Rich setup = 500+ lines
-3. **No session state file**: Where does thread/agent tracking live?
-4. **Commands in single file**: Registry + handlers = 300+ lines, hard to navigate
-5. **No input abstraction**: If we add prompt-toolkit later, where does it go?
-
----
-
-## Recommendations
-
-### Start with More Structure
-Don't optimize for fewer files. Optimize for:
-- **Clear responsibilities** (each file has one job)
-- **Testability** (small files are easier to test)
-- **Future growth** (adding features doesn't bloat existing files)
-
-### Follow Proven Patterns
-All 4 examples use:
-- Separate `commands/` subdirectory
-- Separate rendering files (not monolithic)
-- Session/state management file
-- Streaming in its own module
-
-### Accept Reality
-- deepagents-cli is 2,400+ lines for good reason
-- Our "simple" REPL will be 1,600-2,000 lines
-- That's ~10-12 files, not 6
-
-### Don't Prematurely Optimize
-- Start with proper structure
-- Don't fear small files (80-100 lines is fine)
-- Easier to merge files later than split them
-
----
-
 ---
 
 ## Detailed File Breakdown (Classes, Methods, Functions)
@@ -1121,9 +861,98 @@ User: "Show me data"
 
 ---
 
-## Next Steps
+## Existing REPL Architectures (From Agent Analysis)
 
-1. **Validate this architecture** - Does this structure make sense?
-2. **Update repl_spec.json** - Add file structure, classes, methods
-3. **Create skeleton files** - Empty implementations with signatures
-4. **Start Phase 1** - Implement flows 1 & 2 first
+### 1. deepagents-cli (Most Complete - 2,400+ lines)
+
+```
+deepagents_cli/
+├── __init__.py
+├── main.py                 # Entry point, CLI args, async REPL loop (~200 lines)
+├── execution.py            # 617 lines - Core streaming, HITL approval system
+├── agent.py                # 271 lines - Agent creation, middleware composition
+├── input.py                # 271 lines - Prompt toolkit, completers, key bindings
+├── ui.py                   # 610 lines - Rich formatting (diffs, todos, tokens)
+├── file_ops.py             # 360 lines - File operation tracking & metrics
+├── config.py               # 119 lines - Constants, model creation, session state
+├── agent_memory.py         # 227 lines - Memory middleware
+└── commands.py             # Command definitions
+```
+
+**Key Insight**: Large files for complex features (execution, ui). Heavy separation by concern.
+
+---
+
+### 2. langchain_repl_v1 (~1,500 lines)
+
+```
+langchain_repl_v1/
+├── __init__.py
+├── session.py              # Main orchestrator - event loop, input handling
+├── commands.py             # Slash command handlers with extensible pattern
+├── renderer.py             # Message formatting and output display
+├── filters.py              # Message visibility rules and filtering logic
+├── config.py               # Unified, hierarchical configuration management
+├── streaming.py            # Real-time token display using astream_events
+├── mcp_integration.py      # MCP protocol integration
+├── mcp_session_manager.py  # Stateful MCP server management
+└── content_blocks.py       # Multimodal content handler (12+ types)
+```
+
+**Key Insight**: Separation of streaming, filtering, and content blocks. MCP as separate module.
+
+---
+
+### 3. codeassist (~1,200 lines)
+
+```
+src/codeassist/
+├── __init__.py
+├── __main__.py             # Entry point
+├── cli/
+│   └── main.py             # Typer CLI app, main loop
+├── ui/
+│   ├── display.py          # Rich-based console rendering
+│   └── input_handler.py    # prompt_toolkit input with completers
+├── core/
+│   ├── services/
+│   │   ├── tool_manager.py         # Dynamic tool discovery
+│   │   ├── conversation_manager.py # History + token tracking
+│   │   └── command_processor.py    # Command registry (unused)
+│   └── tools/
+│       └── base.py         # BaseTool interface
+├── api/
+│   └── message_processor.py # Langchain client wrapper
+└── config/
+    └── settings.py          # Pydantic settings with YAML loading
+```
+
+**Key Insight**: Layered architecture (ui, core, api, config). Tool system as separate subsystem.
+
+---
+
+### 4. agent0 (~1,000 lines)
+
+```
+src/app/
+├── __init__.py
+├── app.py                  # Main loop, agent switching
+├── config.py               # Environment/Settings singleton
+├── discovery.py            # Agent discovery from src.agents
+├── commands/
+│   ├── registry.py         # CommandRegistry pattern
+│   └── handlers.py         # Command implementations, multiline input
+├── ui/
+│   ├── chat_interface.py   # Chat loop orchestration
+│   ├── autocomplete.py     # Tab completion with prompt_toolkit
+│   ├── message_formatting.py # Type-specific message renderers
+│   ├── splash.py           # ASCII art splash screens
+│   ├── banners.py          # Banner styles
+│   └── interactive_commands.py # Session-specific command registration
+└── chatsession/            # (external) - core API
+```
+
+**Key Insight**: Commands as subsystem. UI components highly modular. Agent switching architecture.
+
+---
+

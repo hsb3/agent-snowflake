@@ -67,7 +67,7 @@ def init_model(
 
 
 def is_test_connection(uri: str) -> bool:
-    """Check if URI points to a test/fakesnow connection.
+    """Check if URI points to a test connection.
 
     Args:
         uri: Database connection URI
@@ -79,18 +79,14 @@ def is_test_connection(uri: str) -> bool:
     hostname = parsed.hostname or ""
 
     # Check for localhost or test indicators
-    return (
-        hostname in ("localhost", "127.0.0.1")
-        or "test" in hostname.lower()
-        or ":8080" in uri  # fakesnow default port
-    )
+    return hostname in ("localhost", "127.0.0.1") or "test" in hostname.lower() or ":8080" in uri
 
 
 def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") -> Engine:
     """Create SQLAlchemy engine from context configuration.
 
     Supports both URI-based and parameter-based connection methods.
-    Automatically detects fakesnow/test connections.
+    Automatically detects test connections.
 
     Args:
         context: Runtime context with connection details

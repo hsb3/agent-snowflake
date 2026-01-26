@@ -1,14 +1,23 @@
 # Private Project TODO Notes
 
+
+## Table of Contents
+
+[kanban](#kanban)
+[devnotes](#developer-notes)
+
+
+[[hsb3-custom-plugins feedback]](#hsb3-custom-plugins-feedback)
+
+
+---
 ## Kanban
 
 ### **backlog**
-
-- [ ] prebuilt middlweare: https://docs.langchain.com/oss/python/langchain/middleware/built-in
-- [ ] textual/repl inspo: https://github.com/batrachianai/toad
-  - [ ] https://github.com/Textualize/frogmouth
+- [ ] add test w/ early exit for non-existent db 
 
 ### **in progress**
+
 
 ## **completed**
 
@@ -16,7 +25,8 @@
 
 ## Developer Notes
 
-### brain dumpt
+### brain dump
+
 - snowflake connection (env/asst).. maybe rt later
 - schema explore; query write/exec
   - default all schema/tables; otherwise constrainer
@@ -38,8 +48,12 @@
 
 agent structure:
     --- configurable items ----
-    config: base, env settings + defaults
-    context:  variable parameters for variants/mutants
+    metadata:
+    
+    config_schema: base, env settings + defaults
+    context_schema:  variable parameters for variants/mutants
+      - here we set runtime arugments
+    input/output/state_schema:
     ---
     models: types/structured-tools
     state: input|internal|output
@@ -51,12 +65,13 @@ agent structure:
     langgraph.json: config file for langgraph server build
     pyproject.toml: 
     .env/.env.example: 
-
 ----
 
 - [ ] scaffold basic langchain (v1) agent
 - [ ] add tools for snowflake access; some local instance for quick test
   - [ ] guardrails on sql tools
+    - [ ] by prompting
+    - [ ] programmatic restriction/guard
 
 always in the background:
 - should i be adding something to config and/or context
@@ -71,7 +86,6 @@ will have:
 ---
 uv init --no-readme --name agent-snowflake
 uv add (deps)
-
 add deps:
 langchain langgraph
 langchain-anthropic langchain-openai 
@@ -79,33 +93,22 @@ langchain-anthropic langchain-openai
 snowflake-connector-python
 python.env
 
-### LangGraph Rules
-
-
-- forthcoming
-
-
 ### makefile commands
 
 [help] -- default
-
 install deps (incl. dev). uv sync --all-groups
-start snowflake emulator
-stop snowflake emulator
+seed test-db
+start/stop test-db
 dev: start langraph server
-dev-n start langgraph server with --no-browser
-
+dev-h start headless
 lint
 typecheck
-test-unit (unit only)
 test
-qa (all above)
-
+check
 clean
 
 
 ### snowflake emulator
-
 pip install "snowflake-snowpark-python[localtest]"
 https://docs.snowflake.com/en/developer-guide/snowpark/python/testing-locally
 >>> license required . .. meh
@@ -141,15 +144,9 @@ with engine.connect() as conn:
 
 ```
 Answer below questions, one at a time:
-
 “For each billing country, what is total invoice revenue, number of invoices, and average invoice total? Rank countries by total revenue (desc) and return the top 10.”
-
-
 “List the top 10 artists by total sales revenue. For each artist, include total revenue, number of distinct tracks sold, and number of distinct customers.”
-
-
 “For each customer, compute: first purchase date, last purchase date, total spend, and number of distinct purchase months. Then return the 20 customers with the most distinct purchase months (tie-break by total spend).”
-
 ```
 ⸻
 
@@ -170,17 +167,17 @@ Answer below questions, one at a time:
   - display/set configurable items?
     - ideally would list limited options for some items like provider/model
 
-
-
 **patterns**
 - one way dependencies ---> no spaghetti code
 - 6 layers -
 
-
 **open questions**
 - how and where to handle REPL config? toml, json, ... ?  where ? 
  
-**decisions**
+ **decisions**
+ - use langgraph-sdk for client
+ - add logger for repl/client>repl-client.log; direct server logs to server.log
+
 ---
 
 ? config
@@ -194,9 +191,7 @@ Answer below questions, one at a time:
 6. commands
 7. loop loop
 
-
-how would we controlled all this with pydantic graph?
-how would we controlled all this with langgraph?
+how would we controlled all this with langgraph? pydantic graph?
 
 Minimal UML set that actually works (recommended)
 	1.	Component diagram: boundaries + interfaces
@@ -204,76 +199,77 @@ Minimal UML set that actually works (recommended)
 	3.	State machine: REPL session control + cancellation
 	4.	Class diagram: message/event/state schemas
 
-
 ---
-This project consists of 2 major components:
-- langgraph agents that interact with databases
-- a repl for interacting with langgraph dev server; connecting to REST API via http
 
-Agents are functional - current focus is on building REPL.
 
-[REPL Requirements JSON format](./repl_spec.json).  MOVED
-[REPL Build Component tick list](./repl_components.jsonc). MOVED
 
-other supporting docs in docs/dev_docs/spec-repl-v1
 
----
- create a CLAUDE.md file in src/repl_client_graph.  shouuld just focus on graph-based repl.  note that spec       
-  for repl-based graph belong here: docs/dev_docs/spec-repl-graph; work status updates belong in              docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client_graph app 
----
- create a CLAUDE.md file in src/repl_client.  shouuld just focus on client_repl.  note that spec for repl belong here: docs/dev_docs/spec-repl; work status updates belong in  docs/dev_docs/ai_docs/ai_gen and should include in frontmatter indication that focus is on repl_client app 
+### hsb3-custom-plugins feedback
+#### work-documentation
 
-**Work Doc Frontmatter Template:**
+- [ ] add hooks to remind
+  - [ ] use subagents if more than 3 docs
+  - [ ] frontmatter convention and filenameing
+- [ ] add hooks to check for rule violations
+
 ```yaml
 ---
 doc_id:CC-YYYY-NNN
 title: Brief description
 date: YYYY-MM-DD
 type: planning|solution|investigation|status|summary
-project: repl_client_graph|repl_client|agent_snowflake
+project: app1|app2|...
 focus: ...
 status: draft|complete
 tags: [stategraph, repl, ...]
 ---
 ```
 
+#### learning tasks
+- [ ] update reference docs and norms for:
+  - [ ] langgraph agent development
+  - [ ] langgraph workflow development
+  - [ ] monorepos
+  - [ ] building tui with textual
+  - [ ] designing repl
+  - [ ] available langgraph ecosystem middlewares
+
+
 ---
 
-we need to clean up all .md docs in repo related to repl_client (not repl_client_graph) as they do not adhere to work documentation standards.  go through: docs/dev_docs/ai_docs/ai_gen and identify those docs are related to repl_client and align them with work documentation standards --- this is a skill that you have.  you can deploy multiple subagents to do this work.  also deploy subagents to review scripts in scripts/ that are related to repl_client and relocate them to scripts/repl_client.  update any links that would be broken by the moves.
+**references**
+- prebuilt middlweare: https://docs.langchain.com/oss/python/langchain/middleware/built-in
+- textual/repl inspo: https://github.com/batrachianai/toad
+- textual/markdown browser: https://github.com/Textualize/frogmouth
+- textual chat app: https://github.com/darrenburns/elia
+- rich/console chat repls:
+  - langrepl
 
-**Work Doc Frontmatter Template:**
-```yaml
----
-doc_id:CC-YYYY-NNN
-title: Brief description
-date: YYYY-MM-DD
-type: planning|solution|investigation|status|summary
-project: repl_client_graph|repl_client|agent_snowflake
-focus: ...
-status: draft|complete
-tags: [stategraph, repl, ...]
----
+
+- [GitHub - lerocha/chinook-database](https://github.com/lerocha/chinook-database)
+- [LangChain Middleware Documentation](https://python.langchain.com/docs/langchain/agents/middleware)
+- [LangGraph Persistence](https://python.langchain.com/docs/langgraph/persistence)
+- [Human-in-the-Loop Guide](https://python.langchain.com/docs/langchain/human-in-the-loop)
+- [Model Profiles](https://python.langchain.com/docs/langchain/models#model-profiles)
+- [LangGraph SDK Docs](https://langchain-ai.github.io/langgraph/cloud/reference/sdk/python_sdk_ref/)
+  - PyPI: https://pypi.org/project/langgraph-sdk/
+
+
+
+#### follow-ups
+**public data sources**
+
+https://ourworldindata.org/
+https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data/age-and-sex
+https://archive.ics.uci.edu/dataset/891/cdc+diabetes+health+indicators
+https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008
+
+```sql
+-- Replace with any OWID grapher chart slug you like
+-- You can discover slugs by browsing OWID charts and copying the /grapher/<slug> part.
+
+SELECT *
+FROM read_csv_auto('https://ourworldindata.org/grapher/annual-healthcare-expenditure-per-capita.csv')
+LIMIT 50;
+
 ```
-
-
-----
-
-1. FIND ALL DOCS IN: docs/dev_docs  /ai_docs/ai_gen where frontmatter does not adhere to minimum standard frontmatter:
-  ```yaml
-  ---
-  doc_id:CC-YYYY-NNN
-  title: Brief description
-  date: YYYY-MM-DD
-  type: planning|solution|investigation|status|summary
-  project: repl_client_graph|repl_client|agent_snowflake
-  focus: ...
-  status: draft|complete
-  tags: [stategraph, repl, ...]
-  ---
-  ```
-2. Fix frontmatter for all non-compliant .md files
-3. rename all .md docs according to doc_id
-
----
-
-### TUI FEEDBACK

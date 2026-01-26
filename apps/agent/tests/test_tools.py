@@ -1,4 +1,4 @@
-"""Tests for SQL tools with fakesnow."""
+"""Tests for SQL tools."""
 
 import pytest
 from langchain_community.utilities import SQLDatabase
@@ -41,7 +41,7 @@ def mock_llm():
 
 @pytest.fixture
 def test_context():
-    """Provide test context for fakesnow."""
+    """Provide test context."""
     return ContextSchema(
         snowflake_uri="snowflake://test:test@localhost:8080/SAMPLE_DB/TPCH_SAMPLE",
         allowed_schemas="TPCH_SAMPLE",
@@ -82,7 +82,7 @@ def sqlite_test_db():
 
 
 def test_is_test_connection():
-    """Test detection of test/fakesnow connections."""
+    """Test detection of test connections."""
     # Test connections
     assert is_test_connection("snowflake://user:pass@localhost/db")
     assert is_test_connection("snowflake://user:pass@127.0.0.1/db")

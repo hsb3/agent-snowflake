@@ -80,7 +80,6 @@ The `agent_enhanced` variant supports configurable middleware:
 # Setup
 make install          # Install dependencies with uv
 make setup-chinook    # Download Chinook test database
-make setup-fakesnow   # Create FakeSnow TPC-H stub database
 
 # Development
 make dev              # Start LangGraph dev server with Studio UI
@@ -180,7 +179,6 @@ Tests are located in `tests/` and organized by focus:
 - `test_agent.py` - Graph building and compilation tests
 - `test_tools.py` - SQL tool creation and guardrails
 - `test_graph_with_tools.py` - Integration tests with mock databases
-- `test_snowflake_fakesnow.py` - FakeSnow-specific tests
 
 **Key patterns:**
 - Use `mock_sqlite_db` fixture for testing without real database

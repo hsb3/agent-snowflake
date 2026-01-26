@@ -114,56 +114,61 @@ class TestREPLLoop:
             assert result is False
             mock_components["renderer"].render_error.assert_called()
 
-    def test_handle_input_command(self, config):
-        """Test _handle_input routes commands correctly."""
+    @pytest.mark.asyncio
+    async def test_handle_input_async_command(self, config):
+        """Test _handle_input_async routes commands correctly."""
         repl = REPLLoop(config)
         repl.command_registry = MagicMock()
         repl.command_registry.execute = MagicMock(return_value=None)
 
         # Test command routing
-        result = repl._handle_input("/help")
+        result = await repl._handle_input_async("/help")
 
         repl.command_registry.execute.assert_called_once_with("help", [])
         assert result is True
 
-    def test_handle_input_command_with_args(self, config):
-        """Test _handle_input routes commands with arguments."""
+    @pytest.mark.asyncio
+    async def test_handle_input_async_command_with_args(self, config):
+        """Test _handle_input_async routes commands with arguments."""
         repl = REPLLoop(config)
         repl.command_registry = MagicMock()
         repl.command_registry.execute = MagicMock(return_value=None)
 
-        result = repl._handle_input("/agents agent_test")
+        result = await repl._handle_input_async("/agents agent_test")
 
         repl.command_registry.execute.assert_called_once_with("agents", ["agent_test"])
         assert result is True
 
-    def test_handle_input_exit_command(self, config):
-        """Test _handle_input handles exit command."""
+    @pytest.mark.asyncio
+    async def test_handle_input_async_exit_command(self, config):
+        """Test _handle_input_async handles exit command."""
         repl = REPLLoop(config)
         repl.command_registry = MagicMock()
         repl.command_registry.execute = MagicMock(return_value=False)
 
-        result = repl._handle_input("/exit")
+        result = await repl._handle_input_async("/exit")
 
         repl.command_registry.execute.assert_called_once_with("exit", [])
         assert result is False
 
-    def test_handle_input_message(self, config):
-        """Test _handle_input routes messages correctly."""
+    @pytest.mark.asyncio
+    async def test_handle_input_async_message(self, config):
+        """Test _handle_input_async routes messages correctly."""
         repl = REPLLoop(config)
         repl._send_message = AsyncMock()
 
-        result = repl._handle_input("Hello, agent!")
+        result = await repl._handle_input_async("Hello, agent!")
 
-        repl._send_message.assert_called_once_with("Hello, agent!")
+        repl._send_message.assert_awaited_once_with("Hello, agent!")
         assert result is True
 
-    def test_handle_input_empty(self, config):
-        """Test _handle_input handles empty input."""
+    @pytest.mark.asyncio
+    async def test_handle_input_async_empty(self, config):
+        """Test _handle_input_async handles empty input."""
         repl = REPLLoop(config)
-        repl._send_message = MagicMock()
+        repl._send_message = AsyncMock()
 
-        result = repl._handle_input("")
+        result = await repl._handle_input_async("")
 
         # Empty input should be ignored
         repl._send_message.assert_not_called()

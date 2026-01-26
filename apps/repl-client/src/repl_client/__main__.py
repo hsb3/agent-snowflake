@@ -84,37 +84,47 @@ class REPLLoop:
             Exit code (0 for success, 1 for error)
         """
         try:
-            # Startup
-            if not asyncio.run(self._startup()):
-                return 1
-
-            # Main loop
-            while True:
-                try:
-                    user_input = self._get_input()
-                    should_continue = self._handle_input(user_input)
-
-                    if not should_continue:
-                        break
-
-                except KeyboardInterrupt:
-                    self.renderer.render_text("\nInterrupted by user", style="yellow")
-                    break
-                except EOFError:
-                    self.renderer.render_text("\nEOF received", style="yellow")
-                    break
-                except Exception as e:
-                    logger.error(f"Error in main loop: {e}", exc_info=True)
-                    self.renderer.render_error(f"Unexpected error: {e}")
-
-            # Shutdown
-            self._shutdown()
-            return 0
-
+            return asyncio.run(self._run_async())
         except Exception as e:
             logger.error(f"Fatal error: {e}", exc_info=True)
             self.renderer.render_error(f"Fatal error: {e}")
             return 1
+
+    async def _run_async(self) -> int:
+        """Async main REPL loop.
+
+        Runs the entire REPL under a single event loop to avoid
+        httpx connection pool issues with multiple asyncio.run() calls.
+
+        Returns:
+            Exit code (0 for success, 1 for error)
+        """
+        # Startup
+        if not await self._startup():
+            return 1
+
+        # Main loop
+        while True:
+            try:
+                user_input = self._get_input()
+                should_continue = await self._handle_input_async(user_input)
+
+                if not should_continue:
+                    break
+
+            except KeyboardInterrupt:
+                self.renderer.render_text("\nInterrupted by user", style="yellow")
+                break
+            except EOFError:
+                self.renderer.render_text("\nEOF received", style="yellow")
+                break
+            except Exception as e:
+                logger.error(f"Error in main loop: {e}", exc_info=True)
+                self.renderer.render_error(f"Unexpected error: {e}")
+
+        # Shutdown
+        self._shutdown()
+        return 0
 
     async def _startup(self) -> bool:
         """Startup sequence.
@@ -182,8 +192,8 @@ class REPLLoop:
         except (EOFError, KeyboardInterrupt):
             raise
 
-    def _handle_input(self, user_input: str) -> bool:
-        """Handle user input - route to command or message.
+    async def _handle_input_async(self, user_input: str) -> bool:
+        """Handle user input - route to command or message (async version).
 
         Args:
             user_input: Raw user input
@@ -213,7 +223,7 @@ class REPLLoop:
 
                 # Handle async commands
                 if asyncio.iscoroutine(result):
-                    asyncio.run(result)
+                    await result
 
             except ValueError as e:
                 self.renderer.render_error(str(e))
@@ -224,7 +234,7 @@ class REPLLoop:
             return True
         else:
             # Send as message
-            asyncio.run(self._send_message(user_input))
+            await self._send_message(user_input)
             return True
 
     def _parse_command_input(self, user_input: str) -> tuple[str, list[str]]:

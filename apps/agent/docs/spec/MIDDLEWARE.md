@@ -15,7 +15,7 @@ make dev  # Start server
 # In Studio, select "agent" graph
 ```
 
-### 2. `graph_enhanced` (Production-Ready)
+### 2. `graph_enhanced` 
 **File:** `src/agent_snowflake/graph2.py:build_graph_with_middleware`
 **LangGraph name:** `agent_enhanced`
 

@@ -56,12 +56,6 @@ setup-chinook: ## Download Chinook test database
 	$(UV) run python scripts/setup_chinook_db.py
 	@echo "$(GREEN)Chinook database ready$(RESET)"
 
-.PHONY: setup-fakesnow
-setup-fakesnow: ## Create FakeSnow TPC-H stub database
-	@echo "$(BLUE)Setting up FakeSnow database...$(RESET)"
-	$(UV) run python scripts/setup_fakesnow_db.py
-	@echo "$(GREEN)FakeSnow database ready$(RESET)"
-
 # -----------------------------------------------------------------------------
 ## DEVELOPMENT
 # -----------------------------------------------------------------------------
