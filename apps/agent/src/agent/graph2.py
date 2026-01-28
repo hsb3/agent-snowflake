@@ -56,7 +56,7 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
 
     Example:
         >>> # In langgraph.json, reference this function:
-        >>> # "graphs": {"agent_enhanced": "src.agent_snowflake.graph2:build_graph_with_middleware"}
+        >>> # "graphs": {"agent_enhanced": "src.agent.graph2:build_graph_with_middleware"}
         >>> graph = build_graph_with_middleware()
         >>> result = graph.invoke({"messages": [...]})
     """
@@ -229,7 +229,7 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
         middleware=middleware,
         checkpointer=checkpointer,  # Required for human-in-the-loop
         debug=context.enable_debug,
-        name="snowflake_agent_enhanced",
+        name="agent_enhanced",
     )
 
     if context.enable_debug:
@@ -289,7 +289,7 @@ def build_graph_minimal_middleware(config: RunnableConfig | None = None) -> Comp
         context_schema=EnhancedContextSchema,  # Use enhanced schema for config
         middleware=middleware,
         debug=context.enable_debug,
-        name="snowflake_agent_minimal",
+        name="agent_minimal",
     )
 
     if context.enable_debug:

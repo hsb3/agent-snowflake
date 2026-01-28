@@ -1,6 +1,6 @@
 # CLAUDE.md - Agent Snowflake
 
-This file provides guidance to Claude Code when working with the `agent_snowflake` module.
+This file provides guidance to Claude Code when working with the `agent` module.
 
 ## Overview
 
@@ -23,7 +23,7 @@ Three graph variants are defined in `langgraph.json` and exported from `__init__
 The agent uses a three-layer configuration priority system:
 
 1. **Runtime context** (highest) - Passed via `graph.invoke(..., context={...})`
-2. **Environment variables** - Loaded from `.env` with `SNOWFLAKE_AGENT_` prefix
+2. **Environment variables** - Loaded from `.env` with `AGENT_` prefix
 3. **Defaults** (lowest) - Hardcoded in `config.py`
 
 **Key files:**
@@ -109,37 +109,37 @@ ANTHROPIC_API_KEY=your_key
 
 # Database connection (choose one option)
 # Option 1: SQLite for local testing
-SNOWFLAKE_AGENT_SNOWFLAKE_URI=sqlite:////absolute/path/to/test_chinook.db
+AGENT_SNOWFLAKE_URI=sqlite:////absolute/path/to/test_chinook.db
 
 # Option 2: Snowflake URI
-# SNOWFLAKE_AGENT_SNOWFLAKE_URI=snowflake://user:password@account/database/schema?warehouse=wh&role=role
+# AGENT_SNOWFLAKE_URI=snowflake://user:password@account/database/schema?warehouse=wh&role=role
 
 # Option 3: Individual Snowflake parameters
-# SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT=your_account
-# SNOWFLAKE_AGENT_SNOWFLAKE_USER=your_user
-# SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD=your_password
-# SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE=your_database
-# SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA=your_schema
-# SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE=your_warehouse
-# SNOWFLAKE_AGENT_SNOWFLAKE_ROLE=your_role
+# AGENT_SNOWFLAKE_ACCOUNT=your_account
+# AGENT_SNOWFLAKE_USER=your_user
+# AGENT_SNOWFLAKE_PASSWORD=your_password
+# AGENT_SNOWFLAKE_DATABASE=your_database
+# AGENT_SNOWFLAKE_SCHEMA=your_schema
+# AGENT_SNOWFLAKE_WAREHOUSE=your_warehouse
+# AGENT_SNOWFLAKE_ROLE=your_role
 ```
 
 ### Agent Configuration
 
 ```bash
-SNOWFLAKE_AGENT_MODEL=claude-sonnet-4-5-20250929
-SNOWFLAKE_AGENT_TEMPERATURE=0.0
-SNOWFLAKE_AGENT_MAX_ITERATIONS=25
-SNOWFLAKE_AGENT_ENABLE_DEBUG=false
+AGENT_MODEL=claude-sonnet-4-5-20250929
+AGENT_TEMPERATURE=0.0
+AGENT_MAX_ITERATIONS=25
+AGENT_ENABLE_DEBUG=false
 ```
 
 ### Guardrails
 
 ```bash
-SNOWFLAKE_AGENT_ALLOWED_SCHEMAS=*     # Comma-separated or * for all
-SNOWFLAKE_AGENT_ALLOWED_TABLES=*      # Comma-separated or * for all
-SNOWFLAKE_AGENT_READ_ONLY=true        # Enforce read-only access
-SNOWFLAKE_AGENT_QUERY_TIMEOUT=30      # Timeout in seconds
+AGENT_ALLOWED_SCHEMAS=*     # Comma-separated or * for all
+AGENT_ALLOWED_TABLES=*      # Comma-separated or * for all
+AGENT_READ_ONLY=true        # Enforce read-only access
+AGENT_QUERY_TIMEOUT=30      # Timeout in seconds
 ```
 
 ### Development
@@ -151,7 +151,7 @@ LANGGRAPH_DEV_SERVER_PORT=2024
 ## Module Structure
 
 ```
-src/agent_snowflake/
+src/agent/
 ├── __init__.py          # Exports: graph, graph_enhanced, graph_minimal, ContextSchema
 ├── graph.py             # Core agent builder (build_graph)
 ├── graph2.py            # Enhanced variants with middleware

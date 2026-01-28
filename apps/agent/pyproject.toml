@@ -23,6 +23,7 @@ dependencies = [
     "sqlalchemy>=2.0.46",
 ]
 
+
 [dependency-groups]
 dev = [
     "langgraph-cli[inmem]>=0.4.12",
@@ -33,7 +34,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_snowflake"]
+packages = ["src/agent"]
 
 [tool.ruff]
 line-length = 100

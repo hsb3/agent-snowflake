@@ -5,9 +5,9 @@ from langchain_community.utilities import SQLDatabase
 from langchain_core.language_models import BaseChatModel
 from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine
 
-from agent_snowflake.context import ContextSchema
-from agent_snowflake.tools import create_sql_tools, get_database_context
-from agent_snowflake.utils import (
+from agent.context import ContextSchema
+from agent.tools import create_sql_tools, get_database_context
+from agent.utils import (
     create_snowflake_engine,
     is_test_connection,
 )

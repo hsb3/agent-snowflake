@@ -46,8 +46,8 @@ def create_sql_tools(
         - sql_db_query_checker: Validate SQL queries
 
     Examples:
-        >>> from agent_snowflake.utils import init_model
-        >>> from agent_snowflake.context import ContextSchema
+        >>> from agent.utils import init_model
+        >>> from agent.context import ContextSchema
         >>>
         >>> llm = init_model("claude-sonnet-4-5-20250929")
         >>> context = ContextSchema(

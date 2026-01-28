@@ -5,7 +5,7 @@ from unittest.mock import patch
 from langchain_community.utilities import SQLDatabase
 from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine
 
-from agent_snowflake.graph import build_graph
+from agent.graph import build_graph
 
 
 def test_build_graph_with_sqlite():
@@ -22,7 +22,7 @@ def test_build_graph_with_sqlite():
     metadata.create_all(engine)
 
     # Mock the create_sql_database to use SQLite instead of Snowflake
-    with patch("agent_snowflake.tools.sql.create_sql_database") as mock_create_db:
+    with patch("agent.tools.sql.create_sql_database") as mock_create_db:
         mock_create_db.return_value = SQLDatabase(engine)
 
         config = {
@@ -50,7 +50,7 @@ def test_graph_structure():
     Table("test", metadata, Column("id", Integer, primary_key=True))
     metadata.create_all(engine)
 
-    with patch("agent_snowflake.tools.sql.create_sql_database") as mock_create_db:
+    with patch("agent.tools.sql.create_sql_database") as mock_create_db:
         mock_create_db.return_value = SQLDatabase(engine)
 
         config = {

@@ -1,7 +1,6 @@
 """Pytest configuration and shared fixtures for testing."""
 
 
-
 def pytest_addoption(parser):
     """Add custom pytest options."""
     parser.addoption(

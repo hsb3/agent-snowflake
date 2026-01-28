@@ -5,7 +5,7 @@ This document explains the middleware configurations available in `graph2.py` an
 ## Available Graph Variants
 
 ### 1. `graph` (Original - No Middleware)
-**File:** `src/agent_snowflake/graph.py`
+**File:** `src/agent/graph.py`
 **LangGraph name:** `agent`
 
 Basic agent with no middleware. Use for understanding the core agent behavior.
@@ -16,7 +16,7 @@ make dev  # Start server
 ```
 
 ### 2. `graph_enhanced` 
-**File:** `src/agent_snowflake/graph2.py:build_graph_with_middleware`
+**File:** `src/agent/graph2.py:build_graph_with_middleware`
 **LangGraph name:** `agent_enhanced`
 
 Full middleware stack for production deployments:
@@ -34,7 +34,7 @@ middleware = [
 ```
 
 ### 3. `graph_minimal` (Development)
-**File:** `src/agent_snowflake/graph2.py:build_graph_minimal_middleware`
+**File:** `src/agent/graph2.py:build_graph_minimal_middleware`
 **LangGraph name:** `agent_minimal`
 
 Minimal middleware for fast iteration:
@@ -216,7 +216,7 @@ ModelFallbackMiddleware("gpt-4o-mini", "claude-3-5-sonnet-20241022")
 All middleware parameters are configurable via `EnhancedContextSchema`:
 
 - **LangGraph Studio UI**: Configure when creating assistants (dropdowns, sliders, toggles)
-- **Environment variables**: Set `SNOWFLAKE_AGENT_*` prefixed variables in `.env`
+- **Environment variables**: Set `AGENT_*` prefixed variables in `.env`
 - **Runtime context**: Pass via `graph.invoke(..., context={...})`
 
 **Complete configuration reference:** See [enhanced-context.md](dev_docs/ai_docs/ai_gen/enhanced-context.md) for all parameters and examples.
@@ -233,9 +233,9 @@ context = {
 result = graph_enhanced.invoke(messages, config={"configurable": context})
 
 # Or via environment variables
-# SNOWFLAKE_AGENT_MODEL_CALL_THREAD_LIMIT=20
-# SNOWFLAKE_AGENT_SQL_QUERY_RUN_LIMIT=10
-# SNOWFLAKE_AGENT_ENABLE_HITL=false
+# AGENT_MODEL_CALL_THREAD_LIMIT=20
+# AGENT_SQL_QUERY_RUN_LIMIT=10
+# AGENT_ENABLE_HITL=false
 ```
 
 ## Choosing the Right Graph
@@ -262,7 +262,7 @@ result = graph_enhanced.invoke(messages, config={"configurable": context})
 ### Test Human-in-the-Loop
 ```bash
 # Set read_only=false to enable HITL
-SNOWFLAKE_AGENT_READ_ONLY=false uv run langgraph dev
+AGENT_READ_ONLY=false uv run langgraph dev
 
 # In Studio:
 # 1. Select "agent_enhanced"
@@ -418,7 +418,7 @@ if ENABLE_HITL and not context.read_only:
 
 ### Issue: HITL not triggering
 **Cause:** `read_only=true` or checkpointer not configured
-**Fix:** Set `SNOWFLAKE_AGENT_READ_ONLY=false`, ensure `checkpointer=InMemorySaver()`
+**Fix:** Set `AGENT_READ_ONLY=false`, ensure `checkpointer=InMemorySaver()`
 
 ### Issue: "Tool call limit exceeded" too quickly
 **Cause:** Limits too aggressive for use case

@@ -235,69 +235,51 @@ class ContextSchema:
     def from_env(cls) -> "ContextSchema":
         """Create ContextSchema from environment variables.
 
-        Reads from environment variables with SNOWFLAKE_AGENT_ prefix.
+        Reads from environment variables with AGENT_ prefix.
         Falls back to default values from config.py if not set.
 
         Environment variables:
-        - SNOWFLAKE_AGENT_MODEL: LLM model
-        - SNOWFLAKE_AGENT_TEMPERATURE: Model temperature
-        - SNOWFLAKE_AGENT_SNOWFLAKE_URI: Snowflake connection URI
-        - SNOWFLAKE_AGENT_SNOWFLAKE_*: Individual Snowflake connection params
-        - SNOWFLAKE_AGENT_ALLOWED_SCHEMAS: Comma-separated allowed schemas
-        - SNOWFLAKE_AGENT_ALLOWED_TABLES: Comma-separated allowed tables
-        - SNOWFLAKE_AGENT_READ_ONLY: Enforce read-only (true/false)
-        - SNOWFLAKE_AGENT_QUERY_TIMEOUT: Query timeout in seconds
-        - SNOWFLAKE_AGENT_MAX_ITERATIONS: Max iterations
-        - SNOWFLAKE_AGENT_ENABLE_DEBUG: Enable debug mode (true/false)
+        - AGENT_MODEL: LLM model
+        - AGENT_TEMPERATURE: Model temperature
+        - AGENT_SNOWFLAKE_URI: Snowflake connection URI
+        - AGENT_SNOWFLAKE_*: Individual Snowflake connection params
+        - AGENT_ALLOWED_SCHEMAS: Comma-separated allowed schemas
+        - AGENT_ALLOWED_TABLES: Comma-separated allowed tables
+        - AGENT_READ_ONLY: Enforce read-only (true/false)
+        - AGENT_QUERY_TIMEOUT: Query timeout in seconds
+        - AGENT_MAX_ITERATIONS: Max iterations
+        - AGENT_ENABLE_DEBUG: Enable debug mode (true/false)
 
         Returns:
             ContextSchema instance with values from environment or defaults
         """
         return cls(
-            model=os.environ.get("SNOWFLAKE_AGENT_MODEL", settings.model),
-            temperature=float(
-                os.environ.get("SNOWFLAKE_AGENT_TEMPERATURE", str(settings.temperature))
-            ),
-            snowflake_uri=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
-            snowflake_account=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account
-            ),
-            snowflake_user=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_USER", settings.snowflake_user
-            ),
+            model=os.environ.get("AGENT_MODEL", settings.model),
+            temperature=float(os.environ.get("AGENT_TEMPERATURE", str(settings.temperature))),
+            snowflake_uri=os.environ.get("AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
+            snowflake_account=os.environ.get("AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account),
+            snowflake_user=os.environ.get("AGENT_SNOWFLAKE_USER", settings.snowflake_user),
             snowflake_password=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
+                "AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
             ),
             snowflake_database=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
+                "AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
             ),
-            snowflake_schema=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema
-            ),
+            snowflake_schema=os.environ.get("AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema),
             snowflake_warehouse=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
+                "AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
             ),
-            snowflake_role=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", settings.snowflake_role
-            ),
-            allowed_schemas=os.environ.get(
-                "SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas
-            ),
-            allowed_tables=os.environ.get(
-                "SNOWFLAKE_AGENT_ALLOWED_TABLES", settings.allowed_tables
-            ),
-            read_only=os.environ.get(
-                "SNOWFLAKE_AGENT_READ_ONLY", str(settings.read_only).lower()
-            ).lower()
+            snowflake_role=os.environ.get("AGENT_SNOWFLAKE_ROLE", settings.snowflake_role),
+            allowed_schemas=os.environ.get("AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas),
+            allowed_tables=os.environ.get("AGENT_ALLOWED_TABLES", settings.allowed_tables),
+            read_only=os.environ.get("AGENT_READ_ONLY", str(settings.read_only).lower()).lower()
             == "true",
-            query_timeout=int(
-                os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", str(settings.query_timeout))
-            ),
+            query_timeout=int(os.environ.get("AGENT_QUERY_TIMEOUT", str(settings.query_timeout))),
             max_iterations=int(
-                os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", str(settings.max_iterations))
+                os.environ.get("AGENT_MAX_ITERATIONS", str(settings.max_iterations))
             ),
             enable_debug=os.environ.get(
-                "SNOWFLAKE_AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
+                "AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
             ).lower()
             == "true",
         )

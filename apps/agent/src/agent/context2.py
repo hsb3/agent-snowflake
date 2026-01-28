@@ -422,142 +422,111 @@ class EnhancedContextSchema:
     def from_env(cls) -> "EnhancedContextSchema":
         """Create EnhancedContextSchema from environment variables.
 
-        Reads from environment variables with SNOWFLAKE_AGENT_ prefix.
+        Reads from environment variables with AGENT_ prefix.
         Falls back to default values if not set.
 
         Environment variables (base configuration):
-        - SNOWFLAKE_AGENT_MODEL: LLM model
-        - SNOWFLAKE_AGENT_TEMPERATURE: Model temperature
-        - SNOWFLAKE_AGENT_SNOWFLAKE_URI: Snowflake connection URI
-        - SNOWFLAKE_AGENT_SNOWFLAKE_*: Individual Snowflake connection params
-        - SNOWFLAKE_AGENT_ALLOWED_SCHEMAS: Comma-separated allowed schemas
-        - SNOWFLAKE_AGENT_ALLOWED_TABLES: Comma-separated allowed tables
-        - SNOWFLAKE_AGENT_READ_ONLY: Enforce read-only (true/false)
-        - SNOWFLAKE_AGENT_QUERY_TIMEOUT: Query timeout in seconds
-        - SNOWFLAKE_AGENT_MAX_ITERATIONS: Max iterations
-        - SNOWFLAKE_AGENT_ENABLE_DEBUG: Enable debug mode (true/false)
+        - AGENT_MODEL: LLM model
+        - AGENT_TEMPERATURE: Model temperature
+        - AGENT_SNOWFLAKE_URI: Snowflake connection URI
+        - AGENT_SNOWFLAKE_*: Individual Snowflake connection params
+        - AGENT_ALLOWED_SCHEMAS: Comma-separated allowed schemas
+        - AGENT_ALLOWED_TABLES: Comma-separated allowed tables
+        - AGENT_READ_ONLY: Enforce read-only (true/false)
+        - AGENT_QUERY_TIMEOUT: Query timeout in seconds
+        - AGENT_MAX_ITERATIONS: Max iterations
+        - AGENT_ENABLE_DEBUG: Enable debug mode (true/false)
 
         Environment variables (middleware configuration):
-        - SNOWFLAKE_AGENT_MIDDLEWARE_MODE: Middleware mode (enhanced/minimal/none)
-        - SNOWFLAKE_AGENT_ENABLE_HITL: Enable human-in-the-loop (true/false)
-        - SNOWFLAKE_AGENT_MODEL_CALL_THREAD_LIMIT: Model call thread limit
-        - SNOWFLAKE_AGENT_MODEL_CALL_RUN_LIMIT: Model call run limit
-        - SNOWFLAKE_AGENT_TOOL_CALL_THREAD_LIMIT: Tool call thread limit
-        - SNOWFLAKE_AGENT_TOOL_CALL_RUN_LIMIT: Tool call run limit
-        - SNOWFLAKE_AGENT_SQL_QUERY_THREAD_LIMIT: SQL query thread limit
-        - SNOWFLAKE_AGENT_SQL_QUERY_RUN_LIMIT: SQL query run limit
-        - SNOWFLAKE_AGENT_RETRY_MAX_RETRIES: Max retry attempts
-        - SNOWFLAKE_AGENT_RETRY_BACKOFF_FACTOR: Retry backoff multiplier
-        - SNOWFLAKE_AGENT_RETRY_INITIAL_DELAY: Initial retry delay (seconds)
-        - SNOWFLAKE_AGENT_ENABLE_SUMMARIZATION: Enable summarization (true/false)
-        - SNOWFLAKE_AGENT_SUMMARIZATION_MODEL: Model for summaries
-        - SNOWFLAKE_AGENT_SUMMARIZATION_TRIGGER_TOKENS: Token trigger threshold
-        - SNOWFLAKE_AGENT_SUMMARIZATION_KEEP_MESSAGES: Messages to preserve
-        - SNOWFLAKE_AGENT_ENABLE_TODO: Enable todo list (true/false)
-        - SNOWFLAKE_AGENT_ENABLE_FALLBACK: Enable model fallback (true/false)
-        - SNOWFLAKE_AGENT_FALLBACK_MODELS: Comma-separated fallback models
+        - AGENT_MIDDLEWARE_MODE: Middleware mode (enhanced/minimal/none)
+        - AGENT_ENABLE_HITL: Enable human-in-the-loop (true/false)
+        - AGENT_MODEL_CALL_THREAD_LIMIT: Model call thread limit
+        - AGENT_MODEL_CALL_RUN_LIMIT: Model call run limit
+        - AGENT_TOOL_CALL_THREAD_LIMIT: Tool call thread limit
+        - AGENT_TOOL_CALL_RUN_LIMIT: Tool call run limit
+        - AGENT_SQL_QUERY_THREAD_LIMIT: SQL query thread limit
+        - AGENT_SQL_QUERY_RUN_LIMIT: SQL query run limit
+        - AGENT_RETRY_MAX_RETRIES: Max retry attempts
+        - AGENT_RETRY_BACKOFF_FACTOR: Retry backoff multiplier
+        - AGENT_RETRY_INITIAL_DELAY: Initial retry delay (seconds)
+        - AGENT_ENABLE_SUMMARIZATION: Enable summarization (true/false)
+        - AGENT_SUMMARIZATION_MODEL: Model for summaries
+        - AGENT_SUMMARIZATION_TRIGGER_TOKENS: Token trigger threshold
+        - AGENT_SUMMARIZATION_KEEP_MESSAGES: Messages to preserve
+        - AGENT_ENABLE_TODO: Enable todo list (true/false)
+        - AGENT_ENABLE_FALLBACK: Enable model fallback (true/false)
+        - AGENT_FALLBACK_MODELS: Comma-separated fallback models
 
         Returns:
             EnhancedContextSchema instance with values from environment or defaults
         """
         return cls(
             # Base configuration
-            model=os.environ.get("SNOWFLAKE_AGENT_MODEL", settings.model),
-            temperature=float(
-                os.environ.get("SNOWFLAKE_AGENT_TEMPERATURE", str(settings.temperature))
-            ),
-            snowflake_uri=os.environ.get("SNOWFLAKE_AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
-            snowflake_account=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account
-            ),
-            snowflake_user=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_USER", settings.snowflake_user
-            ),
+            model=os.environ.get("AGENT_MODEL", settings.model),
+            temperature=float(os.environ.get("AGENT_TEMPERATURE", str(settings.temperature))),
+            snowflake_uri=os.environ.get("AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
+            snowflake_account=os.environ.get("AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account),
+            snowflake_user=os.environ.get("AGENT_SNOWFLAKE_USER", settings.snowflake_user),
             snowflake_password=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
+                "AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
             ),
             snowflake_database=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
+                "AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
             ),
-            snowflake_schema=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema
-            ),
+            snowflake_schema=os.environ.get("AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema),
             snowflake_warehouse=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
+                "AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
             ),
-            snowflake_role=os.environ.get(
-                "SNOWFLAKE_AGENT_SNOWFLAKE_ROLE", settings.snowflake_role
-            ),
-            allowed_schemas=os.environ.get(
-                "SNOWFLAKE_AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas
-            ),
-            allowed_tables=os.environ.get(
-                "SNOWFLAKE_AGENT_ALLOWED_TABLES", settings.allowed_tables
-            ),
-            read_only=os.environ.get(
-                "SNOWFLAKE_AGENT_READ_ONLY", str(settings.read_only).lower()
-            ).lower()
+            snowflake_role=os.environ.get("AGENT_SNOWFLAKE_ROLE", settings.snowflake_role),
+            allowed_schemas=os.environ.get("AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas),
+            allowed_tables=os.environ.get("AGENT_ALLOWED_TABLES", settings.allowed_tables),
+            read_only=os.environ.get("AGENT_READ_ONLY", str(settings.read_only).lower()).lower()
             == "true",
-            query_timeout=int(
-                os.environ.get("SNOWFLAKE_AGENT_QUERY_TIMEOUT", str(settings.query_timeout))
-            ),
+            query_timeout=int(os.environ.get("AGENT_QUERY_TIMEOUT", str(settings.query_timeout))),
             max_iterations=int(
-                os.environ.get("SNOWFLAKE_AGENT_MAX_ITERATIONS", str(settings.max_iterations))
+                os.environ.get("AGENT_MAX_ITERATIONS", str(settings.max_iterations))
             ),
             enable_debug=os.environ.get(
-                "SNOWFLAKE_AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
+                "AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
             ).lower()
             == "true",
             # Middleware configuration
-            middleware_mode=os.environ.get("SNOWFLAKE_AGENT_MIDDLEWARE_MODE", "enhanced"),
-            enable_hitl=os.environ.get("SNOWFLAKE_AGENT_ENABLE_HITL", "true").lower() == "true",
+            middleware_mode=os.environ.get("AGENT_MIDDLEWARE_MODE", "enhanced"),
+            enable_hitl=os.environ.get("AGENT_ENABLE_HITL", "true").lower() == "true",
             hitl_allowed_decisions=os.environ.get(
-                "SNOWFLAKE_AGENT_HITL_ALLOWED_DECISIONS", "approve,edit,reject"
+                "AGENT_HITL_ALLOWED_DECISIONS", "approve,edit,reject"
             ),
-            model_call_thread_limit=int(
-                os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_THREAD_LIMIT", "10")
-            ),
-            model_call_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_RUN_LIMIT", "5")),
+            model_call_thread_limit=int(os.environ.get("AGENT_MODEL_CALL_THREAD_LIMIT", "10")),
+            model_call_run_limit=int(os.environ.get("AGENT_MODEL_CALL_RUN_LIMIT", "5")),
             model_call_exit_behavior=cast(
                 Literal["end", "error"],
-                os.environ.get("SNOWFLAKE_AGENT_MODEL_CALL_EXIT_BEHAVIOR", "end"),
+                os.environ.get("AGENT_MODEL_CALL_EXIT_BEHAVIOR", "end"),
             ),
-            tool_call_thread_limit=int(
-                os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_THREAD_LIMIT", "20")
-            ),
-            tool_call_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_RUN_LIMIT", "10")),
+            tool_call_thread_limit=int(os.environ.get("AGENT_TOOL_CALL_THREAD_LIMIT", "20")),
+            tool_call_run_limit=int(os.environ.get("AGENT_TOOL_CALL_RUN_LIMIT", "10")),
             tool_call_exit_behavior=cast(
                 Literal["continue", "error", "end"],
-                os.environ.get("SNOWFLAKE_AGENT_TOOL_CALL_EXIT_BEHAVIOR", "continue"),
+                os.environ.get("AGENT_TOOL_CALL_EXIT_BEHAVIOR", "continue"),
             ),
-            sql_query_thread_limit=int(
-                os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_THREAD_LIMIT", "10")
-            ),
-            sql_query_run_limit=int(os.environ.get("SNOWFLAKE_AGENT_SQL_QUERY_RUN_LIMIT", "5")),
-            retry_max_retries=int(os.environ.get("SNOWFLAKE_AGENT_RETRY_MAX_RETRIES", "3")),
-            retry_backoff_factor=float(
-                os.environ.get("SNOWFLAKE_AGENT_RETRY_BACKOFF_FACTOR", "2.0")
-            ),
-            retry_initial_delay=float(os.environ.get("SNOWFLAKE_AGENT_RETRY_INITIAL_DELAY", "1.0")),
-            retry_max_delay=float(os.environ.get("SNOWFLAKE_AGENT_RETRY_MAX_DELAY", "60.0")),
-            retry_jitter=os.environ.get("SNOWFLAKE_AGENT_RETRY_JITTER", "true").lower() == "true",
-            enable_summarization=os.environ.get(
-                "SNOWFLAKE_AGENT_ENABLE_SUMMARIZATION", "true"
-            ).lower()
+            sql_query_thread_limit=int(os.environ.get("AGENT_SQL_QUERY_THREAD_LIMIT", "10")),
+            sql_query_run_limit=int(os.environ.get("AGENT_SQL_QUERY_RUN_LIMIT", "5")),
+            retry_max_retries=int(os.environ.get("AGENT_RETRY_MAX_RETRIES", "3")),
+            retry_backoff_factor=float(os.environ.get("AGENT_RETRY_BACKOFF_FACTOR", "2.0")),
+            retry_initial_delay=float(os.environ.get("AGENT_RETRY_INITIAL_DELAY", "1.0")),
+            retry_max_delay=float(os.environ.get("AGENT_RETRY_MAX_DELAY", "60.0")),
+            retry_jitter=os.environ.get("AGENT_RETRY_JITTER", "true").lower() == "true",
+            enable_summarization=os.environ.get("AGENT_ENABLE_SUMMARIZATION", "true").lower()
             == "true",
-            summarization_model=os.environ.get(
-                "SNOWFLAKE_AGENT_SUMMARIZATION_MODEL", "gpt-4o-mini"
-            ),
+            summarization_model=os.environ.get("AGENT_SUMMARIZATION_MODEL", "gpt-4o-mini"),
             summarization_trigger_tokens=int(
-                os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_TRIGGER_TOKENS", "4000")
+                os.environ.get("AGENT_SUMMARIZATION_TRIGGER_TOKENS", "4000")
             ),
             summarization_keep_messages=int(
-                os.environ.get("SNOWFLAKE_AGENT_SUMMARIZATION_KEEP_MESSAGES", "20")
+                os.environ.get("AGENT_SUMMARIZATION_KEEP_MESSAGES", "20")
             ),
-            enable_todo=os.environ.get("SNOWFLAKE_AGENT_ENABLE_TODO", "true").lower() == "true",
-            enable_fallback=os.environ.get("SNOWFLAKE_AGENT_ENABLE_FALLBACK", "true").lower()
-            == "true",
-            fallback_models=os.environ.get("SNOWFLAKE_AGENT_FALLBACK_MODELS", ""),
+            enable_todo=os.environ.get("AGENT_ENABLE_TODO", "true").lower() == "true",
+            enable_fallback=os.environ.get("AGENT_ENABLE_FALLBACK", "true").lower() == "true",
+            fallback_models=os.environ.get("AGENT_FALLBACK_MODELS", ""),
         )
 
     def get_middleware_config(self) -> dict:

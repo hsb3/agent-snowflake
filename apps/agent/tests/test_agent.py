@@ -10,8 +10,8 @@ import pytest
 from langchain_community.utilities import SQLDatabase
 from sqlalchemy import Column, Integer, MetaData, Table, create_engine
 
-from agent_snowflake.graph import build_graph
-from agent_snowflake.utils import init_model
+from agent.graph import build_graph
+from agent.utils import init_model
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def mock_sqlite_db():
 
 def test_build_graph_function(mock_sqlite_db):
     """Test that build_graph() function works with database."""
-    with patch("agent_snowflake.tools.sql.create_sql_database") as mock_create_db:
+    with patch("agent.tools.sql.create_sql_database") as mock_create_db:
         mock_create_db.return_value = mock_sqlite_db
 
         config = {
@@ -42,7 +42,7 @@ def test_build_graph_function(mock_sqlite_db):
 
 def test_graph_has_nodes(mock_sqlite_db):
     """Test that the graph has expected nodes."""
-    with patch("agent_snowflake.tools.sql.create_sql_database") as mock_create_db:
+    with patch("agent.tools.sql.create_sql_database") as mock_create_db:
         mock_create_db.return_value = mock_sqlite_db
 
         config = {
