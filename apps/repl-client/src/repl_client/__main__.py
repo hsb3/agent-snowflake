@@ -32,7 +32,7 @@ from repl_client.commands.handlers import CommandHandlers
 from repl_client.commands.registry import CommandRegistry
 from repl_client.core.client import LangGraphClient
 from repl_client.core.config import Config
-from repl_client.core.logging import get_logger
+from repl_client.core.logging import get_logger, setup_client_logger
 from repl_client.core.session import SessionState
 from repl_client.streaming.handler import StreamHandler
 from repl_client.streaming.hitl import HITLHandler
@@ -373,6 +373,11 @@ class REPLLoop:
 def main():
     """Main entry point."""
     config = Config.from_env()
+
+    # Setup logging
+    log_level = "DEBUG" if config.debug else "INFO"
+    setup_client_logger(level=log_level)
+
     repl = REPLLoop(config)
     exit_code = repl.run()
     sys.exit(exit_code)

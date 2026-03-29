@@ -1,6 +1,7 @@
 """Utility functions for the Snowflake agent."""
 
 import logging
+import os
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -16,6 +17,26 @@ if TYPE_CHECKING:
     from .context2 import EnhancedContextSchema
 
 logger = logging.getLogger(__name__)
+
+
+def _redact_uri_password(uri: str) -> str:
+    """Redact the password portion of a database URI for safe logging.
+
+    Uses urlparse to reliably extract and mask the password, even when
+    the password itself contains special characters like '@'.
+
+    Args:
+        uri: Database connection URI that may contain embedded credentials.
+
+    Returns:
+        URI with the password replaced by '***'.
+    """
+    parsed = urlparse(uri)
+    if parsed.password:
+        # Replace password in the netloc: user:password@host -> user:***@host
+        redacted_netloc = parsed.netloc.replace(f":{parsed.password}@", ":***@", 1)
+        return uri.replace(parsed.netloc, redacted_netloc, 1)
+    return uri
 
 
 def init_model(
@@ -48,7 +69,7 @@ def init_model(
     """
     try:
         # Log model initialization
-        logger.debug(f"Initializing model: {model} (temperature={temperature})")
+        logger.debug("Initializing model: %s (temperature=%s)", model, temperature)
 
         # Special cases can be handled here
         # For now, just pass through to init_chat_model
@@ -58,11 +79,11 @@ def init_model(
             **kwargs,
         )
 
-        logger.debug(f"Successfully initialized: {llm.__class__.__name__}")
+        logger.debug("Successfully initialized: %s", llm.__class__.__name__)
         return llm
 
     except Exception as e:
-        logger.error(f"Failed to initialize model '{model}': {e}")
+        logger.error("Failed to initialize model '%s': %s", model, e)
         raise
 
 
@@ -101,11 +122,10 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
         >>> context = ContextSchema(snowflake_uri="snowflake://...")
         >>> engine = create_snowflake_engine(context)
         >>>
-        >>> # Or with individual parameters
+        >>> # Or with individual parameters (password read from SNOWFLAKE_PASSWORD env var)
         >>> context = ContextSchema(
         ...     snowflake_account="myaccount",
         ...     snowflake_user="myuser",
-        ...     snowflake_password="mypass",
         ...     snowflake_database="mydb"
         ... )
         >>> engine = create_snowflake_engine(context)
@@ -113,7 +133,11 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
     # Try URI first
     if context.snowflake_uri:
         uri = context.snowflake_uri
-        logger.debug(f"Creating engine from URI (test={is_test_connection(uri)})")
+        logger.debug(
+            "Creating engine from URI: %s (test=%s)",
+            _redact_uri_password(uri),
+            is_test_connection(uri),
+        )
 
         engine_args = {}
 
@@ -124,16 +148,21 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
         return create_engine(uri, **engine_args)
 
     # Build URI from individual parameters
-    if not all([context.snowflake_account, context.snowflake_user, context.snowflake_password]):
+    # Password is read from environment only, never from the context schema
+    snowflake_password = os.environ.get("SNOWFLAKE_PASSWORD", "") or os.environ.get(
+        "AGENT_SNOWFLAKE_PASSWORD", ""
+    )
+
+    if not all([context.snowflake_account, context.snowflake_user, snowflake_password]):
         raise ValueError(
             "Either snowflake_uri or all of (snowflake_account, snowflake_user, "
-            "snowflake_password) must be provided"
+            "SNOWFLAKE_PASSWORD env var) must be provided"
         )
 
     # Build Snowflake URI: snowflake://user:password@account/database/schema?warehouse=wh&role=role
     uri_parts = [
         "snowflake://",
-        f"{context.snowflake_user}:{context.snowflake_password}",
+        f"{context.snowflake_user}:{snowflake_password}",
         f"@{context.snowflake_account}",
     ]
 
@@ -154,7 +183,11 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
     if query_params:
         uri += "?" + "&".join(query_params)
 
-    logger.debug(f"Creating engine from parameters (test={is_test_connection(uri)})")
+    logger.debug(
+        "Creating engine from parameters: %s (test=%s)",
+        _redact_uri_password(uri),
+        is_test_connection(uri),
+    )
 
     engine_args = {}
     # Add timeout only for Snowflake connections
@@ -195,7 +228,7 @@ def create_sql_database(
     include_tables = None
     if context.allowed_tables and context.allowed_tables != "*":
         include_tables = [t.strip() for t in context.allowed_tables.split(",")]
-        logger.debug(f"Restricting to tables: {include_tables}")
+        logger.debug("Restricting to tables: %s", include_tables)
 
     # Parse allowed schemas from context
     schema = None
@@ -203,11 +236,13 @@ def create_sql_database(
         schemas = [s.strip() for s in context.allowed_schemas.split(",")]
         if len(schemas) == 1:
             schema = schemas[0]
-            logger.debug(f"Using schema: {schema}")
+            logger.debug("Using schema: %s", schema)
         else:
             logger.warning(
-                f"Multiple schemas specified: {schemas}. Using first: {schemas[0]}. "
-                "SQLDatabase only supports single schema."
+                "Multiple schemas specified: %s. Using first: %s. "
+                "SQLDatabase only supports single schema.",
+                schemas,
+                schemas[0],
             )
             schema = schemas[0]
 
@@ -222,8 +257,10 @@ def create_sql_database(
     )
 
     logger.info(
-        f"Created SQLDatabase: schema={schema}, tables={include_tables or 'all'}, "
-        f"read_only={context.read_only}"
+        "Created SQLDatabase: schema=%s, tables=%s, read_only=%s",
+        schema,
+        include_tables or "all",
+        context.read_only,
     )
 
     return db

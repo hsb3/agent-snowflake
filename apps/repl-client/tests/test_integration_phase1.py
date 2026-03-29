@@ -27,11 +27,11 @@ from repl_client.streaming.types import ChunkType
 def config():
     """Create config for integration tests.
 
-    Uses LANGGRAPH_DEV_SERVER_PORT from environment or defaults to 2024.
+    Uses LANGGRAPH_DEV_SERVER_URL from environment or defaults to http://localhost:2024.
     """
-    port = os.getenv("LANGGRAPH_DEV_SERVER_PORT", "2024")
+    server_url = os.getenv("LANGGRAPH_DEV_SERVER_URL", "http://localhost:2024")
     return Config(
-        server_url=f"http://localhost:{port}",
+        server_url=server_url,
         default_agent="",  # Will select first available agent
         stream_mode=["messages"],
         debug=False,
@@ -103,10 +103,11 @@ class TestPhase1Integration:
         assert got_text_response, "Did not receive text response from agent"
 
     @pytest.mark.integration
-    def test_criterion_3_help_command(self, repl_loop):
+    @pytest.mark.asyncio
+    async def test_criterion_3_help_command(self, repl_loop):
         """Success criterion 3: /help works."""
-        # Execute help command
-        result = repl_loop._handle_input("/help")
+        # Execute help command (async API)
+        result = await repl_loop._handle_input_async("/help")
 
         # Should continue (not exit)
         assert result is True
@@ -114,10 +115,11 @@ class TestPhase1Integration:
         # Command should have executed successfully (no exceptions)
 
     @pytest.mark.integration
-    def test_criterion_3_exit_command(self, repl_loop):
+    @pytest.mark.asyncio
+    async def test_criterion_3_exit_command(self, repl_loop):
         """Success criterion 3: /exit works."""
-        # Execute exit command
-        result = repl_loop._handle_input("/exit")
+        # Execute exit command (async API)
+        result = await repl_loop._handle_input_async("/exit")
 
         # Should return False (signal to exit)
         assert result is False
@@ -160,7 +162,8 @@ class TestPhase1Integration:
         )
 
     @pytest.mark.integration
-    def test_all_phase1_commands_registered(self, repl_loop):
+    @pytest.mark.asyncio
+    async def test_all_phase1_commands_registered(self, repl_loop):
         """Verify all Phase 1 commands are available."""
         commands = repl_loop.command_registry.list_commands()
         command_names = [cmd.name for cmd in commands]

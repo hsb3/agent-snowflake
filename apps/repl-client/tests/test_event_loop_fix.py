@@ -254,7 +254,7 @@ class TestStreamingUnderSingleLoop:
 
         # Create async iterator for parsed chunks
         async def mock_process_stream(chunks):
-            async for event_type, data in chunks:
+            async for _event_type, _data in chunks:
                 yield ParsedChunk(
                     chunk_type=ChunkType.TEXT_DELTA,
                     namespace=(),

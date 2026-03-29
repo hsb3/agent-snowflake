@@ -168,9 +168,7 @@ class LangGraphService:
             logger.error(f"Failed to create thread: {e}")
             raise
 
-    async def get_agent_schemas(
-        self, assistant_id: str, force_refresh: bool = False
-    ) -> dict:
+    async def get_agent_schemas(self, assistant_id: str, force_refresh: bool = False) -> dict:
         """Get schema information for specific agent with caching.
 
         Args:

@@ -3,7 +3,7 @@
 This module extends the base ContextSchema with middleware-specific parameters
 for graph2.py (agent_enhanced and agent_minimal).
 
-Supports the same layered configuration: Runtime → Environment → Defaults.
+Supports the same layered configuration: Runtime -> Environment -> Defaults.
 """
 
 import logging
@@ -14,12 +14,13 @@ from typing import Annotated, Literal, cast
 from langchain_core.runnables import RunnableConfig
 
 from .config import settings
+from .context import ContextSchema
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
-class EnhancedContextSchema:
+@dataclass(kw_only=True, repr=False)
+class EnhancedContextSchema(ContextSchema):
     """Runtime context schema for Snowflake agent with middleware configuration.
 
     Extends base ContextSchema with middleware-specific parameters for:
@@ -37,154 +38,8 @@ class EnhancedContextSchema:
     """
 
     # ========================================================================
-    # Base Configuration (from original ContextSchema)
+    # Middleware Configuration
     # ========================================================================
-
-    # Model Configuration
-    model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default=settings.model,
-        metadata={
-            "description": "LLM model for the agent",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    temperature: float = field(
-        default=settings.temperature,
-        metadata={
-            "description": "Model temperature (0.0=deterministic, 1.0=creative)",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    # Snowflake Connection - Primary configurable
-    snowflake_uri: str = field(
-        default=settings.snowflake_uri,
-        metadata={
-            "description": "Snowflake connection URI: snowflake://user:password@account/database/schema?warehouse=wh&role=role",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    # Snowflake Connection - Individual components
-    snowflake_account: str = field(
-        default=settings.snowflake_account,
-        metadata={
-            "description": "Snowflake account identifier",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_user: str = field(
-        default=settings.snowflake_user,
-        metadata={
-            "description": "Snowflake username",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_password: str = field(
-        default=settings.snowflake_password,
-        metadata={
-            "description": "Snowflake password",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_database: str = field(
-        default=settings.snowflake_database,
-        metadata={
-            "description": "Snowflake database name",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_schema: str = field(
-        default=settings.snowflake_schema,
-        metadata={
-            "description": "Snowflake schema name",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_warehouse: str = field(
-        default=settings.snowflake_warehouse,
-        metadata={
-            "description": "Snowflake warehouse name",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_role: str = field(
-        default=settings.snowflake_role,
-        metadata={
-            "description": "Snowflake role name",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    # Agent Configuration - Guardrails
-    allowed_schemas: str = field(
-        default=settings.allowed_schemas,
-        metadata={
-            "description": "Comma-separated list of allowed schemas (* for all)",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    allowed_tables: str = field(
-        default=settings.allowed_tables,
-        metadata={
-            "description": "Comma-separated list of allowed tables (* for all)",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    read_only: bool = field(
-        default=settings.read_only,
-        metadata={
-            "description": "Enforce read-only database access (disables human-in-the-loop)",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    query_timeout: int = field(
-        default=settings.query_timeout,
-        metadata={
-            "description": "Query execution timeout in seconds",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    # Execution Settings
-    max_iterations: int = field(
-        default=settings.max_iterations,
-        metadata={
-            "description": "Maximum agent iterations before stopping",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    enable_debug: bool = field(
-        default=settings.enable_debug,
-        metadata={
-            "description": "Enable debug mode with verbose logging",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    # ========================================================================
-    # Middleware Configuration (NEW)
-    # ========================================================================
-
-    # Middleware Mode Selection
-    middleware_mode: str = field(
-        default="enhanced",
-        metadata={
-            "description": "Middleware mode: 'enhanced' (all middleware), 'minimal' (limits+retry only), 'none' (no middleware)",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
 
     # Human-in-the-Loop
     enable_hitl: bool = field(
@@ -306,7 +161,7 @@ class EnhancedContextSchema:
     retry_jitter: bool = field(
         default=True,
         metadata={
-            "description": "Add random jitter (±25%) to retry delays to avoid thundering herd",
+            "description": "Add random jitter (+-25%) to retry delays to avoid thundering herd",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -321,7 +176,7 @@ class EnhancedContextSchema:
     )
 
     summarization_model: Annotated[str, {"__template_metadata__": {"kind": "llm"}}] = field(
-        default="gpt-4o-mini",
+        default="gpt-4.1-mini",
         metadata={
             "description": "LLM model for generating summaries (use cheaper model)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
@@ -391,7 +246,6 @@ class EnhancedContextSchema:
             >>> config = RunnableConfig(
             ...     configurable={
             ...         "model": "claude-sonnet-4-5-20250929",
-            ...         "middleware_mode": "enhanced",
             ...         "model_call_thread_limit": 15,
             ...     }
             ... )
@@ -425,73 +279,22 @@ class EnhancedContextSchema:
         Reads from environment variables with AGENT_ prefix.
         Falls back to default values if not set.
 
-        Environment variables (base configuration):
-        - AGENT_MODEL: LLM model
-        - AGENT_TEMPERATURE: Model temperature
-        - AGENT_SNOWFLAKE_URI: Snowflake connection URI
-        - AGENT_SNOWFLAKE_*: Individual Snowflake connection params
-        - AGENT_ALLOWED_SCHEMAS: Comma-separated allowed schemas
-        - AGENT_ALLOWED_TABLES: Comma-separated allowed tables
-        - AGENT_READ_ONLY: Enforce read-only (true/false)
-        - AGENT_QUERY_TIMEOUT: Query timeout in seconds
-        - AGENT_MAX_ITERATIONS: Max iterations
-        - AGENT_ENABLE_DEBUG: Enable debug mode (true/false)
-
-        Environment variables (middleware configuration):
-        - AGENT_MIDDLEWARE_MODE: Middleware mode (enhanced/minimal/none)
-        - AGENT_ENABLE_HITL: Enable human-in-the-loop (true/false)
-        - AGENT_MODEL_CALL_THREAD_LIMIT: Model call thread limit
-        - AGENT_MODEL_CALL_RUN_LIMIT: Model call run limit
-        - AGENT_TOOL_CALL_THREAD_LIMIT: Tool call thread limit
-        - AGENT_TOOL_CALL_RUN_LIMIT: Tool call run limit
-        - AGENT_SQL_QUERY_THREAD_LIMIT: SQL query thread limit
-        - AGENT_SQL_QUERY_RUN_LIMIT: SQL query run limit
-        - AGENT_RETRY_MAX_RETRIES: Max retry attempts
-        - AGENT_RETRY_BACKOFF_FACTOR: Retry backoff multiplier
-        - AGENT_RETRY_INITIAL_DELAY: Initial retry delay (seconds)
-        - AGENT_ENABLE_SUMMARIZATION: Enable summarization (true/false)
-        - AGENT_SUMMARIZATION_MODEL: Model for summaries
-        - AGENT_SUMMARIZATION_TRIGGER_TOKENS: Token trigger threshold
-        - AGENT_SUMMARIZATION_KEEP_MESSAGES: Messages to preserve
-        - AGENT_ENABLE_TODO: Enable todo list (true/false)
-        - AGENT_ENABLE_FALLBACK: Enable model fallback (true/false)
-        - AGENT_FALLBACK_MODELS: Comma-separated fallback models
+        Loads base configuration via ContextSchema.from_env(), then adds
+        middleware-specific environment variables.
 
         Returns:
             EnhancedContextSchema instance with values from environment or defaults
         """
+        # Get all base fields from parent's from_env()
+        base = ContextSchema.from_env()
+        base_kwargs = {
+            field_info.name: getattr(base, field_info.name) for field_info in fields(ContextSchema)
+        }
+
         return cls(
-            # Base configuration
-            model=os.environ.get("AGENT_MODEL", settings.model),
-            temperature=float(os.environ.get("AGENT_TEMPERATURE", str(settings.temperature))),
-            snowflake_uri=os.environ.get("AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
-            snowflake_account=os.environ.get("AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account),
-            snowflake_user=os.environ.get("AGENT_SNOWFLAKE_USER", settings.snowflake_user),
-            snowflake_password=os.environ.get(
-                "AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
-            ),
-            snowflake_database=os.environ.get(
-                "AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
-            ),
-            snowflake_schema=os.environ.get("AGENT_SNOWFLAKE_SCHEMA", settings.snowflake_schema),
-            snowflake_warehouse=os.environ.get(
-                "AGENT_SNOWFLAKE_WAREHOUSE", settings.snowflake_warehouse
-            ),
-            snowflake_role=os.environ.get("AGENT_SNOWFLAKE_ROLE", settings.snowflake_role),
-            allowed_schemas=os.environ.get("AGENT_ALLOWED_SCHEMAS", settings.allowed_schemas),
-            allowed_tables=os.environ.get("AGENT_ALLOWED_TABLES", settings.allowed_tables),
-            read_only=os.environ.get("AGENT_READ_ONLY", str(settings.read_only).lower()).lower()
-            == "true",
-            query_timeout=int(os.environ.get("AGENT_QUERY_TIMEOUT", str(settings.query_timeout))),
-            max_iterations=int(
-                os.environ.get("AGENT_MAX_ITERATIONS", str(settings.max_iterations))
-            ),
-            enable_debug=os.environ.get(
-                "AGENT_ENABLE_DEBUG", str(settings.enable_debug).lower()
-            ).lower()
-            == "true",
+            # Base configuration from parent
+            **base_kwargs,
             # Middleware configuration
-            middleware_mode=os.environ.get("AGENT_MIDDLEWARE_MODE", "enhanced"),
             enable_hitl=os.environ.get("AGENT_ENABLE_HITL", "true").lower() == "true",
             hitl_allowed_decisions=os.environ.get(
                 "AGENT_HITL_ALLOWED_DECISIONS", "approve,edit,reject"
@@ -517,7 +320,7 @@ class EnhancedContextSchema:
             retry_jitter=os.environ.get("AGENT_RETRY_JITTER", "true").lower() == "true",
             enable_summarization=os.environ.get("AGENT_ENABLE_SUMMARIZATION", "true").lower()
             == "true",
-            summarization_model=os.environ.get("AGENT_SUMMARIZATION_MODEL", "gpt-4o-mini"),
+            summarization_model=os.environ.get("AGENT_SUMMARIZATION_MODEL", "gpt-4.1-mini"),
             summarization_trigger_tokens=int(
                 os.environ.get("AGENT_SUMMARIZATION_TRIGGER_TOKENS", "4000")
             ),
@@ -537,50 +340,10 @@ class EnhancedContextSchema:
         Returns:
             Dictionary of middleware configuration fields only
         """
-        middleware_fields = {
-            "middleware_mode",
-            "enable_hitl",
-            "hitl_allowed_decisions",
-            "model_call_thread_limit",
-            "model_call_run_limit",
-            "model_call_exit_behavior",
-            "tool_call_thread_limit",
-            "tool_call_run_limit",
-            "tool_call_exit_behavior",
-            "sql_query_thread_limit",
-            "sql_query_run_limit",
-            "retry_max_retries",
-            "retry_backoff_factor",
-            "retry_initial_delay",
-            "retry_max_delay",
-            "retry_jitter",
-            "enable_summarization",
-            "summarization_model",
-            "summarization_trigger_tokens",
-            "summarization_keep_messages",
-            "enable_todo",
-            "enable_fallback",
-            "fallback_models",
-        }
+        # Middleware fields are those defined in EnhancedContextSchema but not in ContextSchema
+        base_field_names = {f.name for f in fields(ContextSchema)}
         return {
             field_info.name: getattr(self, field_info.name)
             for field_info in fields(self)
-            if field_info.name in middleware_fields
+            if field_info.name not in base_field_names
         }
-
-    def to_dict(self) -> dict:
-        """Convert configuration to dictionary.
-
-        Useful for serialization, logging, or passing to functions.
-
-        Returns:
-            Dictionary representation of all configuration fields
-        """
-        return {field_info.name: getattr(self, field_info.name) for field_info in fields(self)}
-
-    def __repr__(self) -> str:
-        """String representation showing key configuration values."""
-        field_strs = [
-            f"{field_info.name}={getattr(self, field_info.name)!r}" for field_info in fields(self)
-        ]
-        return f"{self.__class__.__name__}({', '.join(field_strs)})"

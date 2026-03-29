@@ -12,7 +12,7 @@ from langgraph.graph.state import CompiledStateGraph
 from .context import ContextSchema
 
 # from .state import AgentState # default agent state for langchain v1 agent
-from .prompts import system_prompt
+from .prompts import build_system_prompt
 from .tools import create_sql_tools
 from .utils import init_model
 
@@ -40,7 +40,7 @@ def build_graph(config: RunnableConfig | None = None) -> CompiledStateGraph:
     context = ContextSchema.from_runnable_config(config, fallback_env=True)
 
     if context.enable_debug:
-        logger.info(f"Building graph with context: {context}")
+        logger.info("Building graph with context: %s", context)
 
     # Initialize LLM from context
     llm = init_model(
@@ -52,13 +52,20 @@ def build_graph(config: RunnableConfig | None = None) -> CompiledStateGraph:
     tools = create_sql_tools(llm=llm, context=context)
 
     if context.enable_debug:
-        logger.info(f"Created {len(tools)} tools: {[t.name for t in tools]}")
+        logger.info("Created %d tools: %s", len(tools), [t.name for t in tools])
+
+    # Build system prompt based on detected database type
+    db_type = "snowflake" if context.snowflake_uri.startswith("snowflake://") else "sqlite"
+    prompt = build_system_prompt(db_type=db_type)
+
+    if context.enable_debug:
+        logger.info("Using db_type=%s for system prompt", db_type)
 
     # Create agent with system prompt and context schema
     agent = create_agent(
         model=llm,
         tools=tools,
-        system_prompt=system_prompt,
+        system_prompt=prompt,
         # state_schema=AgentState,          # Optional: only needed if customizing beyond default
         context_schema=ContextSchema,
         debug=context.enable_debug,
@@ -73,7 +80,7 @@ def build_graph(config: RunnableConfig | None = None) -> CompiledStateGraph:
     )
 
     if context.enable_debug:
-        logger.info(f"Graph built successfully with nodes: {list(agent.nodes.keys())}")
+        logger.info("Graph built successfully with nodes: %s", list(agent.nodes.keys()))
 
     return agent  # type: ignore
 

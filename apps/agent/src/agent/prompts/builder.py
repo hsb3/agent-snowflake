@@ -42,8 +42,3 @@ def build_system_prompt(
         components.append(additional_instructions)
 
     return "\n\n".join(components)
-
-
-# Default system prompt - using SQLite for now
-# TODO: Switch to db_type="snowflake" when using actual Snowflake
-system_prompt = build_system_prompt(db_type="sqlite")

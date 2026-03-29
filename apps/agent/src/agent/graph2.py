@@ -9,7 +9,7 @@ This module demonstrates valuable middleware configurations for SQL agents:
 """
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
@@ -22,15 +22,28 @@ from langchain.agents.middleware import (
     ToolCallLimitMiddleware,
 )
 from langchain_core.runnables import RunnableConfig
-from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph.state import CompiledStateGraph
 
 from .context2 import EnhancedContextSchema
-from .prompts import system_prompt
+from .prompts import build_system_prompt
 from .tools import create_sql_tools
 from .utils import init_model
 
 logger = logging.getLogger(__name__)
+
+
+def _detect_db_type(uri: str) -> str:
+    """Detect database type from connection URI.
+
+    Args:
+        uri: Database connection URI
+
+    Returns:
+        "snowflake" if URI starts with snowflake://, otherwise "sqlite"
+    """
+    if uri.startswith("snowflake://"):
+        return "snowflake"
+    return "sqlite"
 
 
 def build_graph_with_middleware(config: RunnableConfig | None = None) -> CompiledStateGraph:
@@ -39,14 +52,14 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     Middleware is configured via EnhancedContextSchema. All middleware
     components can be enabled/disabled and customized through context.
 
-    Available middleware (when enabled):
-    1. Human-in-the-loop: Require approval for write operations
-    2. Model call limit: Prevent runaway costs
-    3. Tool call limit: Limit expensive SQL queries
-    4. Model retry: Handle transient network failures
-    5. Summarization: Compress conversation history when token limit reached
-    6. Todo list: Enable task planning for complex analysis
-    7. Model fallback: Fallback to alternative models on failure
+    Middleware ordering (innermost to outermost):
+    1. ModelRetryMiddleware - retry transient failures closest to model
+    2. ModelFallbackMiddleware - fall back to other models on failure
+    3. ModelCallLimitMiddleware - enforce model call limits
+    4. ToolCallLimitMiddleware(s) - enforce tool call limits
+    5. HumanInTheLoopMiddleware - approval flow for dangerous operations
+    6. SummarizationMiddleware - context window management
+    7. TodoListMiddleware - task planning
 
     Args:
         config: Optional RunnableConfig from LangGraph runtime
@@ -64,7 +77,7 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     context = EnhancedContextSchema.from_runnable_config(config, fallback_env=True)
 
     if context.enable_debug:
-        logger.info(f"Building enhanced graph with context: {context}")
+        logger.info("Building enhanced graph with context: %s", context)
 
     # Initialize LLM
     llm = init_model(
@@ -76,30 +89,59 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
     tools = create_sql_tools(llm=llm, context=context)
 
     if context.enable_debug:
-        logger.info(f"Created {len(tools)} tools: {[t.name for t in tools]}")
+        logger.info("Created %d tools: %s", len(tools), [t.name for t in tools])
 
-    # Configure middleware stack based on context settings
+    # Build system prompt based on detected database type
+    db_type = _detect_db_type(context.snowflake_uri)
+    prompt = build_system_prompt(db_type=db_type)
+
+    if context.enable_debug:
+        logger.info("Using db_type=%s for system prompt", db_type)
+
+    # Configure middleware stack based on context settings.
+    # Order: error handling closest to model, flow control further out.
     middleware: list[Any] = []
 
-    # 1. Human-in-the-loop: Require approval for sql_db_query tool
-    # Only enable if: enable_hitl=True AND read_only=False
-    # Note: Requires checkpointer to maintain state across interruptions
-    if context.enable_hitl and not context.read_only:
-        allowed_decisions = [d.strip() for d in context.hitl_allowed_decisions.split(",")]
-        interrupt_config: Any = {
-            "sql_db_query": {
-                "allowed_decisions": allowed_decisions,
-            },
-            # Don't interrupt on schema inspection tools
-            "sql_db_schema": False,
-            "sql_db_list_tables": False,
-        }
-        middleware.append(HumanInTheLoopMiddleware(interrupt_on=cast(Any, interrupt_config)))
+    # 1. Model retry: Handle transient failures with exponential backoff
+    if context.retry_max_retries > 0:
+        middleware.append(
+            ModelRetryMiddleware(
+                max_retries=context.retry_max_retries,
+                backoff_factor=context.retry_backoff_factor,
+                initial_delay=context.retry_initial_delay,
+                max_delay=context.retry_max_delay,
+                jitter=context.retry_jitter,
+            )
+        )
         if context.enable_debug:
-            logger.info(f"Added HumanInTheLoopMiddleware with decisions: {allowed_decisions}")
+            logger.info(
+                "Added ModelRetryMiddleware: retries=%s, backoff=%sx, initial_delay=%ss",
+                context.retry_max_retries,
+                context.retry_backoff_factor,
+                context.retry_initial_delay,
+            )
 
-    # 2. Model call limit: Prevent infinite loops
-    # Only add if limits are set (> 0)
+    # 2. Model fallback: Fallback to alternative models on failure
+    if context.enable_fallback:
+        # Use custom fallback models if specified, otherwise auto-detect
+        if context.fallback_models:
+            fallback_models = [m.strip() for m in context.fallback_models.split(",")]
+        else:
+            # Auto-detect based on primary model
+            primary_model = context.model
+            if "gpt-4" in primary_model:
+                fallback_models = ["gpt-4.1-mini", "claude-haiku-4-5-20251001"]
+            elif "claude" in primary_model:
+                fallback_models = ["gpt-4.1", "gpt-4.1-mini"]
+            else:
+                fallback_models = ["gpt-4.1-mini"]
+
+        if fallback_models:
+            middleware.append(ModelFallbackMiddleware(*fallback_models))
+            if context.enable_debug:
+                logger.info("Added ModelFallbackMiddleware: %s", fallback_models)
+
+    # 3. Model call limit: Prevent infinite loops
     if context.model_call_thread_limit > 0 or context.model_call_run_limit > 0:
         middleware.append(
             ModelCallLimitMiddleware(
@@ -114,11 +156,13 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
         )
         if context.enable_debug:
             logger.info(
-                f"Added ModelCallLimitMiddleware: thread={context.model_call_thread_limit}, "
-                f"run={context.model_call_run_limit}, exit={context.model_call_exit_behavior}"
+                "Added ModelCallLimitMiddleware: thread=%s, run=%s, exit=%s",
+                context.model_call_thread_limit,
+                context.model_call_run_limit,
+                context.model_call_exit_behavior,
             )
 
-    # 3. Tool call limit: Limit expensive SQL queries
+    # 4. Tool call limits
     # Global limit across all tools
     if context.tool_call_thread_limit > 0 or context.tool_call_run_limit > 0:
         middleware.append(
@@ -132,8 +176,9 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
         )
         if context.enable_debug:
             logger.info(
-                f"Added global ToolCallLimitMiddleware: thread={context.tool_call_thread_limit}, "
-                f"run={context.tool_call_run_limit}"
+                "Added global ToolCallLimitMiddleware: thread=%s, run=%s",
+                context.tool_call_thread_limit,
+                context.tool_call_run_limit,
             )
 
     # Specific limit for sql_db_query (most expensive)
@@ -150,28 +195,28 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
         )
         if context.enable_debug:
             logger.info(
-                f"Added sql_db_query ToolCallLimitMiddleware: thread={context.sql_query_thread_limit}, "
-                f"run={context.sql_query_run_limit}"
+                "Added sql_db_query ToolCallLimitMiddleware: thread=%s, run=%s",
+                context.sql_query_thread_limit,
+                context.sql_query_run_limit,
             )
 
-    # 4. Model retry: Handle transient failures with exponential backoff
-    if context.retry_max_retries > 0:
-        middleware.append(
-            ModelRetryMiddleware(
-                max_retries=context.retry_max_retries,
-                backoff_factor=context.retry_backoff_factor,
-                initial_delay=context.retry_initial_delay,
-                max_delay=context.retry_max_delay,
-                jitter=context.retry_jitter,
-            )
-        )
+    # 5. Human-in-the-loop: Require approval for sql_db_query tool
+    # Only enable if: enable_hitl=True AND read_only=False
+    if context.enable_hitl and not context.read_only:
+        allowed_decisions = [d.strip() for d in context.hitl_allowed_decisions.split(",")]
+        interrupt_config: Any = {
+            "sql_db_query": {
+                "allowed_decisions": allowed_decisions,
+            },
+            # Don't interrupt on schema inspection tools
+            "sql_db_schema": False,
+            "sql_db_list_tables": False,
+        }
+        middleware.append(HumanInTheLoopMiddleware(interrupt_on=interrupt_config))
         if context.enable_debug:
-            logger.info(
-                f"Added ModelRetryMiddleware: retries={context.retry_max_retries}, "
-                f"backoff={context.retry_backoff_factor}x, initial_delay={context.retry_initial_delay}s"
-            )
+            logger.info("Added HumanInTheLoopMiddleware with decisions: %s", allowed_decisions)
 
-    # 5. Summarization: Compress history when approaching token limits
+    # 6. Summarization: Compress history when approaching token limits
     if context.enable_summarization:
         middleware.append(
             SummarizationMiddleware(
@@ -182,59 +227,38 @@ def build_graph_with_middleware(config: RunnableConfig | None = None) -> Compile
         )
         if context.enable_debug:
             logger.info(
-                f"Added SummarizationMiddleware: trigger={context.summarization_trigger_tokens} tokens, "
-                f"keep={context.summarization_keep_messages} messages, model={context.summarization_model}"
+                "Added SummarizationMiddleware: trigger=%s tokens, keep=%s messages, model=%s",
+                context.summarization_trigger_tokens,
+                context.summarization_keep_messages,
+                context.summarization_model,
             )
 
-    # 6. Todo list: Enable task planning for complex multi-step analysis
+    # 7. Todo list: Enable task planning for complex multi-step analysis
     if context.enable_todo:
         middleware.append(TodoListMiddleware())
         if context.enable_debug:
             logger.info("Added TodoListMiddleware")
 
-    # 7. Model fallback: Fallback to alternative models on failure
-    if context.enable_fallback:
-        # Use custom fallback models if specified, otherwise auto-detect
-        if context.fallback_models:
-            fallback_models = [m.strip() for m in context.fallback_models.split(",")]
-        else:
-            # Auto-detect based on primary model
-            primary_model = context.model
-            if "gpt-4o" in primary_model:
-                fallback_models = ["gpt-4o-mini", "claude-3-5-sonnet-20241022"]
-            elif "claude" in primary_model:
-                fallback_models = ["gpt-4o", "gpt-4o-mini"]
-            else:
-                fallback_models = ["gpt-4o-mini"]
-
-        if fallback_models:
-            middleware.append(ModelFallbackMiddleware(*fallback_models))
-            if context.enable_debug:
-                logger.info(f"Added ModelFallbackMiddleware: {fallback_models}")
-
     if context.enable_debug:
-        logger.info(f"Configured {len(middleware)} middleware components")
+        logger.info("Configured %d middleware components", len(middleware))
         if middleware:
-            logger.info(f"Middleware stack: {[type(m).__name__ for m in middleware]}")
+            logger.info("Middleware stack: %s", [type(m).__name__ for m in middleware])
 
     # Create agent with middleware
-    # Note: HumanInTheLoopMiddleware requires a checkpointer
-    checkpointer = InMemorySaver() if (context.enable_hitl and not context.read_only) else None
-
+    # Server provides its own checkpointer -- do not create one here
     agent = create_agent(
         model=llm,
         tools=tools,
-        system_prompt=system_prompt,
-        context_schema=EnhancedContextSchema,  # Use enhanced schema for config
+        system_prompt=prompt,
+        context_schema=EnhancedContextSchema,
         middleware=middleware,
-        checkpointer=checkpointer,  # Required for human-in-the-loop
         debug=context.enable_debug,
         name="agent_enhanced",
     )
 
     if context.enable_debug:
-        logger.info(f"Enhanced graph built successfully with nodes: {list(agent.nodes.keys())}")
-        logger.info(f"Middleware stack: {[type(m).__name__ for m in middleware]}")
+        logger.info("Enhanced graph built successfully with nodes: %s", list(agent.nodes.keys()))
+        logger.info("Middleware stack: %s", [type(m).__name__ for m in middleware])
 
     return agent  # type: ignore
 
@@ -244,33 +268,26 @@ def build_graph_minimal_middleware(config: RunnableConfig | None = None) -> Comp
     """Build agent with minimal middleware for faster iteration.
 
     Only includes essential middleware (configurable via context):
-    - Model call limit (prevent runaway)
     - Model retry (handle transient failures)
+    - Model call limit (prevent runaway)
 
     Use this for local development and testing.
     """
     context = EnhancedContextSchema.from_runnable_config(config, fallback_env=True)
 
     if context.enable_debug:
-        logger.info(f"Building minimal graph with context: {context}")
+        logger.info("Building minimal graph with context: %s", context)
 
     llm = init_model(model=context.model, temperature=context.temperature)
     tools = create_sql_tools(llm=llm, context=context)
 
+    # Build system prompt based on detected database type
+    db_type = _detect_db_type(context.snowflake_uri)
+    prompt = build_system_prompt(db_type=db_type)
+
     middleware: list[Any] = []
 
-    # Model call limit (if enabled)
-    if context.model_call_run_limit > 0:
-        middleware.append(
-            ModelCallLimitMiddleware(
-                run_limit=context.model_call_run_limit,
-                exit_behavior=context.model_call_exit_behavior,
-            )
-        )
-        if context.enable_debug:
-            logger.info(f"Added ModelCallLimitMiddleware: run_limit={context.model_call_run_limit}")
-
-    # Model retry (if enabled)
+    # Model retry first (closest to model)
     if context.retry_max_retries > 0:
         middleware.append(
             ModelRetryMiddleware(
@@ -280,20 +297,33 @@ def build_graph_minimal_middleware(config: RunnableConfig | None = None) -> Comp
             )
         )
         if context.enable_debug:
-            logger.info(f"Added ModelRetryMiddleware: max_retries={context.retry_max_retries}")
+            logger.info("Added ModelRetryMiddleware: max_retries=%s", context.retry_max_retries)
+
+    # Model call limit (after retry)
+    if context.model_call_run_limit > 0:
+        middleware.append(
+            ModelCallLimitMiddleware(
+                run_limit=context.model_call_run_limit,
+                exit_behavior=context.model_call_exit_behavior,
+            )
+        )
+        if context.enable_debug:
+            logger.info(
+                "Added ModelCallLimitMiddleware: run_limit=%s", context.model_call_run_limit
+            )
 
     agent = create_agent(
         model=llm,
         tools=tools,
-        system_prompt=system_prompt,
-        context_schema=EnhancedContextSchema,  # Use enhanced schema for config
+        system_prompt=prompt,
+        context_schema=EnhancedContextSchema,
         middleware=middleware,
         debug=context.enable_debug,
         name="agent_minimal",
     )
 
     if context.enable_debug:
-        logger.info(f"Minimal graph built with {len(middleware)} middleware components")
+        logger.info("Minimal graph built with %d middleware components", len(middleware))
 
     return agent  # type: ignore
 

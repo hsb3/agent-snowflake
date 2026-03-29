@@ -1,7 +1,6 @@
 # Agent Snowflake Monorepo
-# Orchestration commands for multi-app repository
 #
-# For app-specific commands, use:
+# For app-specific commands:
 #   cd apps/agent && make help
 #   cd apps/repl-client && make help
 
@@ -9,78 +8,64 @@
 
 APPS := apps/agent apps/repl-client
 
-# Colors
-GREEN := \033[32m
+GREEN  := \033[32m
 YELLOW := \033[33m
-CYAN := \033[36m
-RESET := \033[0m
+CYAN   := \033[36m
+RESET  := \033[0m
 
-.PHONY: help install test format lint type-check check clean clean-venvs
+.PHONY: help install dev test format lint type-check check clean clean-venvs
 
-help:
-	@echo ""
-	@echo "Monorepo orchestration commands:"
-	@echo ""
-	@echo "  $(CYAN)install$(RESET)      Install all apps (creates .venv per app)"
-	@echo "  $(CYAN)test$(RESET)         Run tests for all apps"
-	@echo "  $(CYAN)format$(RESET)       Format code in all apps"
-	@echo "  $(CYAN)lint$(RESET)         Lint code in all apps"
-	@echo "  $(CYAN)type-check$(RESET)   Type check all apps"
-	@echo "  $(CYAN)check$(RESET)        Run format + lint + type-check"
-	@echo "  $(CYAN)clean$(RESET)        Remove caches (preserves .venv)"
-	@echo "  $(CYAN)clean-venvs$(RESET)  Remove all .venv directories"
+help: ## Show available commands
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(CYAN)%-15s$(RESET) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "App-specific commands:"
 	@echo "  cd apps/agent && make help"
 	@echo "  cd apps/repl-client && make help"
-	@echo ""
 
-install:
+install: ## Install all apps (creates .venv per app)
 	@for app in $(APPS); do \
 		echo "$(GREEN)Installing $$app...$(RESET)"; \
 		(cd $$app && make install); \
 	done
 	@echo "$(GREEN)All apps installed.$(RESET)"
 
-test:
+dev: ## Start agent dev server with Studio UI
+	cd apps/agent && make dev
+
+test: ## Run tests for all apps
 	@for app in $(APPS); do \
 		echo "$(YELLOW)Testing $$app...$(RESET)"; \
 		(cd $$app && make test); \
 	done
 	@echo "$(GREEN)All tests complete.$(RESET)"
 
-format:
+format: ## Format code in all apps
 	@for app in $(APPS); do \
 		echo "$(YELLOW)Formatting $$app...$(RESET)"; \
 		(cd $$app && make format); \
 	done
-	@echo "$(GREEN)Formatting complete.$(RESET)"
 
-lint:
+lint: ## Lint code in all apps
 	@for app in $(APPS); do \
 		echo "$(YELLOW)Linting $$app...$(RESET)"; \
 		(cd $$app && make lint); \
 	done
-	@echo "$(GREEN)Linting complete.$(RESET)"
 
-type-check:
+type-check: ## Type check all apps
 	@for app in $(APPS); do \
 		echo "$(YELLOW)Type checking $$app...$(RESET)"; \
 		(cd $$app && make type-check); \
 	done
-	@echo "$(GREEN)Type check complete.$(RESET)"
 
-check: format lint type-check
+check: format lint type-check ## Run format + lint + type-check
 	@echo "$(GREEN)All checks passed.$(RESET)"
 
-clean:
-	@echo "$(YELLOW)Cleaning caches...$(RESET)"
+clean: ## Remove caches (preserves .venv)
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
-	@echo "$(GREEN)Clean complete.$(RESET)"
 
-clean-venvs:
-	@echo "$(YELLOW)Removing all .venv directories...$(RESET)"
-	rm -rf apps/agent/.venv apps/repl-client/.venv apps/repl-client-graph/.venv
+clean-venvs: ## Remove all .venv directories
+	rm -rf apps/agent/.venv apps/repl-client/.venv
 	@echo "$(GREEN)All venvs removed.$(RESET)"

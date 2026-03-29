@@ -25,14 +25,13 @@ class Settings:
     """
 
     # Model Configuration
-    model: str = "claude-haiku-4-5"
+    model: str = "claude-sonnet-4-5-20250929"
     temperature: float = 0.0
 
     # Snowflake Connection
     snowflake_uri: str = ""
     snowflake_account: str = ""
     snowflake_user: str = ""
-    snowflake_password: str = ""
     snowflake_database: str = ""
     snowflake_schema: str = ""
     snowflake_warehouse: str = ""
@@ -104,7 +103,6 @@ class Settings:
             snowflake_uri=os.environ.get("AGENT_SNOWFLAKE_URI", ""),
             snowflake_account=os.environ.get("AGENT_SNOWFLAKE_ACCOUNT", ""),
             snowflake_user=os.environ.get("AGENT_SNOWFLAKE_USER", ""),
-            snowflake_password=os.environ.get("AGENT_SNOWFLAKE_PASSWORD", ""),
             snowflake_database=os.environ.get("AGENT_SNOWFLAKE_DATABASE", ""),
             snowflake_schema=os.environ.get("AGENT_SNOWFLAKE_SCHEMA", ""),
             snowflake_warehouse=os.environ.get("AGENT_SNOWFLAKE_WAREHOUSE", ""),

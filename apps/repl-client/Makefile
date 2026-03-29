@@ -84,11 +84,11 @@ test-fast: ## Run tests excluding slow/integration tests
 
 .PHONY: test-core
 test-core: ## Run core module tests only
-	$(UV) run pytest $(TEST_DIR)/repl_client/core/ -v
+	$(UV) run pytest $(TEST_DIR)/core/ -v
 
 .PHONY: test-tui
 test-tui: ## Run TUI widget tests only
-	$(UV) run pytest $(TEST_DIR)/repl_client/tui/ -v
+	$(UV) run pytest $(TEST_DIR)/tui/ -v
 
 # =============================================================================
 ## QUALITY

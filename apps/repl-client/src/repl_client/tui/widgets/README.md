@@ -118,12 +118,12 @@ if widget.has_output:
 - `write_file`, `edit_file`: Only shows `file_path`, `path`, `replace_all`
 - Other tools: Shows all args (max 3 inline)
 
-## Demo App
+## Demo
 
-Run the demo to see all widgets in action:
+Run the TUI to see all widgets in action:
 
 ```bash
-uv run python scripts/repl_client/demo_tui_messages.py
+make tui
 ```
 
 **Key bindings:**

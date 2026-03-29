@@ -283,12 +283,8 @@ class ToolCallMessage(Vertical):
         yield Static("", classes="tool-status", id="status")
         # Output area - hidden initially, shown when output is set
         # Use markup=False for output content to prevent Rich markup injection
-        yield Static(
-            "", classes="tool-output-preview", id="output-preview", markup=False
-        )
-        yield Static(
-            "", classes="tool-output-hint", id="output-hint"
-        )  # hint uses our markup
+        yield Static("", classes="tool-output-preview", id="output-preview", markup=False)
+        yield Static("", classes="tool-output-hint", id="output-hint")  # hint uses our markup
         yield Static("", classes="tool-output", id="output-full", markup=False)
 
     def on_mount(self) -> None:
@@ -359,9 +355,7 @@ class ToolCallMessage(Vertical):
         total_chars = len(output_stripped)
 
         # Truncate if too many lines OR too many characters
-        needs_truncation = (
-            total_lines > self._PREVIEW_LINES or total_chars > self._PREVIEW_CHARS
-        )
+        needs_truncation = total_lines > self._PREVIEW_LINES or total_chars > self._PREVIEW_CHARS
 
         if self._expanded:
             # Show full output

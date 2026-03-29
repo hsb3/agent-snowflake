@@ -35,9 +35,9 @@ class TestConfig:
         assert config.stream_mode == ["messages", "updates"]
         assert config.debug is True
 
-    def test_from_env_with_port(self):
-        """Test from_env() loads LANGGRAPH_DEV_SERVER_PORT."""
-        with patch.dict(os.environ, {"LANGGRAPH_DEV_SERVER_PORT": "3000"}):
+    def test_from_env_with_url(self):
+        """Test from_env() loads LANGGRAPH_DEV_SERVER_URL."""
+        with patch.dict(os.environ, {"LANGGRAPH_DEV_SERVER_URL": "http://localhost:3000"}):
             config = Config.from_env()
 
             assert config.server_url == "http://localhost:3000"
@@ -50,7 +50,7 @@ class TestConfig:
         with patch.dict(
             os.environ,
             {
-                "LANGGRAPH_DEV_SERVER_PORT": "2024",
+                "LANGGRAPH_DEV_SERVER_URL": "http://localhost:2024",
                 "REPL_DEFAULT_AGENT": "agent_basic",
             },
         ):
@@ -64,7 +64,7 @@ class TestConfig:
         with patch.dict(
             os.environ,
             {
-                "LANGGRAPH_DEV_SERVER_PORT": "2024",
+                "LANGGRAPH_DEV_SERVER_URL": "http://localhost:2024",
                 "REPL_DEBUG": "true",
             },
         ):
@@ -77,16 +77,16 @@ class TestConfig:
             with patch.dict(
                 os.environ,
                 {
-                    "LANGGRAPH_DEV_SERVER_PORT": "2024",
+                    "LANGGRAPH_DEV_SERVER_URL": "http://localhost:2024",
                     "REPL_DEBUG": value,
                 },
             ):
                 config = Config.from_env()
                 assert config.debug is True
 
-    def test_from_env_missing_port_uses_default(self):
-        """Test from_env() uses default when LANGGRAPH_DEV_SERVER_PORT missing."""
-        with patch.dict(os.environ, {}, clear=True):
+    def test_from_env_missing_url_uses_default(self):
+        """Test from_env() uses default when LANGGRAPH_DEV_SERVER_URL missing."""
+        with patch("repl_client.core.config.load_dotenv"), patch.dict(os.environ, {}, clear=True):
             config = Config.from_env()
 
             assert config.server_url == "http://localhost:2024"
@@ -102,7 +102,7 @@ class TestConfig:
         with patch.dict(
             os.environ,
             {
-                "LANGGRAPH_DEV_SERVER_PORT": "9999",
+                "LANGGRAPH_DEV_SERVER_URL": "http://localhost:9999",
                 "REPL_DEFAULT_AGENT": "env_agent",
             },
         ):
@@ -112,9 +112,9 @@ class TestConfig:
             assert config.server_url == "http://localhost:9999"
             assert config.default_agent == "env_agent"
 
-    def test_server_url_construction(self):
-        """Test server_url is properly constructed."""
-        with patch.dict(os.environ, {"LANGGRAPH_DEV_SERVER_PORT": "8080"}):
+    def test_server_url_from_env(self):
+        """Test server_url is read directly from environment."""
+        with patch.dict(os.environ, {"LANGGRAPH_DEV_SERVER_URL": "http://localhost:8080"}):
             config = Config.from_env()
             assert config.server_url == "http://localhost:8080"
             assert not config.server_url.endswith("/")

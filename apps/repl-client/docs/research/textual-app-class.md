@@ -200,6 +200,5 @@ uv run ipython
 
 ## Related Resources
 
-- Exploration notebook: `scripts/explore_textual_app.py`
 - Textual docs: https://textual.textualize.io/
 - Screen guide: https://textual.textualize.io/guide/screens/

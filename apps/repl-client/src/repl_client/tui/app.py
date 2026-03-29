@@ -499,7 +499,9 @@ class REPLApp(App[None]):
         self.app_state.set_status("Ready")
 
         # Show config screen with agent selector
-        logger.info(f"Pushing AgentConfigScreen with {len(agents)} agents, current={current_agent_id}")
+        logger.info(
+            f"Pushing AgentConfigScreen with {len(agents)} agents, current={current_agent_id}"
+        )
         result = await self.push_screen(
             AgentConfigScreen(agents, current_agent_id, self.langgraph_service)
         )

@@ -69,9 +69,7 @@ class AgentSelectorTestApp(App[None]):
     def compose(self) -> ComposeResult:
         yield AgentSelector(self._agents, self._current_id)
 
-    def on_agent_selector_agent_selected(
-        self, message: AgentSelector.AgentSelected
-    ) -> None:
+    def on_agent_selector_agent_selected(self, message: AgentSelector.AgentSelected) -> None:
         """Handle agent selection message."""
         self.selected_agent = message.agent
 

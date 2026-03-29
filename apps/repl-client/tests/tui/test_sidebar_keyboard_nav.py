@@ -10,6 +10,7 @@ Instructions:
 4. Press Enter to select an item
 5. Watch status bar for changes
 """
+
 from textual.app import App, ComposeResult
 from textual.widgets import Footer, Header
 

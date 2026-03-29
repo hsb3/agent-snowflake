@@ -2,15 +2,6 @@
 
 Terminal client for LangGraph Dev Server. Provides both a classic REPL and a full TUI.
 
-
-
-
-
-**BOTH ARE EARLY DEV**
-
-
-
-
 ## Quick Start
 
 ```bash
@@ -51,6 +42,13 @@ make test         # Run tests
 make format       # Format code
 make lint         # Lint code
 make type-check   # Type check
+make check        # All of the above
 ```
 
 See `CLAUDE.md` for architecture details and development guidance.
+
+## Reference
+
+- [LangGraph SDK reference](./docs/spec/research/langgraph-sdk-reference.md)
+- [Textual App class](./docs/spec/research/textual-app-class.md)
+- [Textual cheatsheets](./docs/spec/research/text-app-cheatsheet.md)

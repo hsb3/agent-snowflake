@@ -3,10 +3,11 @@
 import pytest
 from langchain_community.utilities import SQLDatabase
 from langchain_core.language_models import BaseChatModel
-from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine
+from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine, text
 
 from agent.context import ContextSchema
-from agent.tools import create_sql_tools, get_database_context
+from agent.tools import create_sql_tools, get_database_context, validate_read_only_query
+from agent.tools.sql import ReadOnlyQueryTool
 from agent.utils import (
     create_snowflake_engine,
     is_test_connection,
@@ -101,13 +102,13 @@ def test_create_engine_from_uri(test_context):
     assert "snowflake" in str(engine.url).lower() or "localhost" in str(engine.url).lower()
 
 
-def test_create_engine_missing_params():
+def test_create_engine_missing_params(monkeypatch):
     """Test that engine creation fails without required params."""
+    monkeypatch.setenv("SNOWFLAKE_PASSWORD", "test-pass")
     context = ContextSchema(
         snowflake_uri="",  # No URI
         snowflake_account="",  # Missing account
         snowflake_user="test-user",
-        snowflake_password="test-pass",
     )
     with pytest.raises(ValueError, match="Either snowflake_uri or all of"):
         create_snowflake_engine(context)
@@ -179,12 +180,12 @@ def test_create_sql_tools_with_provided_database(mock_llm, sqlite_test_db):
     assert any("query" in name for name in tool_names)
 
 
-def test_engine_uri_with_timeout():
+def test_engine_uri_with_timeout(monkeypatch):
     """Test that query timeout is passed to engine."""
+    monkeypatch.setenv("SNOWFLAKE_PASSWORD", "mypass")
     context = ContextSchema(
         snowflake_account="myaccount",
         snowflake_user="myuser",
-        snowflake_password="mypass",
         query_timeout=60,
     )
 
@@ -246,3 +247,184 @@ def test_tools_integration_with_sqlite(mock_llm):
         "sql_db_query_checker",
     }
     assert tool_names == expected_tools
+
+
+# ============================================================================
+# Read-only enforcement tests
+# ============================================================================
+
+
+class TestValidateReadOnlyQuery:
+    """Tests for validate_read_only_query()."""
+
+    def test_select_allowed(self):
+        assert validate_read_only_query("SELECT * FROM customer") is None
+
+    def test_select_with_where(self):
+        assert validate_read_only_query("SELECT id FROM customer WHERE id = 1") is None
+
+    def test_select_with_join(self):
+        assert (
+            validate_read_only_query(
+                "SELECT c.name, o.total FROM customer c JOIN orders o ON c.id = o.cust_id"
+            )
+            is None
+        )
+
+    def test_cte_with_select(self):
+        assert (
+            validate_read_only_query(
+                "WITH top_customers AS (SELECT * FROM customer LIMIT 10) "
+                "SELECT * FROM top_customers"
+            )
+            is None
+        )
+
+    def test_select_case_insensitive(self):
+        assert validate_read_only_query("select * from customer") is None
+
+    def test_select_with_leading_whitespace(self):
+        assert validate_read_only_query("  \n  SELECT 1") is None
+
+    def test_delete_rejected(self):
+        result = validate_read_only_query("DELETE FROM customer WHERE id = 1")
+        assert result is not None
+        assert "DELETE" in result
+        assert "read-only" in result.lower()
+
+    def test_drop_rejected(self):
+        result = validate_read_only_query("DROP TABLE customer")
+        assert result is not None
+        assert "read-only" in result.lower()
+
+    def test_insert_rejected(self):
+        result = validate_read_only_query("INSERT INTO customer (name) VALUES ('test')")
+        assert result is not None
+        assert "read-only" in result.lower()
+
+    def test_update_rejected(self):
+        result = validate_read_only_query("UPDATE customer SET name = 'x' WHERE id = 1")
+        assert result is not None
+        assert "read-only" in result.lower()
+
+    def test_create_rejected(self):
+        result = validate_read_only_query("CREATE TABLE evil (id INT)")
+        assert result is not None
+        assert "read-only" in result.lower()
+
+    def test_alter_rejected(self):
+        result = validate_read_only_query("ALTER TABLE customer ADD COLUMN evil INT")
+        assert result is not None
+        assert "read-only" in result.lower()
+
+    def test_truncate_rejected(self):
+        result = validate_read_only_query("TRUNCATE TABLE customer")
+        assert result is not None
+        assert "read-only" in result.lower()
+
+    def test_empty_query_rejected(self):
+        result = validate_read_only_query("")
+        assert result is not None
+        assert "Empty" in result
+
+    def test_whitespace_only_rejected(self):
+        result = validate_read_only_query("   ")
+        assert result is not None
+        assert "Empty" in result
+
+
+class TestReadOnlyQueryToolIntegration:
+    """Tests that read-only enforcement works end-to-end with actual tool invocation."""
+
+    @pytest.fixture
+    def sqlite_db_with_data(self):
+        """SQLite database with test data for query execution tests."""
+        engine = create_engine("sqlite:///:memory:")
+        metadata = MetaData()
+        Table(
+            "customer",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("name", String(50)),
+        )
+        metadata.create_all(engine)
+        with engine.connect() as conn:
+            conn.execute(text("INSERT INTO customer (id, name) VALUES (1, 'Alice')"))
+            conn.execute(text("INSERT INTO customer (id, name) VALUES (2, 'Bob')"))
+            conn.commit()
+        return SQLDatabase(engine, include_tables=["customer"])
+
+    def test_select_executes_through_wrapper(self, mock_llm, sqlite_db_with_data):
+        """SELECT queries should pass through the wrapper and execute."""
+        context = ContextSchema(
+            snowflake_uri="sqlite:///:memory:",
+            read_only=True,
+        )
+        tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
+        query_tool = next(t for t in tools if t.name == "sql_db_query")
+
+        # Should be wrapped
+        assert isinstance(query_tool, ReadOnlyQueryTool)
+
+        # Should execute successfully
+        result = query_tool.invoke("SELECT name FROM customer WHERE id = 1")
+        assert "Alice" in result
+
+    def test_delete_blocked_by_wrapper(self, mock_llm, sqlite_db_with_data):
+        """DELETE queries should be blocked before reaching the database."""
+        context = ContextSchema(
+            snowflake_uri="sqlite:///:memory:",
+            read_only=True,
+        )
+        tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
+        query_tool = next(t for t in tools if t.name == "sql_db_query")
+
+        result = query_tool.invoke("DELETE FROM customer WHERE id = 1")
+        assert "Error" in result
+        assert "read-only" in result.lower()
+
+        # Verify the row was NOT deleted
+        select_result = query_tool.invoke("SELECT COUNT(*) FROM customer")
+        assert "2" in select_result
+
+    def test_drop_blocked_by_wrapper(self, mock_llm, sqlite_db_with_data):
+        """DROP queries should be blocked before reaching the database."""
+        context = ContextSchema(
+            snowflake_uri="sqlite:///:memory:",
+            read_only=True,
+        )
+        tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
+        query_tool = next(t for t in tools if t.name == "sql_db_query")
+
+        result = query_tool.invoke("DROP TABLE customer")
+        assert "Error" in result
+        assert "read-only" in result.lower()
+
+        # Table should still exist
+        select_result = query_tool.invoke("SELECT COUNT(*) FROM customer")
+        assert "2" in select_result
+
+    def test_insert_blocked_by_wrapper(self, mock_llm, sqlite_db_with_data):
+        """INSERT queries should be blocked before reaching the database."""
+        context = ContextSchema(
+            snowflake_uri="sqlite:///:memory:",
+            read_only=True,
+        )
+        tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
+        query_tool = next(t for t in tools if t.name == "sql_db_query")
+
+        result = query_tool.invoke("INSERT INTO customer (id, name) VALUES (3, 'Charlie')")
+        assert "Error" in result
+        assert "read-only" in result.lower()
+
+    def test_no_wrapper_when_not_read_only(self, mock_llm, sqlite_db_with_data):
+        """When read_only=False, the query tool should NOT be wrapped."""
+        context = ContextSchema(
+            snowflake_uri="sqlite:///:memory:",
+            read_only=False,
+        )
+        tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
+        query_tool = next(t for t in tools if t.name == "sql_db_query")
+
+        # Should NOT be wrapped
+        assert not isinstance(query_tool, ReadOnlyQueryTool)

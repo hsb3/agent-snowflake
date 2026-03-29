@@ -92,9 +92,7 @@ class StatusBar(Horizontal):
         yield Static("", classes="status-spacer")
         yield Static("0 tokens", classes="status-tokens", id="token-count")
         yield Static("│", classes="status-divider")
-        yield Static(
-            "●", classes="status-connection connected", id="connection-status"
-        )
+        yield Static("●", classes="status-connection connected", id="connection-status")
 
     def watch_agent(self, new_agent: str) -> None:
         """Update agent display when agent changes."""

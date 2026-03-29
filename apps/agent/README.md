@@ -75,3 +75,10 @@ Answer below questions, one at a time:
 
 ---
 
+**reference projects**
+
+- textual/repl inspo: https://github.com/batrachianai/toad
+- textual chat app: https://github.com/darrenburns/elia
+
+
+

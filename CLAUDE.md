@@ -4,15 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **monorepo** containing three independent applications under `apps/`:
+This is a **monorepo** containing two independent applications under `apps/`:
 
 | App | Directory | Description |
 |-----|-----------|-------------|
 | **agent** | `apps/agent/` | LangGraph SQL agent with database guardrails |
-| **repl-client** | `apps/repl-client/` | Classic REPL client using traditional control flow |
-| **repl-client-graph** | `apps/repl-client-graph/` | StateGraph-based REPL using LangGraph for control flow |
+| **repl-client** | `apps/repl-client/` | Terminal client (REPL + TUI) for LangGraph Dev Server |
 
-Each app can be used independently. REPL clients work with any LangGraph Dev Server, not just the agent in this repo.
+Each app can be used independently. The REPL client works with any LangGraph Dev Server, not just the agent in this repo.
 
 ## Quick Start
 
@@ -39,40 +38,22 @@ agent-snowflake/
 ├── apps/
 │   ├── agent/                 # SQL agent (langgraph + langchain)
 │   │   ├── .venv/             # Independent virtual environment
-│   │   ├── src/agent_snowflake/
+│   │   ├── src/agent/
 │   │   ├── tests/
-│   │   ├── scripts/
 │   │   ├── docs/spec/
 │   │   ├── pyproject.toml
 │   │   ├── Makefile
 │   │   └── CLAUDE.md          # Agent-specific guidance
 │   │
-│   ├── repl-client/           # Classic REPL (httpx + textual)
-│   │   ├── .venv/             # Independent virtual environment
-│   │   ├── src/repl_client/
-│   │   ├── tests/
-│   │   ├── scripts/
-│   │   ├── docs/spec/
-│   │   ├── pyproject.toml
-│   │   ├── Makefile
-│   │   └── CLAUDE.md          # REPL-specific guidance
-│   │
-│   └── repl-client-graph/     # StateGraph REPL (langgraph + httpx)
+│   └── repl-client/           # Terminal client (langgraph-sdk + textual)
 │       ├── .venv/             # Independent virtual environment
-│       ├── src/repl_client_graph/
+│       ├── src/repl_client/
 │       ├── tests/
-│       ├── scripts/
 │       ├── docs/spec/
 │       ├── pyproject.toml
 │       ├── Makefile
-│       └── CLAUDE.md          # StateGraph REPL guidance
+│       └── CLAUDE.md          # REPL-specific guidance
 │
-├── packages/                   # Shared code (if needed)
-├── scripts/                    # Root-level utilities
-├── docs/                       # Monorepo-wide documentation
-│   └── dev_docs/ai_docs/ai_gen/  # AI work documentation
-│
-├── pyproject.toml             # Ruff/tool config (no workspace)
 ├── Makefile                   # Orchestration commands
 └── CLAUDE.md                  # This file (monorepo overview)
 ```
@@ -110,12 +91,12 @@ Each app has its **own independent virtual environment** to avoid dependency con
 
 ```
 apps/agent/.venv/        # Has langgraph-cli, langchain, etc.
-apps/repl-client/.venv/  # Has langgraph-sdk, textual, httpx
+apps/repl-client/.venv/  # Has langgraph-sdk, textual
 ```
 
 This separation is important because:
 - The agent needs heavy server-side dependencies (`langgraph-cli[inmem]`)
-- REPL clients only need the lightweight SDK (`langgraph-sdk`)
+- The REPL client only needs the lightweight SDK (`langgraph-sdk`)
 - Mixing these in one venv causes version conflicts
 
 ### Installing Dependencies
@@ -134,7 +115,7 @@ Each app declares only the dependencies it needs in its own `pyproject.toml`.
 
 - Root `.env` is used by `langgraph dev` for the agent server
 - Each app has `.env.example` with app-specific variables
-- REPL clients only need `LANGGRAPH_DEV_SERVER_URL` (defaults to `http://localhost:2024`)
+- REPL client needs `LANGGRAPH_DEV_SERVER_URL` (defaults to `http://localhost:2024`)
 
 ## Working with Apps
 
@@ -144,14 +125,9 @@ Each app declares only the dependencies it needs in its own `pyproject.toml`.
 - See `apps/agent/CLAUDE.md` for architecture details
 
 ### REPL Client (apps/repl-client/)
-- Traditional imperative control flow
-- TUI built with Textual framework
+- TUI built with Textual framework, plus a classic REPL mode
+- Uses official `langgraph-sdk` for all server communication
 - See `apps/repl-client/CLAUDE.md` for architecture details
-
-### StateGraph REPL (apps/repl-client-graph/)
-- Uses LangGraph StateGraph for control flow
-- Benefits: visual debugging, automatic state propagation
-- See `apps/repl-client-graph/CLAUDE.md` for architecture details
 
 ## Testing
 
@@ -169,14 +145,6 @@ cd apps/agent && uv run pytest tests/test_agent.py::test_name -v
 
 Integration tests require a running server and are marked with `@pytest.mark.integration`.
 
-## Documentation
-
-| Location | Content |
-|----------|---------|
-| `apps/*/CLAUDE.md` | App-specific guidance for AI coding |
-| `apps/*/docs/spec/` | Specifications and research |
-| `docs/dev_docs/ai_docs/ai_gen/` | AI-generated work documentation |
-
 ## Tooling
 
 - **Package Manager**: `uv` (independent venvs per app)
@@ -185,29 +153,3 @@ Integration tests require a running server and are marked with `@pytest.mark.int
 - **Testing**: `pytest` with `pytest-asyncio`
 - **TUI Framework**: `textual`
 - **Agent Framework**: `langgraph` + `langchain`
-
-## AI Coding Agent Plugins
-
-This project uses Claude Code with:
-- `work-documentation@hsb3-custom-plugins` - Controls .md documentation generation
-- `ty@hsb3-custom-plugins` - Type checking integration
-- `python-project-standards@hsb3-custom-plugins` - Project standards enforcement
-- `docs-langchain` MCP server - LangChain documentation access
-
-## Work Docs
-
-Work documentation should be stored in `docs/dev_docs/ai_docs/ai_gen/`
-
-**Frontmatter Template:**
-```yaml
----
-doc_id: CC-YYYY-NNN
-title: Brief description
-date: YYYY-MM-DD
-type: planning|solution|investigation|status|summary
-project: repl_client_graph|repl_client|agent_snowflake
-focus: ...
-status: draft|complete
-tags: [stategraph, repl, ...]
----
-```

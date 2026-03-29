@@ -96,14 +96,10 @@ class LoadingWidget(Static):
     def compose(self) -> ComposeResult:
         """Compose the loading widget layout."""
         with Horizontal(classes="loading-container"):
-            self._spinner_widget = Static(
-                self._spinner.current_frame(), classes="loading-spinner"
-            )
+            self._spinner_widget = Static(self._spinner.current_frame(), classes="loading-spinner")
             yield self._spinner_widget
 
-            self._status_widget = Static(
-                f" {self._status}... ", classes="loading-status"
-            )
+            self._status_widget = Static(f" {self._status}... ", classes="loading-status")
             yield self._status_widget
 
             self._hint_widget = Static("(0s, esc to interrupt)", classes="loading-hint")

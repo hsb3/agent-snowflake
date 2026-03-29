@@ -234,9 +234,7 @@ class AgentConfigScreen(ModalScreen[dict | None]):
         except Exception as e:
             logger.warning(f"Failed to focus AgentSelector: {e}")
 
-    async def on_agent_selector_agent_selected(
-        self, message: AgentSelector.AgentSelected
-    ) -> None:
+    async def on_agent_selector_agent_selected(self, message: AgentSelector.AgentSelected) -> None:
         """Handle agent selection - fetch detailed schemas."""
         self.selected_agent = message.agent
         assistant_id = message.assistant_id

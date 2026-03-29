@@ -133,14 +133,21 @@ Full Textual-based terminal UI with MVC-like structure:
 tui/
 ├── __main__.py              # TUI entry point
 ├── app.py                   # Main Textual App class
-├── repl.tcss                # Legacy styles (deprecated)
-├── styles/                  # Modular CSS
-│   ├── theme.tcss           # Colors, palette (Carbon theme)
+├── hitl.py                  # TUI-specific HITL handler
+├── styles/                  # Modular CSS (Carbon theme)
+│   ├── theme.tcss           # Colors, palette
 │   ├── layout.tcss          # Layout structure
 │   ├── components.tcss      # Widget styles
-│   └── states.tcss          # Interactive states
+│   ├── sidebar.tcss         # Sidebar styles
+│   ├── modals.tcss          # Modal styles
+│   ├── states.tcss          # Interactive states
+│   ├── light-mode.tcss      # Light mode overrides
+│   └── index.tcss           # Concatenated output (build-css)
 ├── models/                  # State management
 │   └── app_state.py         # Centralized app state
+├── screens/                 # Modal screens
+│   ├── agent_config.py      # Agent config viewer
+│   └── welcome.py           # Welcome screen
 ├── views/                   # UI composition
 │   ├── layout_view.py       # Main layout
 │   ├── message_area_view.py # Message display
@@ -154,16 +161,16 @@ tui/
 ├── services/                # Backend integration
 │   ├── langgraph_service.py # LangGraph API wrapper
 │   └── stream_service.py    # Stream processing
-├── widgets/                 # Reusable components
-│   ├── messages.py          # Message widgets
-│   ├── input.py             # Input widget
-│   ├── sidebar.py           # Sidebar widget
-│   ├── status.py            # Status widget
-│   ├── status_area.py       # Status area
-│   ├── history.py           # History navigation
-│   ├── loading.py           # Loading indicators
-│   └── command_palette.py   # Command palette
-└── hitl.py                  # TUI-specific HITL handler
+└── widgets/                 # Reusable components
+    ├── agent_detail.py      # Agent detail panel
+    ├── command_palette.py   # Command palette
+    ├── history.py           # History navigation
+    ├── input.py             # Input widget
+    ├── loading.py           # Loading indicators
+    ├── messages.py          # Message widgets
+    ├── sidebar.py           # Sidebar widget
+    ├── status.py            # Status widget
+    └── status_area.py       # Status area
 ```
 
 ## Configuration
@@ -283,19 +290,15 @@ apps/repl-client/
 │       ├── commands/        # Command system
 │       └── tui/             # Textual TUI
 ├── tests/
-│   └── repl_client/
-│       ├── core/
-│       ├── streaming/
-│       ├── ui/
-│       ├── commands/
-│       ├── tui/
-│       ├── test_main.py
-│       └── test_hitl_e2e.py
-├── scripts/
-│   ├── demos/               # Visual TUI demos
-│   └── tests/               # Manual test scripts
+│   ├── core/                # Core module tests
+│   ├── streaming/           # Streaming tests
+│   ├── ui/                  # UI rendering tests
+│   ├── commands/            # Command tests
+│   ├── tui/                 # TUI widget tests
+│   ├── test_main.py
+│   └── test_hitl_e2e.py
 └── docs/
-    └── spec/                # Specifications
+    └── spec/research/       # Reference material
 ```
 
 ## Testing
@@ -305,11 +308,11 @@ apps/repl-client/
 uv run pytest tests/ -v
 
 # Test by layer
-uv run pytest tests/repl_client/core/ -v           # Core layers
-uv run pytest tests/repl_client/streaming/ -v      # Streaming
-uv run pytest tests/repl_client/commands/ -v       # Commands
-uv run pytest tests/repl_client/ui/ -v             # UI rendering
-uv run pytest tests/repl_client/tui/ -v            # TUI widgets
+uv run pytest tests/core/ -v           # Core layers
+uv run pytest tests/streaming/ -v      # Streaming
+uv run pytest tests/commands/ -v       # Commands
+uv run pytest tests/ui/ -v             # UI rendering
+uv run pytest tests/tui/ -v            # TUI widgets
 
 # Integration tests (require running server)
 uv run pytest -m integration -v
@@ -327,7 +330,7 @@ cd ../agent && make dev-server
 uv run python -m repl_client.tui
 
 # Make changes, test
-uv run pytest tests/repl_client/tui/ -v
+uv run pytest tests/tui/ -v
 
 # Format and type check
 make format lint type-check
@@ -339,7 +342,7 @@ make format lint type-check
 
 1. Add handler in `commands/handlers.py`
 2. Register in `register_all()` method
-3. Add tests in `tests/repl_client/commands/`
+3. Add tests in `tests/commands/`
 4. Help text auto-generated from registry
 
 ### Add Tool Preview Formatter
@@ -351,7 +354,7 @@ make format lint type-check
 ### Add TUI Widget
 
 1. Create in `tui/widgets/<name>.py`
-2. Add tests in `tests/repl_client/tui/test_<name>.py`
+2. Add tests in `tests/tui/test_<name>.py`
 3. Export from `tui/widgets/__init__.py`
 4. Add CSS in `tui/styles/components.tcss`
 
@@ -359,7 +362,7 @@ make format lint type-check
 
 1. Check `.repl/client.log` for parse errors
 2. Verify server logs in `.repl/server.log` (when using combined make commands)
-3. Use `scripts/demos/demo_tui_*.py` for visual verification
+3. Run `make tui` to visually verify changes
 
 ## Dependencies
 

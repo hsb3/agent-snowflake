@@ -30,7 +30,7 @@ class Config:
         """Load configuration from environment variables.
 
         Loads .env file if present, then reads:
-        - LANGGRAPH_DEV_SERVER_PORT: Server port (default: 2024)
+        - LANGGRAPH_DEV_SERVER_URL: Full server URL (default: http://localhost:2024)
         - REPL_DEFAULT_AGENT: Default agent ID (default: "")
         - REPL_DEBUG: Enable debug mode (default: False)
 
@@ -40,9 +40,8 @@ class Config:
         # Load .env file if present
         load_dotenv()
 
-        # Get port from environment
-        port = os.getenv("LANGGRAPH_DEV_SERVER_PORT", "2024")
-        server_url = f"http://localhost:{port}"
+        # Get server URL from environment
+        server_url = os.getenv("LANGGRAPH_DEV_SERVER_URL", "http://localhost:2024")
 
         # Get default agent
         default_agent = os.getenv("REPL_DEFAULT_AGENT", "")

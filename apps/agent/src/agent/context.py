@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(kw_only=True)
 class ContextSchema:
-    """Runtime context schema for Snowflake agent.
+    """Runtime context schema for SQL agent.
 
     Configuration priority (layered):
     1. Runtime context (via LangGraph API, per-conversation) - highest priority
@@ -68,20 +68,20 @@ class ContextSchema:
         },
     )
 
-    # Snowflake Connection - Primary configurable
+    # Database Connection - Primary configurable
     snowflake_uri: str = field(
         default=settings.snowflake_uri,
         metadata={
-            "description": "Snowflake connection URI: snowflake://user:password@account/database/schema?warehouse=wh&role=role",
+            "description": "Database connection URI (SQLAlchemy format, e.g. sqlite:///path or snowflake://user@account/db/schema)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
 
-    # Snowflake Connection - Individual components (for granular override)
+    # Database Connection - Snowflake-specific components (for granular override)
     snowflake_account: str = field(
         default=settings.snowflake_account,
         metadata={
-            "description": "Snowflake account identifier",
+            "description": "Snowflake account identifier (only used for Snowflake connections)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -89,15 +89,7 @@ class ContextSchema:
     snowflake_user: str = field(
         default=settings.snowflake_user,
         metadata={
-            "description": "Snowflake username",
-            "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
-        },
-    )
-
-    snowflake_password: str = field(
-        default=settings.snowflake_password,
-        metadata={
-            "description": "Snowflake password",
+            "description": "Snowflake username (only used for Snowflake connections)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -105,7 +97,7 @@ class ContextSchema:
     snowflake_database: str = field(
         default=settings.snowflake_database,
         metadata={
-            "description": "Snowflake database name",
+            "description": "Snowflake database name (only used for Snowflake connections)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -113,7 +105,7 @@ class ContextSchema:
     snowflake_schema: str = field(
         default=settings.snowflake_schema,
         metadata={
-            "description": "Snowflake schema name",
+            "description": "Snowflake schema name (only used for Snowflake connections)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -121,7 +113,7 @@ class ContextSchema:
     snowflake_warehouse: str = field(
         default=settings.snowflake_warehouse,
         metadata={
-            "description": "Snowflake warehouse name",
+            "description": "Snowflake warehouse (only used for Snowflake connections)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -129,7 +121,7 @@ class ContextSchema:
     snowflake_role: str = field(
         default=settings.snowflake_role,
         metadata={
-            "description": "Snowflake role name",
+            "description": "Snowflake role (only used for Snowflake connections)",
             "json_schema_extra": {"langgraph_nodes": settings.langgraph_node_names},
         },
     )
@@ -241,8 +233,8 @@ class ContextSchema:
         Environment variables:
         - AGENT_MODEL: LLM model
         - AGENT_TEMPERATURE: Model temperature
-        - AGENT_SNOWFLAKE_URI: Snowflake connection URI
-        - AGENT_SNOWFLAKE_*: Individual Snowflake connection params
+        - AGENT_SNOWFLAKE_URI: Database connection URI (SQLAlchemy format)
+        - AGENT_SNOWFLAKE_*: Snowflake-specific connection params
         - AGENT_ALLOWED_SCHEMAS: Comma-separated allowed schemas
         - AGENT_ALLOWED_TABLES: Comma-separated allowed tables
         - AGENT_READ_ONLY: Enforce read-only (true/false)
@@ -259,9 +251,6 @@ class ContextSchema:
             snowflake_uri=os.environ.get("AGENT_SNOWFLAKE_URI", settings.snowflake_uri),
             snowflake_account=os.environ.get("AGENT_SNOWFLAKE_ACCOUNT", settings.snowflake_account),
             snowflake_user=os.environ.get("AGENT_SNOWFLAKE_USER", settings.snowflake_user),
-            snowflake_password=os.environ.get(
-                "AGENT_SNOWFLAKE_PASSWORD", settings.snowflake_password
-            ),
             snowflake_database=os.environ.get(
                 "AGENT_SNOWFLAKE_DATABASE", settings.snowflake_database
             ),
@@ -294,9 +283,21 @@ class ContextSchema:
         """
         return {field_info.name: getattr(self, field_info.name) for field_info in fields(self)}
 
+    # Field name substrings that indicate sensitive values
+    _SENSITIVE_PATTERNS = ("password", "secret", "key", "uri")
+
+    def _is_sensitive_field(self, name: str) -> bool:
+        """Check if a field name indicates a sensitive value."""
+        name_lower = name.lower()
+        return any(pattern in name_lower for pattern in self._SENSITIVE_PATTERNS)
+
     def __repr__(self) -> str:
-        """String representation showing key configuration values."""
-        field_strs = [
-            f"{field_info.name}={getattr(self, field_info.name)!r}" for field_info in fields(self)
-        ]
+        """String representation with sensitive fields masked."""
+        field_strs = []
+        for field_info in fields(self):
+            value = getattr(self, field_info.name)
+            if self._is_sensitive_field(field_info.name) and value:
+                field_strs.append(f"{field_info.name}='***'")
+            else:
+                field_strs.append(f"{field_info.name}={value!r}")
         return f"{self.__class__.__name__}({', '.join(field_strs)})"

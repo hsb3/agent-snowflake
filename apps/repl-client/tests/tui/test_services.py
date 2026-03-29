@@ -3,7 +3,6 @@
 Simple integration tests to verify service wrappers work correctly.
 """
 
-
 from repl_client.core.client import LangGraphClient
 from repl_client.core.session import SessionState
 from repl_client.streaming.handler import StreamHandler
