@@ -71,7 +71,7 @@ class WelcomeScreen(ModalScreen[str | None]):
                 "- **F4** - Toggle sidebar (view threads, agents, session info)\n"
                 "- Type `/help` to see available slash commands\n\n"
                 "**Common Shortcuts:**\n"
-                "- **Ctrl+D** - Toggle light/dark mode\n"
+                "- **Ctrl+B** - Focus sidebar\n"
                 "- **F2** - Quick agent selection\n"
                 "- **F6** - Agent configuration\n"
                 "- **Ctrl+L** - Clear messages\n"

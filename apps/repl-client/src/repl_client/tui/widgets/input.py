@@ -275,8 +275,18 @@ class ChatInput(Vertical):
             self._text_area.set_text_from_history(entry)
 
     def watch_mode(self, mode: str) -> None:
-        """Post mode changed message when mode changes."""
-        self.post_message(self.ModeChanged(mode))
+        """Update the prompt indicator when mode changes."""
+        try:
+            prompt = self.query_one("#prompt", Static)
+        except Exception:
+            return
+
+        if mode == "bash":
+            prompt.update("!")
+        elif mode == "command":
+            prompt.update("/")
+        else:
+            prompt.update(">")
 
     def focus_input(self) -> None:
         """Focus the input field."""

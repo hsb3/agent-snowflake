@@ -15,7 +15,7 @@ from typing import AsyncIterator
 
 from repl_client.core.parsers import ToolCall, Usage, extract_text_delta
 from repl_client.core.session import SessionState
-from repl_client.streaming.types import ChunkType, Interrupt, ParsedChunk
+from repl_client.streaming.types import ChunkType, Interrupt, ParsedChunk, ToolResult
 
 
 class StreamHandler:
@@ -170,9 +170,33 @@ class StreamHandler:
 
                     # Handle tool_result blocks
                     elif block_type == "tool_result":
-                        # Phase 1: Skip tool results (server-side execution)
-                        # Phase 2: May need to display these
-                        pass
+                        tool_id = block.get("tool_use_id", "")
+                        tool_name = block.get("name", "")
+                        content = block.get("content", "")
+                        status = block.get("status", "success")
+
+                        # Content may be a string or a list of content blocks
+                        if isinstance(content, list):
+                            # Extract text from content blocks
+                            parts = []
+                            for part in content:
+                                if isinstance(part, dict) and part.get("type") == "text":
+                                    parts.append(part.get("text", ""))
+                                elif isinstance(part, str):
+                                    parts.append(part)
+                            content = "\n".join(parts)
+
+                        if content:
+                            yield ParsedChunk(
+                                chunk_type=ChunkType.TOOL_RESULT,
+                                namespace=ns_key,
+                                tool_result=ToolResult(
+                                    tool_id=tool_id,
+                                    tool_name=tool_name,
+                                    result=str(content),
+                                    status=status,
+                                ),
+                            )
 
                 # Check for complete tool calls (from tool_calls array)
                 if stop_reason == "tool_use" and tool_calls:

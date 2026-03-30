@@ -349,26 +349,37 @@ class TestChatInput:
             chat_input.value = "test value"
             assert chat_input.value == "test value"
 
-    async def test_mode_changed_message(self, tmp_path: Path) -> None:
-        """Test that mode changes emit messages."""
+    async def test_mode_changed_updates_prompt(self, tmp_path: Path) -> None:
+        """Test that mode changes update the prompt indicator."""
         from textual.app import App
-
-        mode_messages = []
 
         class TestApp(App):
             def compose(self):
                 yield ChatInput(history_file=tmp_path / "history.jsonl")
-
-            def on_chat_input_mode_changed(self, msg: ChatInput.ModeChanged):
-                mode_messages.append(msg)
 
         app = TestApp()
         async with app.run_test() as pilot:
             chat_input = app.query_one(ChatInput)
             text_area = chat_input.query_one(ChatTextArea)
 
+            # Default mode is normal
+            assert chat_input.mode == "normal"
+
+            # Type a command prefix
             text_area.text = "/command"
             await pilot.pause(0.1)
 
-            # Should have mode changed message
-            assert any(msg.mode == "command" for msg in mode_messages)
+            # Mode should change to command
+            assert chat_input.mode == "command"
+
+            # Switch to bash mode
+            text_area.text = "!ls"
+            await pilot.pause(0.1)
+
+            assert chat_input.mode == "bash"
+
+            # Back to normal
+            text_area.text = "hello"
+            await pilot.pause(0.1)
+
+            assert chat_input.mode == "normal"

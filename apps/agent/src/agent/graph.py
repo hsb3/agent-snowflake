@@ -5,7 +5,7 @@ Middleware is conditionally assembled based on ContextSchema configuration.
 """
 
 import logging
-from typing import Any
+from typing import Any, Literal
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
@@ -28,7 +28,7 @@ from .utils import init_model
 logger = logging.getLogger(__name__)
 
 
-def _detect_db_type(uri: str) -> str:
+def _detect_db_type(uri: str) -> Literal["sqlite", "snowflake"]:
     """Detect database type from connection URI.
 
     Args:
@@ -132,12 +132,12 @@ def _build_middleware(context: ContextSchema) -> list[Any]:
     # 5. Human-in-the-loop (only when not read-only)
     if context.enable_hitl and not context.read_only:
         allowed_decisions = [d.strip() for d in context.hitl_allowed_decisions.split(",")]
-        interrupt_config: Any = {
+        interrupt_config: dict[str, bool | dict[str, list[str]]] = {
             "sql_db_query": {"allowed_decisions": allowed_decisions},
             "sql_db_schema": False,
             "sql_db_list_tables": False,
         }
-        middleware.append(HumanInTheLoopMiddleware(interrupt_on=interrupt_config))
+        middleware.append(HumanInTheLoopMiddleware(interrupt_on=interrupt_config))  # type: ignore[arg-type]
 
     # 6. Summarization
     if context.enable_summarization:

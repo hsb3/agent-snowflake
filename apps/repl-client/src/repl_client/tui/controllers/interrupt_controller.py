@@ -124,7 +124,7 @@ class InterruptController:
             # Recursively process resumed stream
             # Use message controller's stream processing logic
             if self.message_controller:
-                await self.message_controller._process_stream(
+                await self.message_controller.process_stream(
                     chunks, ai_msg, messages_container, status_area
                 )
             else:

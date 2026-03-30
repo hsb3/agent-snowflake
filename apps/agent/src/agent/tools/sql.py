@@ -5,6 +5,7 @@ configuration and guardrails from the agent context.
 """
 
 import logging
+
 import sqlparse
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase

@@ -108,10 +108,11 @@ class MessageController:
         await messages_container.mount(loading)
         messages_container.scroll_end(animate=False)
 
-        # Update status
-        if status_area:
-            status_area.set_status("Streaming...")
+        # Update status via app_state (propagates to UI via reactive watchers)
+        if self.app_state:
+            self.app_state.set_status("Streaming...")
 
+        ai_msg: AssistantMessage | None = None
         try:
             # 3. Stream from server
             chunks = self.langgraph.client.stream_message(
@@ -128,28 +129,35 @@ class MessageController:
             await loading.remove()
 
             # 6. Process stream with callbacks
-            await self._process_stream(chunks, ai_msg, messages_container, status_area)
+            await self.process_stream(chunks, ai_msg, messages_container, status_area)
 
             # 7. Finalize assistant message
             await ai_msg.stop_stream()
 
-            # Update status
-            if status_area:
-                status_area.set_status("Ready")
+            # Update status via app_state
+            if self.app_state:
+                self.app_state.set_status("Ready")
 
         except Exception as e:
             logger.exception("Failed to send message")
+            # Clean up stream on the AI message if it was created
+            if ai_msg is not None:
+                try:
+                    await ai_msg.stop_stream()
+                except Exception:
+                    pass
+
             # Remove loading if still present
             try:
                 await loading.remove()
             except Exception:
                 pass
 
-            if status_area:
-                status_area.set_status(f"Error: {e}", error=True)
+            if self.app_state:
+                self.app_state.set_status(f"Error: {e}", error=True)
             raise
 
-    async def _process_stream(
+    async def process_stream(
         self,
         chunks,
         ai_msg: AssistantMessage,
@@ -202,12 +210,9 @@ class MessageController:
             tokens_summary = self.session.get_token_summary()
             total_tokens = tokens_summary["total"]
 
-            # Update app state
+            # Update app state (propagates to UI via reactive watcher)
             if self.app_state:
                 self.app_state.tokens = total_tokens
-
-            if status_area:
-                status_area.set_tokens(total_tokens)
 
         # Use stream service to process chunks
         await self.stream.stream_with_widgets(

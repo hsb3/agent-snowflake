@@ -34,7 +34,6 @@ from repl_client.tui.controllers import (
 )
 from repl_client.tui.hitl import HITLHandler
 from repl_client.tui.models import AppState
-from repl_client.tui.screens import AgentConfigScreen, WelcomeScreen
 from repl_client.tui.services import LangGraphService, StreamService
 from repl_client.tui.views import LayoutView, MessageAreaView, SidebarView, StatusAreaView
 from repl_client.tui.widgets import ChatInput, Command, CommandPalette
@@ -133,32 +132,45 @@ class REPLApp(App[None]):
     - Component initialization
     - NO business logic (delegated to controllers)
 
+    Reactive state:
+    - AppState setter methods push to these reactive properties
+    - Watchers on these properties update the UI widgets
+    - Controllers only need to call app_state methods (no dual writes)
+
     Key bindings:
     - Ctrl+C: Quit
     - Ctrl+L: Clear messages
-    - Ctrl+D: Toggle light/dark mode
+    - Ctrl+B: Focus sidebar
     - F2: Agent selection
     - F3: Thread selection
     """
 
-    # CSS loaded from concatenated modular files (see styles/README.md)
-    # Build with: cat theme.tcss layout.tcss components.tcss sidebar.tcss modals.tcss states.tcss light-mode.tcss > index.tcss
     CSS_PATH = "styles/index.tcss"
     ENABLE_COMMAND_PALETTE = False  # Disable Textual's built-in (we use custom)
 
     # Start in dark mode (Carbon Gray 100 theme)
     dark: reactive[bool] = reactive(True)
 
+    # Reactive state properties (driven by AppState, consumed by watchers)
+    state_status_message: reactive[str] = reactive("", init=False)
+    state_status_error: reactive[bool] = reactive(False, init=False)
+    state_streaming: reactive[bool] = reactive(False, init=False)
+    state_agent_name: reactive[str] = reactive("", init=False)
+    state_thread_id: reactive[str] = reactive("", init=False)
+    state_tokens: reactive[int] = reactive(0, init=False)
+    state_connected: reactive[bool] = reactive(False, init=False)
+    state_server_url: reactive[str] = reactive("", init=False)
+
     BINDINGS: ClassVar[list[Binding]] = [
         Binding("ctrl+c", "quit", "Quit", show=True),
         Binding("ctrl+p", "show_command_palette", "Commands", show=True),  # Our custom palette
         Binding("f4", "toggle_sidebar", "Sidebar", show=True),
         Binding("ctrl+l", "clear_messages", "Clear", show=True),
-        Binding("ctrl+d", "toggle_dark", "Light/Dark", show=True),
+        # TODO: Ctrl+D consumed by TextArea — see #12
+        # Binding("ctrl+d", "toggle_dark", "Light/Dark", show=True, priority=True),
         Binding("f2", "select_agent", "Agents", show=True),
         Binding("f3", "select_thread", "Threads", show=False),
         Binding("f5", "expand_sidebar", "Expand", show=False),
-        Binding("f6", "show_agent_config", "Config", show=True),
         Binding("ctrl+b", "focus_sidebar", "Focus Sidebar", show=False),
     ]
 
@@ -176,8 +188,17 @@ class REPLApp(App[None]):
         super().__init__(**kwargs)
         self.config = config or Config.from_env()
 
-        # Centralized reactive state (NEW - Phase 5)
+        # View references (populated in on_mount, but declared here so
+        # reactive watchers can safely check them during __init__)
+        self._layout: LayoutView | None = None
+        self._status_area: StatusAreaView | None = None
+        self._chat_input: ChatInput | None = None
+        self._message_area: MessageAreaView | None = None
+        self._sidebar: SidebarView | None = None
+
+        # Centralized reactive state (Phase 5)
         self.app_state = AppState()
+        self.app_state.bind(self)
         self.app_state.set_connection(False, self.config.server_url)
 
         # Core components
@@ -217,13 +238,6 @@ class REPLApp(App[None]):
         self.interrupt_controller.set_message_controller(self.message_controller)
         self.message_controller.set_interrupt_controller(self.interrupt_controller)
 
-        # View references (set in on_mount)
-        self._layout: LayoutView | None = None
-        self._status_area: StatusAreaView | None = None
-        self._chat_input: ChatInput | None = None
-        self._message_area: MessageAreaView | None = None
-        self._sidebar: SidebarView | None = None
-
     def compose(self) -> ComposeResult:
         """Compose the app layout using LayoutView."""
         yield LayoutView(
@@ -240,8 +254,55 @@ class REPLApp(App[None]):
         self._message_area = self._layout.get_message_area()
         self._sidebar = self._layout.get_sidebar()
 
+        # Sync initial reactive state from app_state (set before mount)
+        self.state_server_url = self.app_state.server_url
+
         # Start connection and setup
         self._startup()
+
+    # --- Reactive watchers: propagate state changes to widgets ---
+
+    def watch_state_status_message(self, message: str) -> None:
+        """Update status area when status message changes."""
+        if self._status_area:
+            self._status_area.set_status(message, error=self.app_state.status_error)
+
+    def watch_state_status_error(self, error: bool) -> None:
+        """Update status area error styling when error flag changes."""
+        if self._status_area:
+            self._status_area.set_status(self.app_state.status_message, error=error)
+
+    def watch_state_streaming(self, streaming: bool) -> None:
+        """Disable/enable input when streaming state changes."""
+        if self._chat_input:
+            self._chat_input.set_disabled(disabled=streaming)
+            if not streaming:
+                self._chat_input.focus_input()
+
+    def watch_state_agent_name(self, agent_name: str) -> None:
+        """Update status area when agent name changes."""
+        if self._status_area and agent_name:
+            self._status_area.set_agent(agent_name)
+
+    def watch_state_thread_id(self, thread_id: str) -> None:
+        """Update status area when thread changes."""
+        if self._status_area and thread_id:
+            self._status_area.set_thread(thread_id[:8])
+
+    def watch_state_tokens(self, tokens: int) -> None:
+        """Update status area when token count changes."""
+        if self._status_area:
+            self._status_area.set_tokens(tokens)
+
+    def watch_state_connected(self, connected: bool) -> None:
+        """Update status area when connection state changes."""
+        if self._status_area:
+            self._status_area.update_connection_status(connected, self.app_state.server_url)
+
+    def watch_state_server_url(self, server_url: str) -> None:
+        """Update status area when server URL changes."""
+        if self._status_area:
+            self._status_area.update_connection_status(self.app_state.connected, server_url)
 
     @work(exclusive=True)
     async def _startup(self) -> None:
@@ -253,14 +314,10 @@ class REPLApp(App[None]):
             if not connected:
                 self.app_state.set_status("Connection failed", error=True)
                 self.app_state.set_connection(False, self.config.server_url)
-                if self._status_area:
-                    self._status_area.update_connection_status(False, self.config.server_url)
                 logger.error("Failed to connect to server")
                 return
 
             self.app_state.set_connection(True, self.config.server_url)
-            if self._status_area:
-                self._status_area.update_connection_status(True, self.config.server_url)
             self.app_state.set_status("Loading agents...")
 
             # List agents via service
@@ -303,17 +360,31 @@ class REPLApp(App[None]):
 
             thread_id = create_result["thread_id"]
 
-            # Update status bar (still needed for immediate UI update)
-            if self._status_area:
-                self._status_area.set_agent(agent_name)
-                self._status_area.set_thread(thread_id[:8])
-
             self.app_state.set_status("Ready - Press Ctrl+P for commands", error=False)
 
-            logger.info(f"Connected to server, agent={agent_name}, thread={thread_id}")
+            # Add welcome message to message area
+            if self._message_area:
+                from textual.widgets import Markdown
 
-            # Show welcome modal
-            await self._show_welcome()
+                welcome_text = (
+                    "**Welcome to REPL!**\n\n"
+                    "**Quick Start:**\n"
+                    "- **Ctrl+P** - Open command palette (all commands & shortcuts)\n"
+                    "- **F4** - Toggle sidebar (view threads, agents, session info)\n"
+                    "- Type `/help` to see available slash commands\n\n"
+                    "**Common Shortcuts:**\n"
+                    "- **Ctrl+B** - Focus sidebar\n"
+                    "- **F2** - Quick agent selection\n"
+                    "- **Ctrl+L** - Clear messages\n"
+                    "- **Ctrl+C** - Quit\n\n"
+                    "Start chatting or press **Ctrl+P** to explore!"
+                )
+                welcome_widget = Markdown(welcome_text)
+                welcome_widget.add_class("system-message")
+                await self._message_area.mount(welcome_widget)
+                self._message_area.scroll_to_bottom()
+
+            logger.info(f"Connected to server, agent={agent_name}, thread={thread_id}")
 
         except Exception as e:
             logger.exception("Startup failed")
@@ -370,10 +441,6 @@ class REPLApp(App[None]):
 
         self.app_state.streaming = True
 
-        # Disable input during streaming
-        if self._chat_input:
-            self._chat_input.set_disabled(disabled=True)
-
         try:
             # Delegate to MessageController
             if self._message_area:
@@ -388,9 +455,6 @@ class REPLApp(App[None]):
             self.app_state.set_status(f"Error: {e}", error=True)
         finally:
             self.app_state.streaming = False
-            if self._chat_input:
-                self._chat_input.set_disabled(disabled=False)
-                self._chat_input.focus_input()
 
     def action_clear_messages(self) -> None:
         """Clear all messages from the container."""
@@ -404,6 +468,11 @@ class REPLApp(App[None]):
         mode = "dark" if self.dark else "light"
         logger.info(f"Switched to {mode} mode")
         self.app_state.set_status(f"Switched to {mode} mode")
+
+    def action_focus_input(self) -> None:
+        """Return focus to the chat input."""
+        if self._chat_input:
+            self._chat_input.focus()
 
     async def action_select_agent(self) -> None:
         """Show agent selection modal and delegate switching to SessionController."""
@@ -422,13 +491,11 @@ class REPLApp(App[None]):
         )
 
         if result:
-            # Delegate to SessionController
+            # Delegate to SessionController (updates app_state → watchers → UI)
             switch_result = await self.session_controller.switch_agent(result)
 
-            if switch_result["success"] and self._status_area:
-                self._status_area.set_agent(switch_result["display_name"])
+            if switch_result["success"]:
                 logger.info(f"Switched to agent: {result}")
-                # Update sidebar to show current agent
                 self._update_sidebar_content()
             else:
                 logger.error(f"Failed to switch agent: {switch_result['message']}")
@@ -451,64 +518,23 @@ class REPLApp(App[None]):
 
         if result:
             if result == "__new__":
-                # Delegate to SessionController
+                # Delegate to SessionController (updates app_state → watchers → UI)
                 create_result = await self.session_controller.create_thread()
                 if create_result["success"]:
-                    if self._status_area:
-                        self._status_area.set_thread(create_result["thread_id"][:8])
                     logger.info(f"Created new thread: {create_result['thread_id']}")
                     self.action_clear_messages()
-                    # Update sidebar to show new thread
                     self._update_sidebar_content()
                 else:
                     logger.error(f"Failed to create thread: {create_result['message']}")
             else:
-                # Delegate to SessionController
+                # Delegate to SessionController (updates app_state → watchers → UI)
                 switch_result = await self.session_controller.switch_thread(result)
                 if switch_result["success"]:
-                    if self._status_area:
-                        self._status_area.set_thread(result[:8])
                     logger.info(f"Switched to thread: {result}")
                     self.action_clear_messages()
-                    # Update sidebar to show current thread
                     self._update_sidebar_content()
                 else:
                     logger.error(f"Failed to switch thread: {switch_result['message']}")
-
-    async def action_show_agent_config(self) -> None:
-        """Show agent configuration modal with agent selector and schema viewer."""
-        logger.info("action_show_agent_config called")
-
-        current_agent_id = self.session.current_assistant_id or ""
-        logger.debug(f"Current assistant_id from session: {current_agent_id}")
-
-        # Fetch agents list (use cache if available)
-        try:
-            agents = await self.langgraph_service.get_agents()
-            logger.debug(f"Found {len(agents)} agents for config screen")
-        except Exception as e:
-            logger.exception("Failed to load agents for config screen")
-            self.app_state.set_status(f"Failed to load agents: {e}", error=True)
-            return
-
-        if not agents:
-            logger.error("No agents available")
-            self.app_state.set_status("No agents available", error=True)
-            return
-
-        self.app_state.set_status("Ready")
-
-        # Show config screen with agent selector
-        logger.info(
-            f"Pushing AgentConfigScreen with {len(agents)} agents, current={current_agent_id}"
-        )
-        result = await self.push_screen(
-            AgentConfigScreen(agents, current_agent_id, self.langgraph_service)
-        )
-
-        if result:
-            # Handle any returned action (future: create assistant)
-            logger.info(f"Agent config result: {result}")
 
     async def action_toggle_sidebar(self) -> None:
         """Toggle sidebar visibility."""
@@ -519,6 +545,9 @@ class REPLApp(App[None]):
                 # Refresh data when opening sidebar
                 await self._refresh_sidebar_data()
                 self._update_sidebar_content()
+                self._sidebar.focus()
+            elif self._chat_input:
+                self._chat_input.focus()
 
     async def action_expand_sidebar(self) -> None:
         """Toggle expanded sidebar mode."""
@@ -602,11 +631,10 @@ class REPLApp(App[None]):
         if not isinstance(message, Sidebar.AgentSelected):
             return
 
-        # Delegate to SessionController
+        # Delegate to SessionController (updates app_state → watchers → UI)
         switch_result = await self.session_controller.switch_agent(message.agent_id)
 
-        if switch_result["success"] and self._status_area:
-            self._status_area.set_agent(switch_result["display_name"])
+        if switch_result["success"]:
             logger.info(f"Switched to agent: {message.agent_id}")
             self._update_sidebar_content()
         else:
@@ -619,11 +647,10 @@ class REPLApp(App[None]):
         if not isinstance(message, Sidebar.ThreadSelected):
             return
 
-        # Delegate to SessionController
+        # Delegate to SessionController (updates app_state → watchers → UI)
         switch_result = await self.session_controller.switch_thread(message.thread_id)
 
-        if switch_result["success"] and self._status_area:
-            self._status_area.set_thread(message.thread_id[:8])
+        if switch_result["success"]:
             logger.info(f"Switched to thread: {message.thread_id}")
             self.action_clear_messages()
             self._update_sidebar_content()
@@ -637,12 +664,10 @@ class REPLApp(App[None]):
         if not isinstance(message, Sidebar.NewThreadRequested):
             return
 
-        # Delegate to SessionController
+        # Delegate to SessionController (updates app_state → watchers → UI)
         create_result = await self.session_controller.create_thread()
 
         if create_result["success"]:
-            if self._status_area:
-                self._status_area.set_thread(create_result["thread_id"][:8])
             logger.info(f"Created new thread: {create_result['thread_id']}")
             self.action_clear_messages()
             self._update_sidebar_content()
@@ -687,15 +712,6 @@ class REPLApp(App[None]):
                 category="Agents",
                 description="Change current agent (F2)",
                 action=self.action_select_agent,
-            )
-        )
-        commands.append(
-            Command(
-                id="agents-config",
-                label="Agent Configuration",
-                category="Agents",
-                description="View agent context schema (F6)",
-                action=self.action_show_agent_config,
             )
         )
 
@@ -814,15 +830,16 @@ class REPLApp(App[None]):
         )
 
         # System operations
-        commands.append(
-            Command(
-                id="sys-toggle-dark",
-                label="Toggle Light/Dark Mode",
-                category="System",
-                description="Switch between light and dark themes (Ctrl+D)",
-                action=self._cmd_toggle_dark,
-            )
-        )
+        # TODO: dark mode toggle disabled — see #12
+        # commands.append(
+        #     Command(
+        #         id="sys-toggle-dark",
+        #         label="Toggle Light/Dark Mode",
+        #         category="System",
+        #         description="Switch between light and dark themes (Ctrl+D)",
+        #         action=self._cmd_toggle_dark,
+        #     )
+        # )
         commands.append(
             Command(
                 id="sys-clear-messages",
@@ -850,11 +867,8 @@ class REPLApp(App[None]):
         """Create new thread via session controller."""
         create_result = await self.session_controller.create_thread()
         if create_result["success"]:
-            if self._status_area:
-                self._status_area.set_thread(create_result["thread_id"][:8])
             logger.info(f"Created new thread: {create_result['thread_id']}")
             self.action_clear_messages()
-            # Update sidebar to show new thread
             self._update_sidebar_content()
         else:
             logger.error(f"Failed to create thread: {create_result['message']}")
@@ -899,14 +913,6 @@ class REPLApp(App[None]):
     async def _cmd_toggle_dark(self) -> None:
         """Toggle dark mode."""
         self.action_toggle_dark()
-
-    async def _show_welcome(self) -> None:
-        """Show welcome modal on startup."""
-        result = await self.push_screen(WelcomeScreen())
-
-        if result == "commands":
-            # User chose to open command palette
-            await self.action_show_command_palette()
 
     async def action_quit(self) -> None:
         """Quit the application."""

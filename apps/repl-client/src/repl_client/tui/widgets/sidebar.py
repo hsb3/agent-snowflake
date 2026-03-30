@@ -213,14 +213,49 @@ class Sidebar(Container):
 
     # Keyboard navigation methods
 
+    # Tab IDs in order for left/right cycling
+    _TAB_ORDER = ("threads-tab", "agents-tab", "session-tab", "tools-tab")
+
     def on_key(self, event) -> None:
-        """Handle keyboard navigation."""
+        """Handle keyboard navigation.
+
+        Keys:
+        - Left/Right or [/]: Cycle between tabs
+        - Up/Down: Navigate items within a tab
+        - Enter: Select focused item
+        - Escape: Close sidebar and return focus to input
+        """
         if not self.visible:
             return
 
         # Get active tab
         tabbed = self.query_one(TabbedContent)
         active_tab_id = tabbed.active
+
+        # Tab cycling with left/right arrows or [ / ]
+        if event.key in ("left", "right", "open_bracket", "close_bracket"):
+            current_idx = (
+                self._TAB_ORDER.index(active_tab_id)
+                if active_tab_id in self._TAB_ORDER
+                else 0
+            )
+            if event.key in ("right", "close_bracket"):
+                next_idx = (current_idx + 1) % len(self._TAB_ORDER)
+            else:
+                next_idx = (current_idx - 1) % len(self._TAB_ORDER)
+            tabbed.active = self._TAB_ORDER[next_idx]
+            event.prevent_default()
+            event.stop()
+            return
+
+        # Close sidebar with Escape
+        if event.key == "escape":
+            self.toggle()
+            event.prevent_default()
+            event.stop()
+            # Return focus to input via action dispatch
+            self.app.run_action("focus_input")
+            return
 
         if event.key == "up":
             if active_tab_id == "threads-tab":

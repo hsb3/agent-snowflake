@@ -386,30 +386,32 @@ class ContextSchema:
 
     # Fields that are middleware-specific (not core agent config).
     # Used by get_middleware_config() to extract middleware settings.
-    _MIDDLEWARE_FIELDS = frozenset({
-        "enable_hitl",
-        "hitl_allowed_decisions",
-        "model_call_thread_limit",
-        "model_call_run_limit",
-        "model_call_exit_behavior",
-        "tool_call_thread_limit",
-        "tool_call_run_limit",
-        "tool_call_exit_behavior",
-        "sql_query_thread_limit",
-        "sql_query_run_limit",
-        "retry_max_retries",
-        "retry_backoff_factor",
-        "retry_initial_delay",
-        "retry_max_delay",
-        "retry_jitter",
-        "enable_summarization",
-        "summarization_model",
-        "summarization_trigger_tokens",
-        "summarization_keep_messages",
-        "enable_todo",
-        "enable_fallback",
-        "fallback_models",
-    })
+    _MIDDLEWARE_FIELDS = frozenset(
+        {
+            "enable_hitl",
+            "hitl_allowed_decisions",
+            "model_call_thread_limit",
+            "model_call_run_limit",
+            "model_call_exit_behavior",
+            "tool_call_thread_limit",
+            "tool_call_run_limit",
+            "tool_call_exit_behavior",
+            "sql_query_thread_limit",
+            "sql_query_run_limit",
+            "retry_max_retries",
+            "retry_backoff_factor",
+            "retry_initial_delay",
+            "retry_max_delay",
+            "retry_jitter",
+            "enable_summarization",
+            "summarization_model",
+            "summarization_trigger_tokens",
+            "summarization_keep_messages",
+            "enable_todo",
+            "enable_fallback",
+            "fallback_models",
+        }
+    )
 
     @classmethod
     def from_runnable_config(
