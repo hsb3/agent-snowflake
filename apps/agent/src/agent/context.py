@@ -40,6 +40,8 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
+# TODO: Move all constants to top of file or to constants module for easier management / reuse
+# TODO: Find a demo snowflake database to test this on.
 
 @dataclass(kw_only=True, repr=False)
 class ContextSchema:

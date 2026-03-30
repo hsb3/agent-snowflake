@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
+# TODO: Copy method of providing curated list of model providers / LLM providers from other project.  Uses curated data from models.dev API
 ModelProvider = Literal["anthropic", "openai", "google"]
 
 
@@ -44,8 +45,8 @@ class Settings:
     query_timeout: int = 30
 
     # Execution Settings
-    max_iterations: int = 25
-    enable_debug: bool = False
+    max_iterations: int = 25 # TODO: Confirm this is graph recursion limit. Use better name. 
+    enable_debug: bool = False # TODO: Confirm what this flag controls / how it is used
 
     # Development Settings
     cors_origins: str = "*"
