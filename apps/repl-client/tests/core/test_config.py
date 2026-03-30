@@ -37,7 +37,10 @@ class TestConfig:
 
     def test_from_env_with_url(self):
         """Test from_env() loads LANGGRAPH_DEV_SERVER_URL."""
-        with patch.dict(os.environ, {"LANGGRAPH_DEV_SERVER_URL": "http://localhost:3000"}):
+        with patch.dict(
+            os.environ,
+            {"LANGGRAPH_DEV_SERVER_URL": "http://localhost:3000", "REPL_DEFAULT_AGENT": ""},
+        ):
             config = Config.from_env()
 
             assert config.server_url == "http://localhost:3000"

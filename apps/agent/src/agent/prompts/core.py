@@ -1,4 +1,4 @@
-"""Core system instructions for the Snowflake agent."""
+"""Core system instructions for the SQL agent."""
 
 CORE_INSTRUCTIONS = """You are a data analyst. You help users query and understand their Snowflake data.
 

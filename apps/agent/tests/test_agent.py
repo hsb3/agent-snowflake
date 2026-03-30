@@ -1,4 +1,4 @@
-"""Test the Snowflake agent graph.
+"""Test the SQL agent graph.
 
 These tests verify that the LangGraph agent compiles correctly and can be invoked.
 Note: Some tests require valid API keys in .env file.
@@ -31,7 +31,7 @@ def test_build_graph_function(mock_sqlite_db):
 
         config = {
             "configurable": {
-                "snowflake_uri": "sqlite:///:memory:",
+                "database_uri": "sqlite:///:memory:",
             }
         }
 
@@ -47,7 +47,7 @@ def test_graph_has_nodes(mock_sqlite_db):
 
         config = {
             "configurable": {
-                "snowflake_uri": "sqlite:///:memory:",
+                "database_uri": "sqlite:///:memory:",
             }
         }
 
@@ -73,7 +73,7 @@ def test_graph_invocation():
     """
     config = {
         "configurable": {
-            "snowflake_uri": "snowflake://...",  # Provide actual URI
+            "database_uri": "snowflake://...",  # Provide actual URI
         }
     }
 

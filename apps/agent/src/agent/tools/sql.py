@@ -1,12 +1,10 @@
-"""SQL tools for Snowflake agent using LangChain's SQLDatabaseToolkit.
+"""SQL tools for the agent using LangChain's SQLDatabaseToolkit.
 
-This module wraps LangChain's pre-built SQL tools with Snowflake-specific
+This module wraps LangChain's pre-built SQL tools with database-specific
 configuration and guardrails from the agent context.
 """
 
 import logging
-from typing import TYPE_CHECKING
-
 import sqlparse
 from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
@@ -15,9 +13,6 @@ from langchain_core.tools import BaseTool
 
 from ..context import ContextSchema
 from ..utils import create_sql_database
-
-if TYPE_CHECKING:
-    from ..context2 import EnhancedContextSchema
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +145,7 @@ class ReadOnlyQueryTool(BaseTool):
 
 def create_sql_tools(
     llm: BaseChatModel,
-    context: "ContextSchema | EnhancedContextSchema",
+    context: ContextSchema,
     db: SQLDatabase | None = None,
 ) -> list[BaseTool]:
     """Create SQL database tools with context-based guardrails.
@@ -178,7 +173,7 @@ def create_sql_tools(
         >>>
         >>> llm = init_model("claude-sonnet-4-5-20250929")
         >>> context = ContextSchema(
-        ...     snowflake_uri="snowflake://...",
+        ...     database_uri="snowflake://...",
         ...     allowed_schemas="TPCH_SAMPLE",
         ...     read_only=True
         ... )

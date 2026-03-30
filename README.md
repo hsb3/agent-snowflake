@@ -7,7 +7,7 @@ SQL agent with database guardrails and a terminal client for LangGraph servers.
 - **SQL Agent** — LangGraph-powered agent with query validation and guardrails
 - **TUI Client** — Rich terminal interface built with Textual
 - **Human-in-the-Loop** — Approve or reject tool calls before execution
-- **Multi-Agent Support** — Switch between agent variants on the fly
+- **Configurable Middleware** — Toggle retry, rate limits, summarization via context flags
 
 ## Quick Start
 

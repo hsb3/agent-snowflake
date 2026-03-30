@@ -18,7 +18,7 @@ ModelProvider = Literal["anthropic", "openai", "google"]
 
 @dataclass
 class Settings:
-    """Default settings for Snowflake agent.
+    """Default settings for SQL agent.
 
     Provides default values and environment variable loading.
     Configuration priority: Runtime context > Environment > Defaults
@@ -28,8 +28,8 @@ class Settings:
     model: str = "claude-sonnet-4-5-20250929"
     temperature: float = 0.0
 
-    # Snowflake Connection
-    snowflake_uri: str = ""
+    # Database Connection
+    database_uri: str = ""
     snowflake_account: str = ""
     snowflake_user: str = ""
     snowflake_database: str = ""
@@ -77,7 +77,7 @@ class Settings:
         Environment variables:
         - AGENT_MODEL: Main model
         - AGENT_TEMPERATURE: Model temperature (float)
-        - AGENT_SNOWFLAKE_URI: Snowflake connection URI
+        - AGENT_DATABASE_URI: Database connection URI
         - AGENT_SNOWFLAKE_ACCOUNT: Snowflake account
         - AGENT_SNOWFLAKE_USER: Snowflake user
         - AGENT_SNOWFLAKE_PASSWORD: Snowflake password
@@ -100,7 +100,7 @@ class Settings:
         return cls(
             model=os.environ.get("AGENT_MODEL", "claude-sonnet-4-5-20250929"),
             temperature=float(os.environ.get("AGENT_TEMPERATURE", "0.0")),
-            snowflake_uri=os.environ.get("AGENT_SNOWFLAKE_URI", ""),
+            database_uri=os.environ.get("AGENT_DATABASE_URI", ""),
             snowflake_account=os.environ.get("AGENT_SNOWFLAKE_ACCOUNT", ""),
             snowflake_user=os.environ.get("AGENT_SNOWFLAKE_USER", ""),
             snowflake_database=os.environ.get("AGENT_SNOWFLAKE_DATABASE", ""),

@@ -9,7 +9,7 @@ from agent.context import ContextSchema
 from agent.tools import create_sql_tools, get_database_context, validate_read_only_query
 from agent.tools.sql import ReadOnlyQueryTool
 from agent.utils import (
-    create_snowflake_engine,
+    create_db_engine,
     is_test_connection,
 )
 
@@ -44,7 +44,7 @@ def mock_llm():
 def test_context():
     """Provide test context."""
     return ContextSchema(
-        snowflake_uri="snowflake://test:test@localhost:8080/SAMPLE_DB/TPCH_SAMPLE",
+        database_uri="snowflake://test:test@localhost:8080/SAMPLE_DB/TPCH_SAMPLE",
         allowed_schemas="TPCH_SAMPLE",
         allowed_tables="*",
         read_only=True,
@@ -97,7 +97,7 @@ def test_is_test_connection():
 
 def test_create_engine_from_uri(test_context):
     """Test engine creation from URI."""
-    engine = create_snowflake_engine(test_context)
+    engine = create_db_engine(test_context)
     assert engine is not None
     assert "snowflake" in str(engine.url).lower() or "localhost" in str(engine.url).lower()
 
@@ -106,19 +106,19 @@ def test_create_engine_missing_params(monkeypatch):
     """Test that engine creation fails without required params."""
     monkeypatch.setenv("SNOWFLAKE_PASSWORD", "test-pass")
     context = ContextSchema(
-        snowflake_uri="",  # No URI
+        database_uri="",  # No URI
         snowflake_account="",  # Missing account
         snowflake_user="test-user",
     )
-    with pytest.raises(ValueError, match="Either snowflake_uri or all of"):
-        create_snowflake_engine(context)
+    with pytest.raises(ValueError, match="Either database_uri or all of"):
+        create_db_engine(context)
 
 
 def test_create_sql_tools_with_sqlite(mock_llm, sqlite_test_db):
     """Test SQL tools creation using SQLite (no Snowflake connection needed)."""
     # Create tools using pre-made database
     context = ContextSchema(
-        snowflake_uri="sqlite:///:memory:",  # Not actually used
+        database_uri="sqlite:///:memory:",  # Not actually used
         read_only=True,
     )
 
@@ -138,7 +138,7 @@ def test_create_sql_tools_with_sqlite(mock_llm, sqlite_test_db):
 def test_sql_tools_read_only_enforcement(mock_llm, sqlite_test_db):
     """Test that read-only mode adds restrictions to tool descriptions."""
     context = ContextSchema(
-        snowflake_uri="sqlite:///:memory:",
+        database_uri="sqlite:///:memory:",
         read_only=True,
     )
 
@@ -168,7 +168,7 @@ def test_get_database_context(sqlite_test_db):
 def test_create_sql_tools_with_provided_database(mock_llm, sqlite_test_db):
     """Test tool creation with pre-created database."""
     context = ContextSchema(
-        snowflake_uri="sqlite:///:memory:",
+        database_uri="sqlite:///:memory:",
         read_only=False,
     )
 
@@ -189,7 +189,7 @@ def test_engine_uri_with_timeout(monkeypatch):
         query_timeout=60,
     )
 
-    engine = create_snowflake_engine(context)
+    engine = create_db_engine(context)
     # Engine created successfully with timeout setting
     assert engine is not None
 
@@ -230,7 +230,7 @@ def test_tools_integration_with_sqlite(mock_llm):
 
     # Create context and tools
     context = ContextSchema(
-        snowflake_uri="sqlite:///:memory:",
+        database_uri="sqlite:///:memory:",
         read_only=True,
         enable_debug=False,
     )
@@ -357,7 +357,7 @@ class TestReadOnlyQueryToolIntegration:
     def test_select_executes_through_wrapper(self, mock_llm, sqlite_db_with_data):
         """SELECT queries should pass through the wrapper and execute."""
         context = ContextSchema(
-            snowflake_uri="sqlite:///:memory:",
+            database_uri="sqlite:///:memory:",
             read_only=True,
         )
         tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
@@ -373,7 +373,7 @@ class TestReadOnlyQueryToolIntegration:
     def test_delete_blocked_by_wrapper(self, mock_llm, sqlite_db_with_data):
         """DELETE queries should be blocked before reaching the database."""
         context = ContextSchema(
-            snowflake_uri="sqlite:///:memory:",
+            database_uri="sqlite:///:memory:",
             read_only=True,
         )
         tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
@@ -390,7 +390,7 @@ class TestReadOnlyQueryToolIntegration:
     def test_drop_blocked_by_wrapper(self, mock_llm, sqlite_db_with_data):
         """DROP queries should be blocked before reaching the database."""
         context = ContextSchema(
-            snowflake_uri="sqlite:///:memory:",
+            database_uri="sqlite:///:memory:",
             read_only=True,
         )
         tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
@@ -407,7 +407,7 @@ class TestReadOnlyQueryToolIntegration:
     def test_insert_blocked_by_wrapper(self, mock_llm, sqlite_db_with_data):
         """INSERT queries should be blocked before reaching the database."""
         context = ContextSchema(
-            snowflake_uri="sqlite:///:memory:",
+            database_uri="sqlite:///:memory:",
             read_only=True,
         )
         tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)
@@ -420,7 +420,7 @@ class TestReadOnlyQueryToolIntegration:
     def test_no_wrapper_when_not_read_only(self, mock_llm, sqlite_db_with_data):
         """When read_only=False, the query tool should NOT be wrapped."""
         context = ContextSchema(
-            snowflake_uri="sqlite:///:memory:",
+            database_uri="sqlite:///:memory:",
             read_only=False,
         )
         tools = create_sql_tools(llm=mock_llm, context=context, db=sqlite_db_with_data)

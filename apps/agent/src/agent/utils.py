@@ -1,8 +1,8 @@
-"""Utility functions for the Snowflake agent."""
+"""Utility functions for the SQL agent."""
 
 import logging
 import os
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from urllib.parse import urlparse
 
 from langchain.chat_models import init_chat_model
@@ -12,9 +12,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from .context import ContextSchema
-
-if TYPE_CHECKING:
-    from .context2 import EnhancedContextSchema
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +100,7 @@ def is_test_connection(uri: str) -> bool:
     return hostname in ("localhost", "127.0.0.1") or "test" in hostname.lower() or ":8080" in uri
 
 
-def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") -> Engine:
+def create_db_engine(context: ContextSchema) -> Engine:
     """Create SQLAlchemy engine from context configuration.
 
     Supports both URI-based and parameter-based connection methods.
@@ -119,8 +116,8 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
         ValueError: If neither URI nor required parameters are provided
 
     Examples:
-        >>> context = ContextSchema(snowflake_uri="snowflake://...")
-        >>> engine = create_snowflake_engine(context)
+        >>> context = ContextSchema(database_uri="snowflake://...")
+        >>> engine = create_db_engine(context)
         >>>
         >>> # Or with individual parameters (password read from SNOWFLAKE_PASSWORD env var)
         >>> context = ContextSchema(
@@ -128,11 +125,11 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
         ...     snowflake_user="myuser",
         ...     snowflake_database="mydb"
         ... )
-        >>> engine = create_snowflake_engine(context)
+        >>> engine = create_db_engine(context)
     """
     # Try URI first
-    if context.snowflake_uri:
-        uri = context.snowflake_uri
+    if context.database_uri:
+        uri = context.database_uri
         logger.debug(
             "Creating engine from URI: %s (test=%s)",
             _redact_uri_password(uri),
@@ -155,7 +152,7 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
 
     if not all([context.snowflake_account, context.snowflake_user, snowflake_password]):
         raise ValueError(
-            "Either snowflake_uri or all of (snowflake_account, snowflake_user, "
+            "Either database_uri or all of (snowflake_account, snowflake_user, "
             "SNOWFLAKE_PASSWORD env var) must be provided"
         )
 
@@ -198,7 +195,7 @@ def create_snowflake_engine(context: "ContextSchema | EnhancedContextSchema") ->
 
 
 def create_sql_database(
-    context: "ContextSchema | EnhancedContextSchema",
+    context: ContextSchema,
     engine: Engine | None = None,
 ) -> SQLDatabase:
     """Create LangChain SQLDatabase with guardrails from context.
@@ -214,7 +211,7 @@ def create_sql_database(
 
     Examples:
         >>> context = ContextSchema(
-        ...     snowflake_uri="snowflake://...",
+        ...     database_uri="snowflake://...",
         ...     allowed_schemas="TPCH_SAMPLE",
         ...     allowed_tables="CUSTOMER,ORDERS",
         ...     read_only=True
@@ -222,7 +219,7 @@ def create_sql_database(
         >>> db = create_sql_database(context)
     """
     if engine is None:
-        engine = create_snowflake_engine(context)
+        engine = create_db_engine(context)
 
     # Parse allowed tables from context
     include_tables = None

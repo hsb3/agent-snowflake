@@ -184,7 +184,7 @@ Copy `.env.example` to `.env`:
 LANGGRAPH_DEV_SERVER_URL=http://localhost:2024
 
 # Optional: Default agent/graph to use
-LANGGRAPH_AGENT_NAME=agent
+REPL_DEFAULT_AGENT=agent
 ```
 
 ### Config Class (`core/config.py`)
@@ -217,7 +217,7 @@ class Config:
 
 ### Agent Switching
 
-- User types friendly name: `agent_enhanced`
+- User types friendly name: `agent`
 - Client resolves to UUID via cache
 - Server receives UUID for API calls
 - Default: keeps current thread (use `--new` flag for fresh thread)

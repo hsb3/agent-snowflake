@@ -27,7 +27,7 @@ def test_build_graph_with_sqlite():
 
         config = {
             "configurable": {
-                "snowflake_uri": "sqlite:///:memory:",
+                "database_uri": "sqlite:///:memory:",
                 "read_only": True,
                 "model": "claude-sonnet-4-5-20250929",
             }
@@ -55,7 +55,7 @@ def test_graph_structure():
 
         config = {
             "configurable": {
-                "snowflake_uri": "sqlite:///:memory:",
+                "database_uri": "sqlite:///:memory:",
                 "model": "claude-sonnet-4-5-20250929",
             }
         }

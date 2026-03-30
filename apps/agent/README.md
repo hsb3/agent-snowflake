@@ -1,84 +1,67 @@
-# agent-snowflake
+# SQL Agent
 
-Various LangGraph agents.  Primary interaction via LangGraph Dev Server.
+LangGraph SQL agent with configurable middleware and database guardrails.
 
-## Makefile Commands
+## Key Features
+
+- **Multi-database** — SQLite for dev, Snowflake for production (more planned)
+- **Configurable middleware** — HITL approval, retry, rate limits, summarization, fallback — all toggle-able via context flags
+- **Query guardrails** — Read-only mode, schema/table restrictions, query timeouts
+- **LangGraph Studio** — Full Studio UI integration with configurable context fields
+
+## Quick Start
 
 ```bash
-  # setup
-  make install        - Install dependencies with uv
-  make setup-test-db  - Create test SQLite database with stub TPC-H data
-  make setup-chinook  - Download Chinook database (digital media store, 11 tables)
-  
-  # langgraph dev server
-  make dev            - Start LangGraph dev server with Studio UI
-  make dev-server     - Start LangGraph dev server without browser (for REPL)
-  
-  
-  # development commands
-  make test           - Run all tests with pytest
-  make test-fast      - Run tests excluding slow tests
-  make format         - Format code with ruff
-  make lint           - Lint code with ruff
-  make type-check     - Type check with ty
-  make clean          - Remove generated files and caches
+make install            # Install dependencies
+make setup-chinook      # Download test database
+make dev                # Start dev server with Studio UI
 ```
 
-See `Makefile` for additional commands (setup-chinook, test-fast, lint, clean).
+## Commands
 
-## Agent Variants
+```bash
+# Setup
+make install            # Install dependencies with uv
+make setup-chinook      # Download Chinook test database
 
-- **agent** - Core SQL agent with LangChain toolkit
-- **agent_minimal** - Adds guardrails and context controls
-- **agent_enhanced** - Full featured with extended tooling
+# Development
+make dev                # Start LangGraph dev server with Studio UI
+make dev-server         # Start server without browser
 
-## Preview LangGraph Dev Server
+# Quality
+make test               # Run all tests
+make format             # Format with ruff
+make lint               # Lint with ruff
+make type-check         # Type check with ty
+make check              # All of the above
+make clean              # Remove caches
+```
 
-<table>
-  <tr>
-    <td><img src="../../docs/assets/agent_core.png" alt="Agent Core" width="400"/></td>
-    <td><img src="../../docs/assets/agent_enhanced.png" alt="Agent Enhanced" width="400"/></td>
-  </tr>
-  <tr>
-    <td><img src="../../docs/assets/agent_min.png" alt="Agent Minimal" width="400"/></td>
-    <td><img src="../../docs/assets/entry.png" alt="Entry Point" width="400"/></td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center"><img src="../../docs/assets/schema_extras.png" alt="Schema Extras" width="400"/></td>
-  </tr>
-</table>
+## Configuration
 
+Copy `.env.example` to `.env`. Key variables:
 
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `AGENT_DATABASE_URI` | SQLAlchemy connection URI | (required) |
+| `AGENT_MODEL` | LLM model | `claude-sonnet-4-5-20250929` |
+| `AGENT_READ_ONLY` | Enforce read-only access | `true` |
+| `AGENT_ENABLE_HITL` | Human-in-the-loop approval | `true` |
+
+Config precedence: runtime context → environment → defaults.
+
+## Example Prompts
+
+```
+Show me all tables
+
+Who are the top 10 artists by track count?
+
+For each billing country, what is total invoice revenue? Rank by total revenue desc, top 10.
+```
 
 ## Notes
 
-- LANGSMITH_API_KEY optional
-- API docs at localhost:2024/docs
-- Viewing Safari requires `--tunnel` flag
-- Config precedence: defaults → environment → overrides
-
----
-
-### Try below prompts with SQL agents
-```
-Answer below questions, one at a time:
-
-“For each billing country, what is total invoice revenue, number of invoices, and average invoice total? Rank countries by total revenue (desc) and return the top 10.”
-
-
-“List the top 10 artists by total sales revenue. For each artist, include total revenue, number of distinct tracks sold, and number of distinct customers.”
-
-
-“For each customer, compute: first purchase date, last purchase date, total spend, and number of distinct purchase months. Then return the 20 customers with the most distinct purchase months (tie-break by total spend).”
-
-```
-
----
-
-**reference projects**
-
-- textual/repl inspo: https://github.com/batrachianai/toad
-- textual chat app: https://github.com/darrenburns/elia
-
-
-
+- API docs at `localhost:2024/docs`
+- Safari viewing requires `--tunnel` flag
+- See `CLAUDE.md` for architecture details

@@ -121,7 +121,7 @@ Each app declares only the dependencies it needs in its own `pyproject.toml`.
 
 ### Agent (apps/agent/)
 - Context-driven configuration with three-layer priority
-- Graph variants: `agent`, `agent_enhanced`, `agent_minimal`
+- Single graph with configurable middleware (enabled/disabled via context flags)
 - See `apps/agent/CLAUDE.md` for architecture details
 
 ### REPL Client (apps/repl-client/)

@@ -1,4 +1,4 @@
-"""System prompts for the Snowflake agent.
+"""System prompts for the SQL agent.
 
 Exports build_system_prompt for dynamic prompt generation based on db_type.
 """

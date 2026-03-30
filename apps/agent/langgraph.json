@@ -6,8 +6,6 @@
   ],
   "env": ".env",
   "graphs": {
-    "agent": "agent:graph",
-    "agent_enhanced": "agent:graph_enhanced",
-    "agent_minimal": "agent:graph_minimal"
+    "agent": "agent:graph"
   }
 }
