@@ -5,3 +5,6 @@
  - [ ] add sandbox tools for data analysis
  - [ ] audit whether allow/block logic is too dumb
  - [ ] error / warning types -> don't save results from queries that are empty or have errors
+
+
+    NOTE: must use 'google_genai:' prefix for any gemini models 

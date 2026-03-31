@@ -28,16 +28,21 @@ from .utils import init_model
 logger = logging.getLogger(__name__)
 
 
-def _detect_db_type(uri: str) -> Literal["sqlite", "snowflake"]:
-    """Detect database type from connection URI.
+def _detect_db_type(context: ContextSchema) -> Literal["sqlite", "snowflake"]:
+    """Detect database type from context configuration.
+
+    Checks the URI first, then falls back to checking whether individual
+    Snowflake connection parameters are set.
 
     Args:
-        uri: Database connection URI
+        context: Agent context with database configuration
 
     Returns:
-        "snowflake" if URI starts with snowflake://, otherwise "sqlite"
+        "snowflake" if URI or individual params indicate Snowflake, otherwise "sqlite"
     """
-    if uri.startswith("snowflake://"):
+    if context.database_uri.startswith("snowflake://"):
+        return "snowflake"
+    if context.snowflake_account:
         return "snowflake"
     return "sqlite"
 
@@ -184,7 +189,7 @@ def build_graph(config: RunnableConfig | None = None) -> CompiledStateGraph:
         logger.info("Created %d tools: %s", len(tools), [t.name for t in tools])
 
     # Build system prompt based on detected database type
-    db_type = _detect_db_type(context.database_uri)
+    db_type = _detect_db_type(context)
     prompt = build_system_prompt(db_type=db_type)
 
     # Assemble middleware
