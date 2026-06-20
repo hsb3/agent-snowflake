@@ -9,7 +9,7 @@ description = "LangGraph SQL agent with database guardrails"
 requires-python = ">=3.12"
 dependencies = [
     "langchain>=1.2.13",
-    "langchain-anthropic>=1.4.0",
+    "langchain-anthropic>=1.4.6",
     "langchain-community>=0.4.1",
     "langchain-google-genai>=4.2.1",
     "langchain-openai>=1.1.12",
